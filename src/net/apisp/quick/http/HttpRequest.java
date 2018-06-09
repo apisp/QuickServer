@@ -12,6 +12,8 @@ package net.apisp.quick.http;
 public interface HttpRequest {
 	String method();
 	String uri();
+	String version();
 	String header(String key);
 	byte[] body();
+	boolean normative();
 }

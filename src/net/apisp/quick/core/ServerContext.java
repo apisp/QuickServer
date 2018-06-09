@@ -20,11 +20,15 @@ public class ServerContext {
     private static ServerContext instance;
     private Map<String, RequestExecutorInfo> mappings;
     private ExecutorService executor;
+    
+    private int port;
 
     private ServerContext() {
         // 单例对象
         mappings = new HashMap<>();
         executor = Executors.newFixedThreadPool((int) Configuration.get("quick.server.threads"));
+        
+        port = (int) Configuration.get("quick.server.port");
     }
 
     static synchronized ServerContext instance() {
@@ -34,15 +38,38 @@ public class ServerContext {
         return instance;
     }
 
+    /**
+     * 添加映射
+     * @param key
+     * @param executeInfo
+     */
     public void mapping(String key, RequestExecutorInfo executeInfo) {
         mappings.put(key, executeInfo);
     }
 
+    /**
+     * 命中 mapping
+     * @param method
+     * @param uri
+     * @return
+     */
     public RequestExecutorInfo hit(String method, String uri) {
         return mappings.get(method.toUpperCase() + " " + uri);
     }
 
+    /**
+     * 线程池
+     * @return
+     */
     public ExecutorService executor() {
         return executor;
+    }
+    
+    /**
+     * 服务监听的端口
+     * @return
+     */
+    public int port() {
+        return port;
     }
 }

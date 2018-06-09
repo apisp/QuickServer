@@ -7,6 +7,12 @@ import net.apisp.quick.config.Configuration;
 import net.apisp.quick.log.Logger;
 import net.apisp.quick.server.QuickServer;
 
+/**
+ * 框架万能帮助类
+ * 
+ * @author UJUED
+ * @date 2018-06-08 10:34:37
+ */
 public class Quick {
 	private static QuickServer server = QuickServer.chose();
 	private static final Logger LOGGER = Logger.get(Quick.class);

@@ -4,9 +4,11 @@
 package net.apisp.quick.core;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import net.apisp.quick.annotation.RequestBody;
 import net.apisp.quick.http.ContentTypes;
 import net.apisp.quick.http.HttpRequest;
 import net.apisp.quick.http.HttpStatus;
@@ -15,8 +17,7 @@ import net.apisp.quick.util.JSONs;
 /**
  * 请求处理器
  *
- * @author UJUED
- * 2018年6月8日 上午11:11:39
+ * @author UJUED 2018年6月8日 上午11:11:39
  */
 public class RequestProcessor {
     private RequestExecutorInfo executeInfo;
@@ -40,15 +41,41 @@ public class RequestProcessor {
         ResponseInfo responseInfo = new ResponseInfo();
         if (executeInfo == null) {
             responseInfo.setBody("<h1>Not Found!</h1>".getBytes());
-            responseInfo.setStatusCode(HttpStatus.NOT_FOUND);
+            responseInfo.setStatus(HttpStatus.NOT_FOUND);
             responseInfo.setContentType(ContentTypes.HTML);
         } else {
             Method method = executeInfo.getMethod();
             Class<?>[] types = method.getParameterTypes();
             Object[] params = new Object[types.length];
             Class<?> type = null;
-            for (int i = 0; i < types.length; i++) {
+            Annotation[][] annosParams = method.getParameterAnnotations();
+            Annotation[] annos = null;
+
+            // 按类型、注解注入参数
+            nextParam: for (int i = 0; i < types.length; i++) {
                 type = types[i];
+
+                // 优先按注解注入
+                annos = annosParams[i];
+                toTypeInject: for (int j = 0; j < annos.length; j++) {
+                    if (annos[j] instanceof RequestBody) { // @RequestBody 注入
+                        try {
+                            if (request.body() == null) {
+                                break toTypeInject;
+                            }
+                            if (type.equals(String.class)) {
+                                params[i] = new String(request.body(), "utf8");
+                            } else {
+                                params[i] = JSONs.convert(new String(request.body(), "utf8"), type);
+                            }
+                            continue nextParam; // 下一个参数注入
+                        } catch (UnsupportedEncodingException e) {
+                            // 不会发生
+                        }
+                    } // else ... 注入
+                }
+
+                // 类型
                 if (Integer.class.equals(type) || int.class.equals(type)) {
                     params[i] = 0;
                 } else if (String.class.equals(type)) {
@@ -58,7 +85,9 @@ public class RequestProcessor {
                 } else {
                     params[i] = null;
                 }
+
             }
+
             try {
                 Object result = executeInfo.getMethod().invoke(executeInfo.getObject(), params);
                 responseInfo.setContentType(executeInfo.getResponseType());
@@ -72,6 +101,7 @@ public class RequestProcessor {
                         }
                         responseInfo.setBody(resp.getBytes("utf8"));
                     } catch (UnsupportedEncodingException e) {
+                        // never do here.
                     }
                 }
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -84,7 +114,7 @@ public class RequestProcessor {
     public static class ResponseInfo {
         private String contentType = ContentTypes.JSON;
         private byte[] body;
-        private int statusCode = HttpStatus.OK;
+        private HttpStatus status = HttpStatus.OK;
 
         public ResponseInfo(String contentType, byte[] body) {
             super();
@@ -111,12 +141,12 @@ public class RequestProcessor {
             this.body = body;
         }
 
-        public int getStatusCode() {
-            return statusCode;
+        public HttpStatus getStatus() {
+            return status;
         }
 
-        public void setStatusCode(int statusCode) {
-            this.statusCode = statusCode;
+        public void setStatus(HttpStatus status) {
+            this.status = status;
         }
     }
 }

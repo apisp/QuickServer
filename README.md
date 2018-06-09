@@ -11,8 +11,8 @@ public class DemoProdect{
     }
     
     @GetMapping("/hello")
-    public String hello(){
-        return "{\"message\":\"Hello World\"}";
+    public NameValue hello(){
+        return new NameValue("libai", "大神");
     }
 }
 ```
@@ -21,7 +21,7 @@ public class DemoProdect{
 默认配置是 @ujued 的偏好设置，你可以在`classpath`提供一份设置`优先配置 application.properties`， 下面是默认配置的镜像：
 ```
 quick.logging.level=INFO
-quick.server=net.apisp.quick.server.simple.SimpleServer
+quick.server=net.apisp.quick.server.low.DefaultServer
 quick.server.port=8908
 quick.server.threads=24
 ```
@@ -30,6 +30,6 @@ quick.server.threads=24
 1. 它继承自`net.apisp.quick.server.QuickServer`
 2. 能获取到应用运行的上下文`net.apisp.quick.core.ServerContext`。
 
-上下文提供这些信息：`URI与逻辑函数的映射关系`，`一个线程池(池大小由配置文件决定)`。
+上下文提供这些信息：`URI与逻辑函数的映射关系`，`一个线程池(池大小由配置文件决定)`， `监听的端口`。
 
 打开你的Java IDE，尽情发挥吧！
