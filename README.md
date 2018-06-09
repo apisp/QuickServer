@@ -1,5 +1,5 @@
 # QuickServer快速构建API
-** 用Java快速提供想要的API，那就快来试试QuickServer框架吧 **
+** 用Java快速提供想要的API，那就快来试试QuickServer框架吧 **  
 ** 熟练使用QuickServer，对于你到Spring相关产品的使用迁移有不可描述的便利 **
 
 ## 个人用
