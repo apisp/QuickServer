@@ -18,14 +18,14 @@ public class DemoProdect{
 ```
 编译并运行它，它会根据默认配置监听在`8908`端口，并为URI`/hello`与函数`public String DemoProdect.hello()`之间做好了映射.
 
-默认配置是 @ujued 的偏好设置，你可以在`classpath`提供一份设置`优先配置 application.properties`， 下面是默认配置的镜像：
+默认配置是 @ujued 的偏好设置，你可以在`classpath`提供一份设置`优先配置 quick.properties`， 下面是默认配置的镜像：
 ```
-quick.logging.level=INFO
-quick.server=net.apisp.quick.server.low.DefaultServer
-quick.server.port=8908
-quick.server.threads=24
+logging.level=INFO
+server=net.apisp.quick.server.low.DefaultServer
+server.port=8908
+server.threads=24
 ```
-配置中的`quick.server`项，可能会使你心生疑惑，它是个这样的一个类：
+配置中的`server`项，可能会使你心生疑惑，它是个这样的一个类：
 
 1. 它继承自`net.apisp.quick.server.QuickServer`
 2. 能获取到应用运行的上下文`net.apisp.quick.core.ServerContext`。

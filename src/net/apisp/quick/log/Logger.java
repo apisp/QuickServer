@@ -5,7 +5,7 @@ import net.apisp.quick.config.Configuration;
 public interface Logger {
 	public static Logger get(Class<?> clazz){
         // TODO chose a Logger
-        return new ConsoleLogger((String) Configuration.get("quick.logging.level"), clazz.getName());
+        return new ConsoleLogger((String) Configuration.get("logging.level"), clazz.getName());
     }
     public static final class Levels{
         public static String ERROR = "ERROR";

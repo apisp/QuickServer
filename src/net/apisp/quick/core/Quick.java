@@ -22,7 +22,7 @@ public class Quick {
 		MappingResolver.prepare(classes).resolve(SERVER_CONTEXT);
 		server.setContext(SERVER_CONTEXT);
 		server.start();
-		LOGGER.show("Started Quick API Server on port (%s)", Configuration.get("quick.server.port"));
+		LOGGER.show("Started Quick API Server on port (%s)", Configuration.get("server.port"));
 		return SERVER_CONTEXT;
 	}
 

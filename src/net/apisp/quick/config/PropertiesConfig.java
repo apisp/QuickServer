@@ -16,9 +16,9 @@ public class PropertiesConfig extends Configuration {
     public PropertiesConfig() {
         properties = new Properties();
         try {
-            properties.load(this.getClass().getResourceAsStream("/application.properties"));
+            properties.load(this.getClass().getResourceAsStream("/quick.properties"));
         } catch (Throwable e) {
-            LOGGER.error("未在classpath找到配置文件application.properties");
+            LOGGER.error("未在classpath找到配置文件quick.properties");
         }
     }
     @Override

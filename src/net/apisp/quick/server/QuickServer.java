@@ -31,7 +31,7 @@ public abstract class QuickServer {
      */
     public static synchronized QuickServer chose() {
         if (server == null) {
-            Class<QuickServer> serverClass = Safes.loadClass(Configuration.get("quick.server").toString(),
+            Class<QuickServer> serverClass = Safes.loadClass(Configuration.get("server").toString(),
                     QuickServer.class);
             if (Objects.nonNull(serverClass)) {
                 try {

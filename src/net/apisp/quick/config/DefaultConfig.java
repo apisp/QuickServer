@@ -11,10 +11,10 @@ public class DefaultConfig extends Configuration {
     Map<String, Object> configs = new HashMap<>();
     
     public DefaultConfig() {
-        configs.put("quick.logging.level", Levels.INFO);
-        configs.put("quick.server", "net.apisp.quick.server.low.DefaultServer");
-        configs.put("quick.server.port", 8908);
-        configs.put("quick.server.threads", 4 * 6);
+        configs.put("logging.level", Levels.INFO);
+        configs.put("server", "net.apisp.quick.server.low.DefaultServer");
+        configs.put("server.port", 8908);
+        configs.put("server.threads", 4 * 6);
     }
     @Override
     public Object getValue(String key) {

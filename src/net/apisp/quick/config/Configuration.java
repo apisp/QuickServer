@@ -8,7 +8,7 @@ import net.apisp.quick.util.Safes;
 public abstract class Configuration {
 	private static DefaultConfig configuration = new DefaultConfig();
 	static {
-		if (Classpaths.existFile("application.properties")) {
+		if (Classpaths.existFile("quick.properties")) {
 			Configuration tmp = new PropertiesConfig();
 			Iterator<KeyValuePair> iterator = tmp.iterator();
 			KeyValuePair kv = null;
