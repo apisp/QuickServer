@@ -7,17 +7,21 @@ import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.apisp.quick.annotation.RequestBody;
 import net.apisp.quick.http.ContentTypes;
 import net.apisp.quick.http.HttpRequest;
+import net.apisp.quick.http.HttpResponse;
 import net.apisp.quick.http.HttpStatus;
 import net.apisp.quick.util.JSONs;
 
 /**
  * 请求处理器
  *
- * @author UJUED 2018年6月8日 上午11:11:39
+ * @author UJUED
+ * @date 2018-6-8 11:11:39
  */
 public class RequestProcessor {
     private RequestExecutorInfo executeInfo;
@@ -27,9 +31,10 @@ public class RequestProcessor {
     }
 
     /**
-     * 类工厂
+     * 创建请求处理器
      * 
      * @param info
+     *            处理时需要的信息
      * @return
      */
     public static RequestProcessor create(RequestExecutorInfo info) {
@@ -82,6 +87,8 @@ public class RequestProcessor {
                     params[i] = new String(request.body());
                 } else if (HttpRequest.class.equals(type)) {
                     params[i] = request;
+                } else if (HttpResponse.class.equals(type)) {
+                    params[i] = responseInfo;
                 } else {
                     params[i] = null;
                 }
@@ -108,45 +115,61 @@ public class RequestProcessor {
                 e.printStackTrace();
             }
         }
-        return responseInfo;
+        return responseInfo.normalize();
     }
 
-    public static class ResponseInfo {
-        private String contentType = ContentTypes.JSON;
+    public static class ResponseInfo implements HttpResponse {
+        private String contentType;
         private byte[] body;
         private HttpStatus status = HttpStatus.OK;
+        private Map<String, String> headers = new HashMap<>();
 
         public ResponseInfo(String contentType, byte[] body) {
-            super();
             this.contentType = contentType;
             this.body = body;
         }
 
-        public ResponseInfo() {
+        public ResponseInfo normalize() {
+            this.headers.put("Content-Length", String.valueOf(body.length));
+            this.headers.put("Content-Type", contentType + "; charset=utf8");
+            return this;
         }
 
-        public String getContentType() {
-            return contentType;
-        }
-
-        public void setContentType(String contentType) {
+        void setContentType(String contentType) {
             this.contentType = contentType;
+        }
+
+        void setBody(byte[] body) {
+            this.body = body;
+        }
+
+        ResponseInfo() {
         }
 
         public byte[] getBody() {
             return body;
         }
 
-        public void setBody(byte[] body) {
-            this.body = body;
-        }
-
         public HttpStatus getStatus() {
             return status;
         }
 
-        public void setStatus(HttpStatus status) {
+        void setStatus(HttpStatus status) {
             this.status = status;
+        }
+
+        public Map<String, String> getHeaders() {
+            return headers;
+        }
+
+        @Override
+        public void header(String key, String value) {
+            headers.put(key, value);
+        }
+
+        @Override
+        public void cookie(String key, String content) {
+            // TODO add cookie
         }
     }
 }

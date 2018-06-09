@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2018, All Rights Reserved. 
+ * Copyright (c) 2018-present, APISP.NET. 
  */
 package net.apisp.quick.http;
 
 /**
  * HTTP请求
  *
- * @date 2018年6月8日 上午11:37:45
- * @author ujued 
+ * @author UJUED 
+ * @date 2018-6-8 11:37:45
  */
 public interface HttpRequest {
 	String method();

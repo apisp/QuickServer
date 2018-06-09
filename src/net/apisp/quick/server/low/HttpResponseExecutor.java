@@ -6,6 +6,8 @@ package net.apisp.quick.server.low;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.Iterator;
+import java.util.Map;
 
 import net.apisp.quick.core.RequestProcessor;
 import net.apisp.quick.core.RequestProcessor.ResponseInfo;
@@ -35,10 +37,13 @@ public class HttpResponseExecutor {
         responseData.put("\r\n".getBytes());
 
         // 响应头
-        responseData.put(("Content-Type: " + respInfo.getContentType() + "; charset=utf8").getBytes());
-        responseData.put("\r\n".getBytes());
-        responseData.put(("Content-Length: " + respInfo.getBody().length).getBytes());
-        responseData.put("\r\n".getBytes());
+        Iterator<Map.Entry<String, String>> headerIterator = respInfo.getHeaders().entrySet().iterator();
+        Map.Entry<String, String> entry = null;
+        while(headerIterator.hasNext()) {
+            entry = headerIterator.next();
+            responseData.put((entry.getKey() + ": " + entry.getValue()).getBytes());
+            responseData.put("\r\n".getBytes());
+        }
         responseData.put(("Server: QuickServer/1.0").getBytes());
         responseData.put("\r\n\r\n".getBytes());
         responseData.put(respInfo.getBody());
