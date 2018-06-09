@@ -35,7 +35,7 @@ public class HttpResponseExecutor {
         responseData.put("\r\n".getBytes());
 
         // 响应头
-        responseData.put(("Content-Type: " + respInfo.getContentType()).getBytes());
+        responseData.put(("Content-Type: " + respInfo.getContentType() + "; charset=utf8").getBytes());
         responseData.put("\r\n".getBytes());
         responseData.put(("Content-Length: " + respInfo.getBody().length).getBytes());
         responseData.put("\r\n".getBytes());
