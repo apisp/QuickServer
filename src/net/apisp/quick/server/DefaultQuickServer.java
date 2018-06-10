@@ -25,41 +25,28 @@ import java.util.concurrent.BlockingQueue;
 
 public class DefaultQuickServer extends QuickServer {
 
-    private BlockingQueue<SocketChannel> requestChannels = new ArrayBlockingQueue<>(4);
+    private BlockingQueue<SocketChannel> sockes = new ArrayBlockingQueue<>(10);
 
     @Override
     public void run(ServerContext serverContext) throws IOException {
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.bind(new InetSocketAddress(serverContext.port()));
         while (true) {
-            SocketChannel channel = serverSocketChannel.accept();
-            requestChannels.offer(channel);
+            SocketChannel sc = serverSocketChannel.accept();
+            sockes.offer(sc);
         }
     }
 
     @Override
     public void afterRunning(ServerContext serverContext) throws Exception {
-        new Thread() {
-            @Override
-            public void run() {
-                ByteBuffer requestData = ByteBuffer.allocate(1024 * 10);
-                while (true) {
-                    try {
-                        SocketChannel socketChannel = requestChannels.take();
-                        socketChannel.read(requestData);
-                        requestData.flip();
-                        HttpRequestInfo info = HttpRequestInfo.create(requestData);
-                        HttpResponseExecutor.prepare(info, serverContext).execute(socketChannel);
-                        requestData.clear();
-                        socketChannel.close();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }.start();
+        while (true) {
+            SocketChannel sc = sockes.take();
+            ByteBuffer requestBuffer = ByteBuffer.allocate(1024 * 1024);
+            sc.read(requestBuffer);
+            requestBuffer.flip();
+            HttpRequestInfo requestInfo = HttpRequestInfo.create(requestBuffer);
+            HttpResponseExecutor.prepare(requestInfo, serverContext).execute(sc);
+        }
     }
 
 }

@@ -32,8 +32,7 @@ import net.apisp.quick.server.ServerContext;
  */
 public class Quick {
     private static final Logger LOGGER = Logger.get(Quick.class);
-    private static final ServerContext SERVER_CONTEXT = ServerContext.instance();
-    private static QuickServer server = choseServer(SERVER_CONTEXT);
+    private static QuickServer server;
 
     private static QuickServer choseServer(ServerContext serverContext) {
         if (server == null) {
@@ -57,8 +56,8 @@ public class Quick {
     /**
      * Server设置上下文 -> 启动
      */
-    private static void startServer() {
-        server.setContext(SERVER_CONTEXT);
+    private static void startServer(ServerContext serverContext) {
+        server.setContext(serverContext);
         server.start();
     }
 
@@ -69,10 +68,12 @@ public class Quick {
      *            包含URI与逻辑映射的类
      * @return
      */
-    public static ServerContext run(Class<?> mainClass, String ...args) {
+    public static ServerContext run(Class<?> mainClass, String... args) {
         Configuration.applySystemArgs(args);
-        MappingResolver.prepare(mainClass, SERVER_CONTEXT).resolve();
-        startServer();
-        return SERVER_CONTEXT;
+        ServerContext serverContext = ServerContext.init();
+        MappingResolver.prepare(mainClass, serverContext).resolve();
+        server = choseServer(serverContext);
+        startServer(serverContext);
+        return serverContext;
     }
 }

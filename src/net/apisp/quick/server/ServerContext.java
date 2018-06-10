@@ -44,7 +44,7 @@ public class ServerContext {
      * 
      * @return
      */
-    public static synchronized ServerContext instance() {
+    public static synchronized ServerContext init() {
         if (instance == null) {
             try {
                 instance = new ServerContext();

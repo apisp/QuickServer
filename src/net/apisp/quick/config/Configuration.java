@@ -2,12 +2,10 @@ package net.apisp.quick.config;
 
 import java.util.Iterator;
 
-import net.apisp.quick.log.Logger;
 import net.apisp.quick.util.Classpaths;
 import net.apisp.quick.util.Safes;
 
 public abstract class Configuration {
-    private static final Logger LOGGER = Logger.get(Configuration.class);
     private static DefaultConfig configuration = new DefaultConfig();
     static {
         if (Classpaths.existFile("quick.properties")) {
@@ -34,7 +32,7 @@ public abstract class Configuration {
         for (String setting : args) {
             String[] kv = setting.split("=");
             if (kv.length != 2) {
-                LOGGER.warn("System args have a unstandard config, discarded!");
+                System.err.println("System args have a unstandard config, discarded!");
                 continue;
             }
             configuration.configs.put(kv[0].trim(), Safes.transform(configuration.configs.get(kv[0].trim()), kv[1]));

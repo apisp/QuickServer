@@ -56,7 +56,8 @@ class QuickServerThread extends Thread {
         } catch (IOException e) {
             LOGGER.error("Server start error, IO Exception occered.");
         } catch (Exception e) {
-            LOGGER.error("Server start error, Unkonwn Exception occered.");
+            LOGGER.error("Server start error, Unkonwn Exception occered. %s", e);
+            e.printStackTrace();
         }
         serverContext.setNormative(false);
     }

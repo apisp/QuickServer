@@ -34,14 +34,14 @@ public class HttpRequestInfo implements HttpRequest {
     private byte[] body;
     private boolean normative = true;
 
-    private ByteBuffer reqInfo;
+    private ByteBuffer requestBuffer;
 
-    private HttpRequestInfo(ByteBuffer requestInfo) {
-        this.reqInfo = requestInfo;
+    private HttpRequestInfo(ByteBuffer requestBuffer) {
+        this.requestBuffer = requestBuffer;
     }
 
-    public static HttpRequestInfo create(ByteBuffer reqInfo) {
-        HttpRequestInfo info = new HttpRequestInfo(reqInfo);
+    public static HttpRequestInfo create(ByteBuffer requestBuffer) {
+        HttpRequestInfo info = new HttpRequestInfo(requestBuffer);
         info.calc0();
         return info;
     }
@@ -92,13 +92,13 @@ public class HttpRequestInfo implements HttpRequest {
      */
     private void calc0() {
         // 请求行
-        ByteBuffer reqLineBuffer = lineBuffer(reqInfo);
+        ByteBuffer reqLineBuffer = lineBuffer(requestBuffer);
         this.method = getWord(reqLineBuffer, (byte) 32);
         this.uri = getWord(reqLineBuffer, (byte) 32);
         this.version = getWord(reqLineBuffer, (byte) 32);
 
         // 请求头
-        while ((reqLineBuffer = lineBuffer(reqInfo)).hasRemaining()) {
+        while ((reqLineBuffer = lineBuffer(requestBuffer)).hasRemaining()) {
             headers.put(getWord(reqLineBuffer, (byte) 58).trim().toUpperCase(), getWord(reqLineBuffer, (byte) 58).trim());
         }
 
@@ -117,8 +117,8 @@ public class HttpRequestInfo implements HttpRequest {
         }
 
         // 请求体
-        byte[] theBody = new byte[reqInfo.limit() - reqInfo.position()];
-        reqInfo.get(theBody);
+        byte[] theBody = new byte[requestBuffer.limit() - requestBuffer.position()];
+        requestBuffer.get(theBody);
         this.body = theBody;
     }
 
