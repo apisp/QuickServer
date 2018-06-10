@@ -3,7 +3,7 @@
 ** 熟练使用QuickServer，对于你到Spring相关产品的使用迁移有不可描述的便利 **
 
 ## 个人用
-QuickServer使用JavaSocket实现了简单的WebServer，可为快速提供API做好准备,你可以像下面这样来使用：
+QuickServer使用JavaNIO实现了简单的WebServer，可为快速提供API做好准备,你可以像下面这样来使用：
 ```java
 public class DemoProdect{
     public static void main(String[] args){
