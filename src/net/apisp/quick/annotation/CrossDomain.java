@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.core.http;
+package net.apisp.quick.annotation;
 
-public abstract class HttpMethods {
-    public static final String GET = "GET";
-    public static final String POST = "POST";
-    public static final String PUT = "PUT";
-    public static final String DELETE = "DELETE";
-    public static final String HEAD = "HEAD";
-    public static final String valueOf(String method){
-        return method.toUpperCase();
-    }
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+@Documented
+@Retention(RUNTIME)
+@Target({ TYPE, METHOD })
+public @interface CrossDomain {
 }

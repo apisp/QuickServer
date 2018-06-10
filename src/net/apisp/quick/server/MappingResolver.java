@@ -1,19 +1,36 @@
 /**
- * Copyright (c) 2018-present, APISP.NET. 
+ * Copyright 2018-present, APISP.NET.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package net.apisp.quick.server;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Objects;
 
+import net.apisp.quick.annotation.CrossDomain;
 import net.apisp.quick.annotation.DeleteMapping;
 import net.apisp.quick.annotation.GetMapping;
 import net.apisp.quick.annotation.PostMapping;
 import net.apisp.quick.annotation.PutMapping;
 import net.apisp.quick.annotation.ResponseType;
+import net.apisp.quick.annotation.Scanning;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpMethods;
 import net.apisp.quick.log.Logger;
+import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 
 /**
  * 映射决策
@@ -24,23 +41,60 @@ import net.apisp.quick.log.Logger;
 public class MappingResolver {
     private static Logger LOGGER = Logger.get(MappingResolver.class);
     private static MappingResolver instance;
+    private Class<?> bootClass;
     private Class<?>[] classes;
     private ServerContext serverContext;
 
     public MappingResolver() {
     }
 
+    private void prepare() {
+        Annotation[] annos = bootClass.getAnnotations();
+        for (int i = 0; i < annos.length; i++) {
+            if (annos[i] instanceof Scanning) {
+                Class<?>[] cls = ((Scanning) annos[i]).value();
+                this.classes = Arrays.copyOf(cls, cls.length + 1);
+                continue;
+            } else if (annos[i] instanceof CrossDomain) {
+                serverContext.getDefaultRespHeaders().put("Access-Control-Allow-Origin", "*");
+                serverContext.getDefaultRespHeaders().put("Access-Control-Allow-Methods",
+                        "POST,GET,OPTIONS,DELETE,PUT,HEAD");
+                serverContext.getDefaultRespHeaders().put("Access-Control-Allow-Headers", "x-requested-with");
+                serverContext.setCrossDomain(true);
+                continue;
+            }
+        }
+        if (this.classes == null) {
+            this.classes = new Class<?>[] { bootClass };
+        } else {
+            this.classes[this.classes.length - 1] = bootClass;
+        }
+    }
+
+    /**
+     * 开始映射到ServerContext
+     */
     public void resolve() {
         Class<?> clazz;
         Method method;
-        GetMapping getMapping;
-        PostMapping postMaping;
-        PutMapping putMapping;
-        DeleteMapping deleteMapping;
-        ResponseType responseType;
+        GetMapping getMapping = null;
+        PostMapping postMaping = null;
+        PutMapping putMapping = null;
+        DeleteMapping deleteMapping = null;
+
+        ResponseType responseType = null;
+        CrossDomain crossDomain = null;
+
         String mappingKey;
         for (int j = 0; j < classes.length; j++) {
             clazz = classes[j];
+
+            // Controller 域下所有API可能需要跨域
+            boolean shouldSetCrossDomain = false;
+            if (!serverContext.isCrossDomain() && clazz.getAnnotation(CrossDomain.class) != null) {
+                shouldSetCrossDomain = true;
+            }
+
             Method[] methods = clazz.getDeclaredMethods();
             for (int i = 0; i < methods.length; i++) {
                 method = methods[i];
@@ -48,8 +102,13 @@ public class MappingResolver {
                 postMaping = method.getAnnotation(PostMapping.class);
                 putMapping = method.getAnnotation(PutMapping.class);
                 deleteMapping = method.getAnnotation(DeleteMapping.class);
+
                 responseType = method.getAnnotation(ResponseType.class);
 
+                // 上下文设置了跨域，就不需要检查
+                if (!serverContext.isCrossDomain()) {
+                    crossDomain = method.getAnnotation(CrossDomain.class);
+                }
                 byte hmf = 0;
                 if (Objects.nonNull(getMapping) || Objects.nonNull(postMaping) && ((hmf = 1) == 1)
                         || Objects.nonNull(putMapping) && ((hmf = 2) == 2)
@@ -76,8 +135,16 @@ public class MappingResolver {
                     }
                     mappingKey = httpMethod + " " + uri.trim();
                     try {
-                        serverContext.mapping(mappingKey, new RequestExecutorInfo(method, clazz.newInstance(),
-                                responseType != null ? responseType.value() : ContentTypes.JSON));
+                        RequestExecutorInfo info = new RequestExecutorInfo(method, clazz.newInstance());
+                        info.addHeader("Content-Type", responseType != null ? responseType.value() : ContentTypes.JSON);
+                        
+                        // 跨域设置
+                        if (!serverContext.isCrossDomain() && (shouldSetCrossDomain || crossDomain != null)) {
+                            info.addHeader("Access-Control-Allow-Origin", "*")
+                                    .addHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD")
+                                    .addHeader("Access-Control-Allow-Headers", "x-requested-with");
+                        }
+                        serverContext.mapping(mappingKey, info);
                         LOGGER.info("Mapping %s : %s", mappingKey, method.toGenericString());
                     } catch (InstantiationException | IllegalAccessException e) {
                         LOGGER.error("控制器类需要无参数构造！");
@@ -92,11 +159,12 @@ public class MappingResolver {
      *
      * @param classes
      */
-    public static synchronized MappingResolver prepare(Class<?>[] classes, ServerContext context) {
+    public static synchronized MappingResolver prepare(Class<?> bootClass, ServerContext context) {
         if (instance == null) {
             instance = new MappingResolver();
-            instance.classes = classes;
+            instance.bootClass = bootClass;
             instance.serverContext = context;
+            instance.prepare();
         }
         return instance;
     }

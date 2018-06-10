@@ -28,7 +28,7 @@ public class ConsoleLogger implements Logger {
         if (level.equalsIgnoreCase(Levels.INFO) || level.equalsIgnoreCase(Levels.WARN)
                 || level.equalsIgnoreCase(Levels.ERROR)) {
             before("ERROR");
-            System.out.println(String.format(log, args));
+            System.err.println(String.format(log, args));
         }
     }
 
@@ -36,7 +36,7 @@ public class ConsoleLogger implements Logger {
     public void warn(String log, Object... args) {
         if (level.equalsIgnoreCase(Levels.INFO) || level.equalsIgnoreCase(Levels.WARN)) {
             before("WARN");
-            System.out.println(String.format(log, args));
+            System.err.println(String.format(log, args));
         }
     }
 

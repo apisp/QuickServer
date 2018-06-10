@@ -17,6 +17,7 @@ package net.apisp.quick.core;
 
 import java.util.Objects;
 
+import net.apisp.quick.config.Configuration;
 import net.apisp.quick.log.Logger;
 import net.apisp.quick.server.DefaultQuickServer;
 import net.apisp.quick.server.MappingResolver;
@@ -31,7 +32,7 @@ import net.apisp.quick.server.ServerContext;
  */
 public class Quick {
     private static final Logger LOGGER = Logger.get(Quick.class);
-    private static final ServerContext SERVER_CONTEXT = ServerContext.tryGet();
+    private static final ServerContext SERVER_CONTEXT = ServerContext.instance();
     private static QuickServer server = choseServer(SERVER_CONTEXT);
 
     private static QuickServer choseServer(ServerContext serverContext) {
@@ -68,10 +69,10 @@ public class Quick {
      *            包含URI与逻辑映射的类
      * @return
      */
-    public static ServerContext run(Class<?>... classes) {
-        MappingResolver.prepare(classes, SERVER_CONTEXT).resolve();
+    public static ServerContext run(Class<?> mainClass, String ...args) {
+        Configuration.applySystemArgs(args);
+        MappingResolver.prepare(mainClass, SERVER_CONTEXT).resolve();
         startServer();
-        LOGGER.show("Started Quick API Server on port (%s)", SERVER_CONTEXT.port());
         return SERVER_CONTEXT;
     }
 }

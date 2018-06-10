@@ -4,6 +4,7 @@
 package net.apisp.quick.server;
 
 import java.io.IOException;
+import java.net.BindException;
 
 import net.apisp.quick.core.type.QuickServerRunner;
 import net.apisp.quick.log.Logger;
@@ -50,6 +51,8 @@ class QuickServerThread extends Thread {
     public void run() {
         try {
             runner.run(serverContext);
+        } catch (BindException e) {
+            LOGGER.error("The port %d already inuse.", serverContext.port());
         } catch (IOException e) {
             LOGGER.error("Server start error, IO Exception occered.");
         } catch (Exception e) {
@@ -62,7 +65,10 @@ class QuickServerThread extends Thread {
         this.start();
         try {
             Thread.sleep(100);
-            runner.run(serverContext);
+            if (serverContext.isNormative()) {
+                LOGGER.show("Started Quick API Server on port (%s)", serverContext.port());
+                runner.run(serverContext);
+            }
         } catch (InterruptedException e) {
         } catch (Exception e) {
             LOGGER.error("Server start success, but after Exception occered.");

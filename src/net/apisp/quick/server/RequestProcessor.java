@@ -49,10 +49,17 @@ public class RequestProcessor {
 
     public ResponseInfo process(HttpRequest request) {
         ResponseInfo responseInfo = new ResponseInfo();
+        ServerContext serverContext = ServerContext.tryGet();
         if (executeInfo == null) {
             responseInfo.setBody("<h1>Not Found!</h1>".getBytes());
             responseInfo.setStatus(HttpStatus.NOT_FOUND);
-            responseInfo.setContentType(ContentTypes.HTML);
+            // 注入上下文要求的响应头
+            if (serverContext != null) {
+                responseInfo.setHeaders(serverContext.getDefaultRespHeaders());
+            }
+            Map<String, String> contentType = new HashMap<>(1);
+            contentType.put("Content-Type", ContentTypes.HTML);
+            responseInfo.setHeaders(contentType);
         } else {
             Method method = executeInfo.getMethod();
             Class<?>[] types = method.getParameterTypes();
@@ -93,9 +100,8 @@ public class RequestProcessor {
                 } else if (HttpResponse.class.equals(type)) {
                     params[i] = responseInfo;
                 } else if (WebContext.class.equals(type)) {
-                    ServerContext context = ServerContext.tryGet();
-                    if (context != null) {
-                        params[i] = new QuickWebContext(context);
+                    if (serverContext != null) {
+                        params[i] = new QuickWebContext(serverContext);
                     } else {
                         params[i] = null;
                     }
@@ -114,7 +120,14 @@ public class RequestProcessor {
 
             try {
                 Object result = executeInfo.getMethod().invoke(executeInfo.getObject(), params);
-                responseInfo.setContentType(executeInfo.getResponseType());
+                serverContext = ServerContext.tryGet();
+                // 先注入上下文要求的响应头
+                if (serverContext != null) {
+                    responseInfo.setHeaders(serverContext.getDefaultRespHeaders());
+                }
+                // 再注入逻辑方法里做的改动
+                responseInfo.setHeaders(executeInfo.getRespHeaders());
+
                 if (method.getReturnType().equals(byte[].class)) {
                     responseInfo.setBody((byte[]) result);
                 } else if (result == null) {
@@ -138,25 +151,25 @@ public class RequestProcessor {
     }
 
     public static class ResponseInfo implements HttpResponse {
-        private String contentType;
         private byte[] body = new byte[0];
         private HttpStatus status = HttpStatus.OK;
         private Map<String, String> headers = new HashMap<>();
         private List<HttpCookie> cookies = new ArrayList<>();
 
-        public ResponseInfo(String contentType, byte[] body) {
-            this.contentType = contentType;
+        public ResponseInfo(byte[] body) {
             this.body = body;
         }
 
         public ResponseInfo normalize() {
-            this.headers.put("Content-Length", String.valueOf(body.length));
-            this.headers.put("Content-Type", contentType);
+            this.header("Content-Length", String.valueOf(body.length));
             return this;
         }
 
-        void setContentType(String contentType) {
-            this.contentType = contentType;
+        void setHeaders(Map<String, String> headers) {
+            this.headers.putAll(headers);
+            if (this.headers.get("Content-Type") == null) {
+                this.header("Content-Type", ContentTypes.JSON);
+            }
         }
 
         void setBody(byte[] body) {
@@ -204,6 +217,51 @@ public class RequestProcessor {
 
         public List<HttpCookie> getCookies() {
             return cookies;
+        }
+    }
+
+    /**
+     * API触发的事件执行信息
+     * 
+     * @author UJUED
+     * @date 2018-06-08 11:20:09
+     */
+    public static class RequestExecutorInfo {
+        private Method method;
+        private Object object;
+        private Map<String, String> respHeaders = new HashMap<>();
+
+        public RequestExecutorInfo() {
+        }
+
+        public RequestExecutorInfo(Method method, Object object) {
+            this.method = method;
+            this.object = object;
+        }
+
+        public Method getMethod() {
+            return method;
+        }
+
+        public void setMethod(Method method) {
+            this.method = method;
+        }
+
+        public Object getObject() {
+            return object;
+        }
+
+        public void setObject(Object object) {
+            this.object = object;
+        }
+
+        public RequestExecutorInfo addHeader(String key, String value) {
+            this.respHeaders.put(key, value);
+            return this;
+        }
+
+        public Map<String, String> getRespHeaders() {
+            return respHeaders;
         }
     }
 }

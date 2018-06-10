@@ -47,21 +47,21 @@ public class HttpRequestInfo implements HttpRequest {
     }
 
     /**
-     * 根据空格和:分词
+     * 根据某个字符分词
      * 
      * @param buffer
      * @return
      */
-    private String getWord(ByteBuffer buffer) {
+    private String getWord(ByteBuffer buffer, byte character) {
         ByteBuffer token = ByteBuffer.allocate(1024);
         byte b = 0;
         int len = 0;
-        while (buffer.hasRemaining() && (b = buffer.get()) != 32 && b != 58) {
+        while (buffer.hasRemaining() && (b = buffer.get()) != character) {
             token.put(b);
             len++;
         }
         if (len == 0 && buffer.hasRemaining()) {
-            return getWord(buffer);
+            return getWord(buffer, character);
         }
         byte[] word = new byte[token.flip().limit()];
         token.get(word);
@@ -93,13 +93,13 @@ public class HttpRequestInfo implements HttpRequest {
     private void calc0() {
         // 请求行
         ByteBuffer reqLineBuffer = lineBuffer(reqInfo);
-        this.method = getWord(reqLineBuffer);
-        this.uri = getWord(reqLineBuffer);
-        this.version = getWord(reqLineBuffer);
+        this.method = getWord(reqLineBuffer, (byte) 32);
+        this.uri = getWord(reqLineBuffer, (byte) 32);
+        this.version = getWord(reqLineBuffer, (byte) 32);
 
         // 请求头
         while ((reqLineBuffer = lineBuffer(reqInfo)).hasRemaining()) {
-            headers.put(getWord(reqLineBuffer).toUpperCase(), getWord(reqLineBuffer));
+            headers.put(getWord(reqLineBuffer, (byte) 58).trim().toUpperCase(), getWord(reqLineBuffer, (byte) 58).trim());
         }
 
         // cookies

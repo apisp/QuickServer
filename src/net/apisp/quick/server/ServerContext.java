@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import net.apisp.quick.config.Configuration;
+import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 import net.apisp.quick.util.Safes;
 
 /**
@@ -22,6 +23,9 @@ public class ServerContext {
     private Map<String, RequestExecutorInfo> mappings;
     private ExecutorService executor;
     private boolean normative = true;
+    private boolean crossDomain = false;
+    
+    private Map<String, String> defaultRespHeaders = new HashMap<>();
 
     private int port;
     private Class<QuickServer> serverClass;
@@ -36,16 +40,26 @@ public class ServerContext {
     }
 
     /**
-     * 尝试获取ServerContext， 有可能返回null值
+     * 第一次调用
+     * 
      * @return
      */
-    public static synchronized ServerContext tryGet() {
+    public static synchronized ServerContext instance() {
         if (instance == null) {
             try {
                 instance = new ServerContext();
             } catch (Throwable e) {
             }
         }
+        return instance;
+    }
+    
+    /**
+     * 尝试获取ServerContext， 再脱离QuickServer调用时，返回null值
+     * 
+     * @return
+     */
+    public static ServerContext tryGet() {
         return instance;
     }
 
@@ -112,5 +126,17 @@ public class ServerContext {
 
     public Object getSetting(String key) {
         return Configuration.get(key);
+    }
+
+    public boolean isCrossDomain() {
+        return crossDomain;
+    }
+
+    public void setCrossDomain(boolean crossDomain) {
+        this.crossDomain = crossDomain;
+    }
+
+    public Map<String, String> getDefaultRespHeaders() {
+        return defaultRespHeaders;
     }
 }
