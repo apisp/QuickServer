@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2018-present, APISP.NET. 
  */
-package net.apisp.quick.server.low;
+package net.apisp.quick.server;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -9,12 +9,11 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Map;
 
-import net.apisp.quick.core.RequestProcessor;
-import net.apisp.quick.core.RequestProcessor.ResponseInfo;
-import net.apisp.quick.core.ServerContext;
+import net.apisp.quick.log.Logger;
+import net.apisp.quick.server.RequestProcessor.ResponseInfo;
 
 public class HttpResponseExecutor {
-
+    private static final Logger LOGGER = Logger.get(HttpResponseExecutor.class);
     private HttpRequestInfo httpRequestInfo;
     private ServerContext context;
 
@@ -39,7 +38,7 @@ public class HttpResponseExecutor {
         // 响应头
         Iterator<Map.Entry<String, String>> headerIterator = respInfo.getHeaders().entrySet().iterator();
         Map.Entry<String, String> entry = null;
-        while(headerIterator.hasNext()) {
+        while (headerIterator.hasNext()) {
             entry = headerIterator.next();
             responseData.put((entry.getKey() + ": " + entry.getValue()).getBytes());
             responseData.put("\r\n".getBytes());
@@ -55,6 +54,7 @@ public class HttpResponseExecutor {
                 e.printStackTrace();
             }
         }
+        LOGGER.info("%s %s - %d", httpRequestInfo.method(), httpRequestInfo.uri(), respInfo.getStatus().getCode());
     }
 
 }

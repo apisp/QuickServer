@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2018-present, APISP.NET. 
  */
-package net.apisp.quick.server.low;
+package net.apisp.quick.server;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;

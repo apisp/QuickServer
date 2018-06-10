@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2018-present, APISP.NET. 
  */
-package net.apisp.quick.core;
+package net.apisp.quick.server;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.apisp.quick.annotation.RequestBody;
+import net.apisp.quick.core.WebContext;
+import net.apisp.quick.core.ase.QuickWebContext;
 import net.apisp.quick.http.ContentTypes;
 import net.apisp.quick.http.HttpRequest;
 import net.apisp.quick.http.HttpResponse;
@@ -89,6 +91,13 @@ public class RequestProcessor {
                     params[i] = request;
                 } else if (HttpResponse.class.equals(type)) {
                     params[i] = responseInfo;
+                } else if (WebContext.class.equals(type)) {
+                    ServerContext context = ServerContext.tryGet();
+                    if (context != null) {
+                        params[i] = new QuickWebContext(context);
+                    } else {
+                        params[i] = null;
+                    }
                 } else {
                     params[i] = null;
                 }

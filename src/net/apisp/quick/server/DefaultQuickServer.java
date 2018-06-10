@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2018-present, APISP.NET. 
  */
-package net.apisp.quick.server.low;
+package net.apisp.quick.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -11,10 +11,7 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import net.apisp.quick.core.ServerContext;
-import net.apisp.quick.server.QuickServer;
-
-public class DefaultServer extends QuickServer {
+public class DefaultQuickServer extends QuickServer {
 
     private BlockingQueue<SocketChannel> requestChannels = new ArrayBlockingQueue<>(10);
 

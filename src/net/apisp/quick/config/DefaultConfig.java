@@ -12,7 +12,7 @@ public class DefaultConfig extends Configuration {
     
     public DefaultConfig() {
         configs.put("logging.level", Levels.INFO);
-        configs.put("server", "net.apisp.quick.server.low.DefaultServer");
+        configs.put("server", "net.apisp.quick.server.DefaultQuickServer");
         configs.put("server.port", 8908);
         configs.put("server.threads", 4 * 6);
     }

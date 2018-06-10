@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2018-present, APISP.NET. 
  */
-package net.apisp.quick.core;
+package net.apisp.quick.server;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,19 +9,22 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import net.apisp.quick.config.Configuration;
+import net.apisp.quick.util.Safes;
 
 /**
  * Server上下文
  *
  * @author UJUED
- * @date 2018-6-8 9:05:07
+ * @date 2018-06-08 09:05:07
  */
 public class ServerContext {
     private static ServerContext instance;
     private Map<String, RequestExecutorInfo> mappings;
     private ExecutorService executor;
+    private boolean normative = true;
 
     private int port;
+    private Class<QuickServer> serverClass;
 
     private ServerContext() {
         // 单例对象
@@ -29,11 +32,19 @@ public class ServerContext {
         executor = Executors.newFixedThreadPool((int) Configuration.get("server.threads"));
 
         port = (int) Configuration.get("server.port");
+        serverClass = Safes.loadClass(Configuration.get("server").toString(), QuickServer.class);
     }
 
-    static synchronized ServerContext instance() {
+    /**
+     * 尝试获取ServerContext， 有可能返回null值
+     * @return
+     */
+    public static synchronized ServerContext tryGet() {
         if (instance == null) {
-            instance = new ServerContext();
+            try {
+                instance = new ServerContext();
+            } catch (Throwable e) {
+            }
         }
         return instance;
     }
@@ -75,5 +86,31 @@ public class ServerContext {
      */
     public int port() {
         return port;
+    }
+
+    /**
+     * 从配置文件从获取到的QuickServer类
+     * 
+     * @return
+     */
+    public Class<QuickServer> getServerClass() {
+        return serverClass;
+    }
+
+    /**
+     * 运行状态
+     * 
+     * @return
+     */
+    public boolean isNormative() {
+        return normative;
+    }
+
+    public void setNormative(boolean normative) {
+        this.normative = normative;
+    }
+
+    public Object getSetting(String key) {
+        return Configuration.get(key);
     }
 }
