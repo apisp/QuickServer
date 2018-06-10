@@ -4,11 +4,14 @@
 package net.apisp.quick.server;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
+import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.log.Logger;
 import net.apisp.quick.server.RequestProcessor.ResponseInfo;
 
@@ -26,7 +29,7 @@ public class HttpResponseExecutor {
         return new HttpResponseExecutor(info, context);
     }
 
-    public void execute(SocketChannel channel) {
+    public void execute(SocketChannel channel) throws UnsupportedEncodingException {
         ResponseInfo respInfo = RequestProcessor
                 .create(this.context.hit(httpRequestInfo.method(), httpRequestInfo.uri())).process(httpRequestInfo);
         ByteBuffer responseData = ByteBuffer.allocate(1024 * 1024 * 50);
@@ -44,7 +47,16 @@ public class HttpResponseExecutor {
             responseData.put("\r\n".getBytes());
         }
         responseData.put(("Server: QuickServer/1.0").getBytes());
-        responseData.put("\r\n\r\n".getBytes());
+        responseData.put("\r\n".getBytes());
+        // Cookies
+        List<HttpCookie> cookies = respInfo.getCookies();
+        for (int i = 0; i < cookies.size(); i++) {
+            responseData.put(("Set-Cookie: " + cookies.get(i).toString()).getBytes("utf8"));
+            responseData.put("\r\n".getBytes());
+        }
+        responseData.put("\r\n".getBytes());
+
+        // 响应体
         responseData.put(respInfo.getBody());
         responseData.flip();
         while (responseData.hasRemaining()) {

@@ -7,16 +7,19 @@ import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.apisp.quick.annotation.RequestBody;
 import net.apisp.quick.core.WebContext;
 import net.apisp.quick.core.ase.QuickWebContext;
-import net.apisp.quick.http.ContentTypes;
-import net.apisp.quick.http.HttpRequest;
-import net.apisp.quick.http.HttpResponse;
-import net.apisp.quick.http.HttpStatus;
+import net.apisp.quick.core.http.ContentTypes;
+import net.apisp.quick.core.http.HttpCookie;
+import net.apisp.quick.core.http.HttpRequest;
+import net.apisp.quick.core.http.HttpResponse;
+import net.apisp.quick.core.http.HttpStatus;
 import net.apisp.quick.util.JSONs;
 
 /**
@@ -139,6 +142,7 @@ public class RequestProcessor {
         private byte[] body = new byte[0];
         private HttpStatus status = HttpStatus.OK;
         private Map<String, String> headers = new HashMap<>();
+        private List<HttpCookie> cookies = new ArrayList<>();
 
         public ResponseInfo(String contentType, byte[] body) {
             this.contentType = contentType;
@@ -185,12 +189,21 @@ public class RequestProcessor {
 
         @Override
         public void cookie(String key, String content) {
-            // TODO add cookie
+            cookies.add(new HttpCookie(key, content));
         }
 
         @Override
         public void body(byte[] body) {
             this.body = body;
+        }
+
+        @Override
+        public void cookie(HttpCookie cookie) {
+            cookies.add(cookie);
+        }
+
+        public List<HttpCookie> getCookies() {
+            return cookies;
         }
     }
 }

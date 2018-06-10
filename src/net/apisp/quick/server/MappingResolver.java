@@ -11,8 +11,8 @@ import net.apisp.quick.annotation.GetMapping;
 import net.apisp.quick.annotation.PostMapping;
 import net.apisp.quick.annotation.PutMapping;
 import net.apisp.quick.annotation.ResponseType;
-import net.apisp.quick.http.ContentTypes;
-import net.apisp.quick.http.HttpMethods;
+import net.apisp.quick.core.http.ContentTypes;
+import net.apisp.quick.core.http.HttpMethods;
 import net.apisp.quick.log.Logger;
 
 /**

@@ -1,19 +1,36 @@
 /**
- * Copyright (c) 2018-present, APISP.NET. 
+ * Copyright 2018-present, APISP.NET.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package net.apisp.quick.server;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
-import net.apisp.quick.http.HttpRequest;
+import net.apisp.quick.core.http.HttpCookie;
+import net.apisp.quick.core.http.HttpRequest;
+import net.apisp.quick.log.Logger;
 
 public class HttpRequestInfo implements HttpRequest {
+    private static final Logger LOGGER = Logger.get(HttpRequestInfo.class);
     private String method;
     private String uri;
     private String version;
     private Map<String, String> headers = new HashMap<>();
+    private Map<String, String> cookies = new HashMap<>();
     private byte[] body;
     private boolean normative = true;
 
@@ -31,6 +48,7 @@ public class HttpRequestInfo implements HttpRequest {
 
     /**
      * 根据空格和:分词
+     * 
      * @param buffer
      * @return
      */
@@ -42,7 +60,7 @@ public class HttpRequestInfo implements HttpRequest {
             token.put(b);
             len++;
         }
-        if (len == 0) {
+        if (len == 0 && buffer.hasRemaining()) {
             return getWord(buffer);
         }
         byte[] word = new byte[token.flip().limit()];
@@ -52,6 +70,7 @@ public class HttpRequestInfo implements HttpRequest {
 
     /**
      * 按换行符获取一行Buffer
+     * 
      * @param buffer
      * @return
      */
@@ -80,9 +99,23 @@ public class HttpRequestInfo implements HttpRequest {
 
         // 请求头
         while ((reqLineBuffer = lineBuffer(reqInfo)).hasRemaining()) {
-            headers.put(getWord(reqLineBuffer), getWord(reqLineBuffer));
+            headers.put(getWord(reqLineBuffer).toUpperCase(), getWord(reqLineBuffer));
         }
-        
+
+        // cookies
+        String ckes = header("Cookie");
+        if (ckes != null) {
+            String[] cks = ckes.split(";");
+            for (int i = 0; i < cks.length; i++) {
+                String[] kv = cks[i].split("=");
+                if (kv.length != 2) {
+                    LOGGER.warn("A cookie losed.");
+                    continue;
+                }
+                cookies.put(kv[0].trim().toUpperCase(), kv[1].trim());
+            }
+        }
+
         // 请求体
         byte[] theBody = new byte[reqInfo.limit() - reqInfo.position()];
         reqInfo.get(theBody);
@@ -117,5 +150,23 @@ public class HttpRequestInfo implements HttpRequest {
     @Override
     public boolean normative() {
         return normative;
+    }
+
+    @Override
+    public HttpCookie cookie(String key) {
+        return new HttpCookie(key, cookies.get(key.toUpperCase()));
+    }
+
+    @Override
+    public HttpCookie[] cookies() {
+        HttpCookie[] httpCookies = new HttpCookie[cookies.size()];
+        Iterator<Map.Entry<String, String>> cookieIterator = cookies.entrySet().iterator();
+        int i = 0;
+        Map.Entry<String, String> entry = null;
+        while (cookieIterator.hasNext()) {
+            entry = cookieIterator.next();
+            httpCookies[i++] = new HttpCookie(entry.getKey(), entry.getValue());
+        }
+        return httpCookies;
     }
 }
