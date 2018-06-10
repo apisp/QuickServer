@@ -35,9 +35,10 @@ public class DefaultQuickServer extends QuickServer {
                     try {
                         SocketChannel socketChannel = requestChannels.take();
                         socketChannel.read(requestData);
-                        requestData.clear();
-                        HttpRequestInfo info = HttpRequestInfo.create(new String(requestData.array(), "utf8"));
+                        requestData.flip();
+                        HttpRequestInfo info = HttpRequestInfo.create(requestData);
                         HttpResponseExecutor.prepare(info, serverContext).execute(socketChannel);
+                        requestData.clear();
                         socketChannel.close();
                     } catch (InterruptedException e) {
                         e.printStackTrace();

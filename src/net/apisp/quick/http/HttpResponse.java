@@ -13,4 +13,6 @@ public interface HttpResponse {
     void header(String key, String value);
 
     void cookie(String key, String content);
+
+    void body(byte[] body);
 }

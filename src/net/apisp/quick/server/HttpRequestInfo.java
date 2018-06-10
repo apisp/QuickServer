@@ -3,7 +3,7 @@
  */
 package net.apisp.quick.server;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,53 +17,76 @@ public class HttpRequestInfo implements HttpRequest {
     private byte[] body;
     private boolean normative = true;
 
-    private String requestInfo;
+    private ByteBuffer reqInfo;
 
-    private HttpRequestInfo(String requestInfo) {
-        this.requestInfo = requestInfo;
+    private HttpRequestInfo(ByteBuffer requestInfo) {
+        this.reqInfo = requestInfo;
     }
 
-    public static HttpRequestInfo create(String requestInfo) {
-        HttpRequestInfo info = new HttpRequestInfo(requestInfo);
-        info.calc();
+    public static HttpRequestInfo create(ByteBuffer reqInfo) {
+        HttpRequestInfo info = new HttpRequestInfo(reqInfo);
+        info.calc0();
         return info;
     }
 
-    private void calc() {
-        String separator = "\n\n";
-        String headerSeparator = "\n";
-        if (requestInfo.contains("\r\n")) {
-            separator = "\r\n\r\n";
-            headerSeparator = "\r\n";
+    /**
+     * 根据空格和:分词
+     * @param buffer
+     * @return
+     */
+    private String getWord(ByteBuffer buffer) {
+        ByteBuffer token = ByteBuffer.allocate(1024);
+        byte b = 0;
+        int len = 0;
+        while (buffer.hasRemaining() && (b = buffer.get()) != 32 && b != 58) {
+            token.put(b);
+            len++;
         }
-        String[] headerAndBodyInfo = requestInfo.split(separator);
+        if (len == 0) {
+            return getWord(buffer);
+        }
+        byte[] word = new byte[token.flip().limit()];
+        token.get(word);
+        return new String(word);
+    }
 
-        // 处理请求行
-        String[] headerInfos = headerAndBodyInfo[0].split(headerSeparator);
-        String[] methodAndUriAndVersion = headerInfos[0].split(" ");
-        this.method = methodAndUriAndVersion[0].trim();
-        this.uri = methodAndUriAndVersion[1].trim();
-        this.version = methodAndUriAndVersion[2].trim();
-        
-        // 处理头信息
-        for (int i = 1; i < headerInfos.length; i++) {
-            String[] kv = headerInfos[i].split(":");
-            if (kv.length == 1) { // 头某项不标准, 抛弃
-                normative = false;
+    /**
+     * 按换行符获取一行Buffer
+     * @param buffer
+     * @return
+     */
+    private ByteBuffer lineBuffer(ByteBuffer buffer) {
+        ByteBuffer token = ByteBuffer.allocate(1024 * 2);
+        byte b = 0;
+        while (buffer.hasRemaining() && (b = buffer.get()) != 10) {
+            if (b == 13) {
                 continue;
             }
-            headers.put(kv[0].trim().toUpperCase(), kv[1].trim());
+            token.put(b);
         }
-        int posi = -1;
-        if ((posi = this.uri.indexOf('?')) != -1) {
-            this.uri = this.uri.substring(0, posi);
-        }
+        token.flip();
+        return token;
+    }
 
-        // 处理主体信息
-        try {
-            this.body = headerAndBodyInfo[1].getBytes("utf8");
-        } catch (UnsupportedEncodingException e) {
+    /**
+     * 解析出请求行、请求头、请求体
+     */
+    private void calc0() {
+        // 请求行
+        ByteBuffer reqLineBuffer = lineBuffer(reqInfo);
+        this.method = getWord(reqLineBuffer);
+        this.uri = getWord(reqLineBuffer);
+        this.version = getWord(reqLineBuffer);
+
+        // 请求头
+        while ((reqLineBuffer = lineBuffer(reqInfo)).hasRemaining()) {
+            headers.put(getWord(reqLineBuffer), getWord(reqLineBuffer));
         }
+        
+        // 请求体
+        byte[] theBody = new byte[reqInfo.limit() - reqInfo.position()];
+        reqInfo.get(theBody);
+        this.body = theBody;
     }
 
     @Override

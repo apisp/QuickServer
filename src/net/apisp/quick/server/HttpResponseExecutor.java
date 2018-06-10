@@ -29,7 +29,7 @@ public class HttpResponseExecutor {
     public void execute(SocketChannel channel) {
         ResponseInfo respInfo = RequestProcessor
                 .create(this.context.hit(httpRequestInfo.method(), httpRequestInfo.uri())).process(httpRequestInfo);
-        ByteBuffer responseData = ByteBuffer.allocate(1024 * 10);
+        ByteBuffer responseData = ByteBuffer.allocate(1024 * 1024 * 50);
         // 响应行
         responseData.put(String.format("HTTP/1.1 %d %s", respInfo.getStatus().getCode(), respInfo.getStatus().getDesc())
                 .getBytes());

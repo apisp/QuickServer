@@ -85,8 +85,6 @@ public class RequestProcessor {
                 // 类型
                 if (Integer.class.equals(type) || int.class.equals(type)) {
                     params[i] = 0;
-                } else if (String.class.equals(type)) {
-                    params[i] = new String(request.body());
                 } else if (HttpRequest.class.equals(type)) {
                     params[i] = request;
                 } else if (HttpResponse.class.equals(type)) {
@@ -98,6 +96,13 @@ public class RequestProcessor {
                     } else {
                         params[i] = null;
                     }
+                } else if (byte[].class.equals(type) || Byte[].class.equals(type)) {
+                    params[i] = request.body();
+                } else if (String.class.equals(type)) {
+                    try {
+                        params[i] = new String(request.body(), "utf8");
+                    } catch (UnsupportedEncodingException e) {
+                    }
                 } else {
                     params[i] = null;
                 }
@@ -107,8 +112,10 @@ public class RequestProcessor {
             try {
                 Object result = executeInfo.getMethod().invoke(executeInfo.getObject(), params);
                 responseInfo.setContentType(executeInfo.getResponseType());
-                if (result == null) {
-                    responseInfo.setBody(new byte[0]);
+                if (method.getReturnType().equals(byte[].class)) {
+                    responseInfo.setBody((byte[]) result);
+                } else if (result == null) {
+                    responseInfo.setBody(responseInfo.body);
                 } else {
                     try {
                         String resp = JSONs.convert(result);
@@ -129,7 +136,7 @@ public class RequestProcessor {
 
     public static class ResponseInfo implements HttpResponse {
         private String contentType;
-        private byte[] body;
+        private byte[] body = new byte[0];
         private HttpStatus status = HttpStatus.OK;
         private Map<String, String> headers = new HashMap<>();
 
@@ -140,7 +147,7 @@ public class RequestProcessor {
 
         public ResponseInfo normalize() {
             this.headers.put("Content-Length", String.valueOf(body.length));
-            this.headers.put("Content-Type", contentType + "; charset=utf8");
+            this.headers.put("Content-Type", contentType);
             return this;
         }
 
@@ -179,6 +186,11 @@ public class RequestProcessor {
         @Override
         public void cookie(String key, String content) {
             // TODO add cookie
+        }
+
+        @Override
+        public void body(byte[] body) {
+            this.body = body;
         }
     }
 }
