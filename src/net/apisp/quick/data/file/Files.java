@@ -17,62 +17,33 @@ package net.apisp.quick.data.file;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.CompletionHandler;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author UJUED
  * @date 2018-06-11 10:09:45
  */
 public class Files {
-    public static File save(String path, byte[] data) {
+    /**
+     * 二进制数据保存到一个文件
+     * 
+     * @param data
+     * @param path
+     * @return
+     */
+    public static File save(byte[] data, Path path) {
         try {
-            AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(Paths.get(path),
-                    StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-            new FileCompletionHandler(fileChannel, data).start();
+            AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.CREATE,
+                    StandardOpenOption.WRITE);
+            AtomicInteger watcher = new AtomicInteger();
+            new AsyncFileWriter(fileChannel, data, 0, watcher).boot();
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
-        return new File(path);
-    }
-
-    static class FileCompletionHandler implements CompletionHandler<Integer, Object> {
-        static long posi = 0;
-        private AsynchronousFileChannel fileChannel;
-        private ByteBuffer dataBuffer;
-
-        public FileCompletionHandler(AsynchronousFileChannel fileChannel, byte[] body) {
-            this.fileChannel = fileChannel;
-            dataBuffer = ByteBuffer.allocate(body.length);
-            dataBuffer.put(body).flip();
-        }
-
-        @Override
-        public void completed(Integer result, Object attachment) {
-            posi += result;
-            if (dataBuffer.hasRemaining()) {
-                fileChannel.write(dataBuffer, posi, attachment, this);
-            } else {
-                try {
-                    fileChannel.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        @Override
-        public void failed(Throwable exc, Object attachment) {
-            exc.printStackTrace();
-        }
-
-        public void start() {
-            fileChannel.write(dataBuffer, 0, null, this);
-        }
-
+        return path.toFile();
     }
 }

@@ -30,24 +30,64 @@ import net.apisp.quick.server.ServerContext;
  * @author UJUED
  * @date 2018-06-08 10:34:37
  */
-public class Quick {
+public class Quick implements Bootable<ServerContext> {
     private static final Logger LOGGER = Logger.get(Quick.class);
     private static QuickServer server;
+    private Class<?> bootClass;
+    private String[] bootArgs = new String[0];
 
-    private static QuickServer choseServer(ServerContext serverContext) {
+    public Quick() {
+    }
+
+    public Quick(String[] bootArgs) {
+        this.bootArgs = bootArgs;
+    }
+
+    public Quick(Class<?> bootClass) {
+        this.bootClass = bootClass;
+    }
+
+    public Quick(Class<?> bootClass, String[] bootArgs) {
+        this.bootClass = bootClass;
+        this.bootArgs = bootArgs;
+    }
+
+    /**
+     * 启动QuickServer
+     * 
+     * @param classes
+     *            包含URI与逻辑映射的类
+     * @return
+     */
+    public static ServerContext boot(Class<?> mainClass, String... args) {
+        Configuration.applySystemArgs(args);
+        ServerContext serverContext = ServerContext.init();
+        MappingResolver.prepare(mainClass, serverContext).resolve();
+        server = choseServer(serverContext);
+        startServer(serverContext);
+        return serverContext;
+    }
+
+    /**
+     * 选择合适的QuickServer
+     * 
+     * @param serverContext
+     * @return
+     */
+    private static synchronized QuickServer choseServer(ServerContext serverContext) {
         if (server == null) {
             Class<QuickServer> serverClass = serverContext.getServerClass();
             if (Objects.nonNull(serverClass)) {
                 try {
                     server = serverClass.newInstance();
-                    LOGGER.info("The server %s chosed.", serverClass);
+                    LOGGER.info("The server %s hit.", serverClass);
                 } catch (InstantiationException | IllegalAccessException e) {
-                    LOGGER.error("自定义QuickServer需要有无参构造函数");
+                    LOGGER.warn("Who extends QuickServer need the non-args' constructor. Default server instance hit.");
                     server = new DefaultQuickServer();
                 }
             } else {
                 server = new DefaultQuickServer();
-                LOGGER.info("The settings error, default server instance chosed.");
+                LOGGER.info("The settings error! Default server instance hit.");
             }
         }
         return server;
@@ -61,19 +101,18 @@ public class Quick {
         server.start();
     }
 
-    /**
-     * 启动QuickServer
-     * 
-     * @param classes
-     *            包含URI与逻辑映射的类
-     * @return
-     */
-    public static ServerContext run(Class<?> mainClass, String... args) {
-        Configuration.applySystemArgs(args);
-        ServerContext serverContext = ServerContext.init();
-        MappingResolver.prepare(mainClass, serverContext).resolve();
-        server = choseServer(serverContext);
-        startServer(serverContext);
+    @Override
+    public ServerContext boot() {
+        ServerContext serverContext = null;
+        if (this.bootClass == null) {
+            try {
+                this.bootClass = this.getClass().getClassLoader()
+                        .loadClass(Thread.currentThread().getStackTrace()[2].getClassName());
+            } catch (ClassNotFoundException e) {
+            }
+        }
+        serverContext = Quick.boot(this.bootClass, bootArgs);
         return serverContext;
     }
+
 }

@@ -7,7 +7,7 @@ QuickServer使用JavaNIO实现了简单的WebServer，可为快速提供API做�
 ```java
 public class DemoProdect{
     public static void main(String[] args){
-        Quick.run(DemoProdect.class, args); // 这里提供一个Boot类
+        Quick.boot(DemoProdect.class, args); // 这里提供一个Boot类
     }
     
     @GetMapping("/hello")
