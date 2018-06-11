@@ -90,24 +90,24 @@ public class ConsoleLogger implements Logger {
 
     @Override
     public boolean isErrorEnabled() {
-        return (level.equalsIgnoreCase(Levels.ERROR)) ? true : false;
+        return (level.equalsIgnoreCase(Levels.ERROR) || level.equalsIgnoreCase(Levels.WARN)
+                || level.equalsIgnoreCase(Levels.INFO) || level.equalsIgnoreCase(Levels.DEBUG)) ? true : false;
     }
 
     @Override
     public boolean isWarnEnabled() {
-        return (level.equalsIgnoreCase(Levels.WARN) || level.equalsIgnoreCase(Levels.ERROR)) ? true : false;
+        return (level.equalsIgnoreCase(Levels.WARN) || level.equalsIgnoreCase(Levels.INFO)
+                || level.equalsIgnoreCase(Levels.DEBUG)) ? true : false;
     }
 
     @Override
     public boolean isInfoEnabled() {
-        return (level.equalsIgnoreCase(Levels.INFO) || level.equalsIgnoreCase(Levels.WARN)
-                || level.equalsIgnoreCase(Levels.ERROR)) ? true : false;
+        return (level.equalsIgnoreCase(Levels.INFO) || level.equalsIgnoreCase(Levels.DEBUG)) ? true : false;
     }
 
     @Override
     public boolean isDebugEnable() {
-        return (level.equalsIgnoreCase(Levels.DEBUG) || level.equalsIgnoreCase(Levels.INFO)
-                || level.equalsIgnoreCase(Levels.WARN) || level.equalsIgnoreCase(Levels.ERROR)) ? true : false;
+        return (level.equalsIgnoreCase(Levels.DEBUG)) ? true : false;
     }
 
 }
