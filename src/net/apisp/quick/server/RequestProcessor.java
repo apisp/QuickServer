@@ -26,12 +26,12 @@ import java.util.Map;
 
 import net.apisp.quick.annotation.RequestBody;
 import net.apisp.quick.core.WebContext;
-import net.apisp.quick.core.ase.QuickWebContext;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.core.http.HttpResponse;
 import net.apisp.quick.core.http.HttpStatus;
+import net.apisp.quick.core.std.QuickWebContext;
 import net.apisp.quick.log.Logger;
 import net.apisp.quick.util.JSONs;
 

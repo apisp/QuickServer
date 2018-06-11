@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2018-present, APISP.NET. 
  */
-package net.apisp.quick.core.ase;
+package net.apisp.quick.core.std;
 
 import java.util.concurrent.ExecutorService;
 
