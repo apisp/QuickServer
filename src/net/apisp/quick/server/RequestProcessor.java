@@ -1,5 +1,17 @@
 /**
- * Copyright (c) 2018-present, APISP.NET. 
+ * Copyright 2018-present, APISP.NET.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package net.apisp.quick.server;
 
@@ -51,12 +63,22 @@ public class RequestProcessor {
 
     public ResponseInfo process(HttpRequest request) {
         ResponseInfo responseInfo = new ResponseInfo();
+        if (request instanceof HttpRequestInfo && !((HttpRequestInfo) request).normative()) {
+            // 400 Bad Request ////////////////////////////////////////////////
+            responseInfo.body = "<article style='font-size:18px;font-family: Consolas;color: #555;text-align: center;'><em>400</em> Bad Request</article>"
+                    .getBytes();
+            responseInfo.status = HttpStatus.BAD_REQUEST;
+            Map<String, String> contentType = new HashMap<>(1);
+            contentType.put("Content-Type", ContentTypes.HTML);
+            responseInfo.ensureHeaders(contentType);
+            return responseInfo;
+        }
         ServerContext serverContext = ServerContext.tryGet();
         if (serverContext != null) {
             responseInfo.ensureHeaders(serverContext.getDefaultRespHeaders());
         }
         if (executeInfo == null) {
-            // 404 Not Found ///////////////////////////////////////////////////
+            // 404 Not Found //////////////////////////////////////////////////
             responseInfo.body = "<article style='font-size:18px;font-family: Consolas;color: #555;text-align: center;'><em>404</em> Not Found</article>"
                     .getBytes();
             responseInfo.status = HttpStatus.NOT_FOUND;
@@ -71,14 +93,14 @@ public class RequestProcessor {
             Annotation[][] annosParams = method.getParameterAnnotations();
             Annotation[] annos = null;
 
-            // 按类型、注解注入参数
+            // 按类型、注解注入参数 //////////////////////////////////////////////
             nextParam: for (int i = 0; i < types.length; i++) {
                 type = types[i];
 
-                // 优先按注解注入
+                // 优先按注解注入 ///////////////////////////////////////////////
                 annos = annosParams[i];
                 toTypeInject: for (int j = 0; j < annos.length; j++) {
-                    if (annos[j] instanceof RequestBody) { // @RequestBody 注入
+                    if (annos[j] instanceof RequestBody) {
                         try {
                             if (request.body() == null) {
                                 break toTypeInject;
@@ -88,14 +110,13 @@ public class RequestProcessor {
                             } else {
                                 params[i] = JSONs.convert(new String(request.body(), "utf8"), type);
                             }
-                            continue nextParam; // 下一个参数注入
+                            continue nextParam; // 开始下一个参数注入
                         } catch (UnsupportedEncodingException e) {
-                            // 不会发生
                         }
-                    } // else ... 注入
+                    }
                 }
 
-                // 类型
+                // 类型注入 ///////////////////////////////////////////////////
                 if (Integer.class.equals(type) || int.class.equals(type)) {
                     params[i] = 0;
                 } else if (HttpRequest.class.equals(type)) {

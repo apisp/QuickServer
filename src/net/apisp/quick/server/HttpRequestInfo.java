@@ -53,12 +53,16 @@ public class HttpRequestInfo implements HttpRequest {
      * @return
      */
     private String getWord(ByteBuffer buffer, byte character) {
-        ByteBuffer token = ByteBuffer.allocate(1024 * 1024);
+        ByteBuffer token = ByteBuffer.allocate(1024 * 8);
         byte b = 0;
         int len = 0;
-        while (buffer.hasRemaining() && (b = buffer.get()) != character) {
-            token.put(b);
-            len++;
+        try {
+            while (buffer.hasRemaining() && (b = buffer.get()) != character) {
+                token.put(b);
+                len++;
+            }
+        } catch (Exception e) {
+            normative = false; // 请求头异常
         }
         if (len == 0 && buffer.hasRemaining()) {
             return getWord(buffer, character);
@@ -75,13 +79,17 @@ public class HttpRequestInfo implements HttpRequest {
      * @return
      */
     private ByteBuffer lineBuffer(ByteBuffer buffer) {
-        ByteBuffer token = ByteBuffer.allocate(1024 * 1024);
+        ByteBuffer token = ByteBuffer.allocate(1024 * 8 * 2);
         byte b = 0;
-        while (buffer.hasRemaining() && (b = buffer.get()) != 10) {
-            if (b == 13) {
-                continue;
+        try {
+            while (buffer.hasRemaining() && (b = buffer.get()) != 10) {
+                if (b == 13) {
+                    continue;
+                }
+                token.put(b);
             }
-            token.put(b);
+        } catch (Exception e) {
+            normative = false; // 请求头异常
         }
         token.flip();
         return token;
@@ -99,7 +107,8 @@ public class HttpRequestInfo implements HttpRequest {
 
         // 请求头
         while ((reqLineBuffer = lineBuffer(requestBuffer)).hasRemaining()) {
-            headers.put(getWord(reqLineBuffer, (byte) 58).trim().toUpperCase(), getWord(reqLineBuffer, (byte) 58).trim());
+            headers.put(getWord(reqLineBuffer, (byte) 58).trim().toUpperCase(),
+                    getWord(reqLineBuffer, (byte) 58).trim());
         }
 
         // cookies
