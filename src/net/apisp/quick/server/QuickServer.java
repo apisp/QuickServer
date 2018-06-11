@@ -1,16 +1,27 @@
 /**
- * Copyright (c) 2018-present, APISP.NET. 
+ * Copyright 2018-present, APISP.NET.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package net.apisp.quick.server;
 
 import java.io.IOException;
 import java.net.BindException;
 
-import net.apisp.quick.core.type.QuickServerRunner;
 import net.apisp.quick.log.Logger;
 
 /**
- * 抽象的QuickServer标准
+ * QuickServer标准规范
  * 
  * @author UJUED
  * @date 2018-06-08 10:33:31
@@ -74,5 +85,10 @@ class QuickServerThread extends Thread {
         } catch (Exception e) {
             LOGGER.error("Server start success, but after Exception occered.");
         }
+    }
+    
+    @FunctionalInterface
+    interface QuickServerRunner {
+        void run(ServerContext serverContext) throws Exception;
     }
 }
