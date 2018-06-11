@@ -20,6 +20,7 @@ import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.core.http.HttpResponse;
 import net.apisp.quick.core.http.HttpStatus;
+import net.apisp.quick.log.Logger;
 import net.apisp.quick.util.JSONs;
 
 /**
@@ -29,6 +30,7 @@ import net.apisp.quick.util.JSONs;
  * @date 2018-6-8 11:11:39
  */
 public class RequestProcessor {
+    private static final Logger LOGGER = Logger.get(RequestProcessor.class);
     private RequestExecutorInfo executeInfo;
 
     private RequestProcessor(RequestExecutorInfo info) {
@@ -50,16 +52,17 @@ public class RequestProcessor {
     public ResponseInfo process(HttpRequest request) {
         ResponseInfo responseInfo = new ResponseInfo();
         ServerContext serverContext = ServerContext.tryGet();
+        if (serverContext != null) {
+            responseInfo.ensureHeaders(serverContext.getDefaultRespHeaders());
+        }
         if (executeInfo == null) {
-            responseInfo.setBody("<h1>Not Found!</h1>".getBytes());
-            responseInfo.setStatus(HttpStatus.NOT_FOUND);
-            // 注入上下文要求的响应头
-            if (serverContext != null) {
-                responseInfo.setHeaders(serverContext.getDefaultRespHeaders());
-            }
+            // 404 Not Found ///////////////////////////////////////////////////
+            responseInfo.body = "<article style='font-size:18px;font-family: Consolas;color: #555;text-align: center;'><em>404</em> Not Found</article>"
+                    .getBytes();
+            responseInfo.status = HttpStatus.NOT_FOUND;
             Map<String, String> contentType = new HashMap<>(1);
             contentType.put("Content-Type", ContentTypes.HTML);
-            responseInfo.setHeaders(contentType);
+            responseInfo.ensureHeaders(contentType);
         } else {
             Method method = executeInfo.getMethod();
             Class<?>[] types = method.getParameterTypes();
@@ -120,36 +123,49 @@ public class RequestProcessor {
 
             try {
                 Object result = executeInfo.getMethod().invoke(executeInfo.getObject(), params);
-                serverContext = ServerContext.tryGet();
-                // 先注入上下文要求的响应头
-                if (serverContext != null) {
-                    responseInfo.setHeaders(serverContext.getDefaultRespHeaders());
-                }
-                // 再注入逻辑方法里做的改动
-                responseInfo.setHeaders(executeInfo.getRespHeaders());
+
+                // 逻辑正常 ///////////////////////////////////////////////////
+                // 注入逻辑方法里改动的Headers
+                responseInfo.ensureHeaders(executeInfo.getRespHeaders());
 
                 if (method.getReturnType().equals(byte[].class)) {
-                    responseInfo.setBody((byte[]) result);
+                    responseInfo.body = (byte[]) result;
                 } else if (result == null) {
-                    responseInfo.setBody(responseInfo.body);
+                    responseInfo.body = responseInfo.body;
                 } else {
                     try {
                         String resp = JSONs.convert(result);
                         if (resp == null) {
                             resp = result.toString();
                         }
-                        responseInfo.setBody(resp.getBytes("utf8"));
+                        responseInfo.body = resp.getBytes("utf8");
                     } catch (UnsupportedEncodingException e) {
                         // never do here.
                     }
                 }
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                // 逻辑异常 ///////////////////////////////////////////////////
+                // 500 Internal Server Error
+                Map<String, String> contentType = new HashMap<>(1);
+                contentType.put("Content-Type", ContentTypes.HTML);
+                responseInfo.ensureHeaders(contentType);
+                responseInfo.status = HttpStatus.INTERNAL_SERVER_ERROR;
+                responseInfo.body = "<article style='font-size:18px;font-family: Consolas;color: #555;text-align: center;'><em>500</em> Internal Server Error</article>"
+                        .getBytes();
+                e.getCause().printStackTrace(); // 打印错误栈信息
+            } catch (IllegalAccessException | IllegalArgumentException e) {
+                LOGGER.debug(e);
             }
         }
         return responseInfo.normalize();
     }
 
+    /**
+     * 响应信息，设置body后，自动在响应头注入Content-Length
+     * 
+     * @author UJUED
+     * @date 2018-06-11 09:48:46
+     */
     public static class ResponseInfo implements HttpResponse {
         private byte[] body = new byte[0];
         private HttpStatus status = HttpStatus.OK;
@@ -165,15 +181,11 @@ public class RequestProcessor {
             return this;
         }
 
-        void setHeaders(Map<String, String> headers) {
+        void ensureHeaders(Map<String, String> headers) {
             this.headers.putAll(headers);
             if (this.headers.get("Content-Type") == null) {
                 this.header("Content-Type", ContentTypes.JSON);
             }
-        }
-
-        void setBody(byte[] body) {
-            this.body = body;
         }
 
         ResponseInfo() {
@@ -185,10 +197,6 @@ public class RequestProcessor {
 
         public HttpStatus getStatus() {
             return status;
-        }
-
-        void setStatus(HttpStatus status) {
-            this.status = status;
         }
 
         public Map<String, String> getHeaders() {

@@ -18,34 +18,50 @@ package net.apisp.quick.server;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.Iterator;
 
+/**
+ * @author UJUED
+ * @date 2018-06-11 08:36:30
+ */
 public class DefaultQuickServer extends QuickServer {
 
-    private BlockingQueue<SocketChannel> sockes = new ArrayBlockingQueue<>(10);
-
     @Override
-    public void run(ServerContext serverContext) throws IOException {
-        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
-        serverSocketChannel.bind(new InetSocketAddress(serverContext.port()));
-        while (true) {
-            SocketChannel sc = serverSocketChannel.accept();
-            sockes.offer(sc);
-        }
-    }
-
-    @Override
-    public void afterRunning(ServerContext serverContext) throws Exception {
-        while (true) {
-            SocketChannel sc = sockes.take();
-            ByteBuffer requestBuffer = ByteBuffer.allocate(1024 * 1024);
-            sc.read(requestBuffer);
-            requestBuffer.flip();
-            HttpRequestInfo requestInfo = HttpRequestInfo.create(requestBuffer);
-            HttpResponseExecutor.prepare(requestInfo, serverContext).execute(sc);
+    public void run(ServerContext serverContext) throws Exception {
+        Selector selector = Selector.open();
+        ServerSocketChannel ssc = ServerSocketChannel.open().bind(new InetSocketAddress(serverContext.port()));
+        ssc.configureBlocking(false).register(selector, SelectionKey.OP_ACCEPT);
+        while (selector.select() > 0) {
+            for (Iterator<SelectionKey> it = selector.selectedKeys().iterator(); it.hasNext();) {
+                SelectionKey key = it.next();
+                it.remove();
+                if (key.isAcceptable()) {
+                    ServerSocketChannel sChannel = (ServerSocketChannel) key.channel();
+                    SocketChannel sc = sChannel.accept();
+                    sc.configureBlocking(false).register(selector, SelectionKey.OP_READ);
+                    key.interestOps(SelectionKey.OP_ACCEPT);
+                } else if (key.isReadable()) {
+                    SocketChannel sc = (SocketChannel) key.channel();
+                    try {
+                        ByteBuffer reqBuffer = ByteBuffer.allocate(1024 * 1024);
+                        sc.read(reqBuffer);
+                        reqBuffer.flip();
+                        HttpRequestInfo reqInfo = HttpRequestInfo.create(reqBuffer);
+                        HttpResponseExecutor.prepare(reqInfo, serverContext).execute(sc);
+                        key.interestOps(SelectionKey.OP_READ);
+                    } catch (IOException e) {
+                        LOGGER.debug(e);
+                        key.cancel();
+                        if (key.channel() != null) {
+                            sc.close();
+                        }
+                    }
+                }
+            }
         }
     }
 

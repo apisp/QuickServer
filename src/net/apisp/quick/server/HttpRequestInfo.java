@@ -53,7 +53,7 @@ public class HttpRequestInfo implements HttpRequest {
      * @return
      */
     private String getWord(ByteBuffer buffer, byte character) {
-        ByteBuffer token = ByteBuffer.allocate(1024);
+        ByteBuffer token = ByteBuffer.allocate(1024 * 1024);
         byte b = 0;
         int len = 0;
         while (buffer.hasRemaining() && (b = buffer.get()) != character) {
@@ -75,7 +75,7 @@ public class HttpRequestInfo implements HttpRequest {
      * @return
      */
     private ByteBuffer lineBuffer(ByteBuffer buffer) {
-        ByteBuffer token = ByteBuffer.allocate(1024 * 2);
+        ByteBuffer token = ByteBuffer.allocate(1024 * 1024);
         byte b = 0;
         while (buffer.hasRemaining() && (b = buffer.get()) != 10) {
             if (b == 13) {

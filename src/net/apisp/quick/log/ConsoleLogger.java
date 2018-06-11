@@ -13,8 +13,8 @@ public class ConsoleLogger implements Logger {
     }
 
     private void before(String level) {
-        System.out.print("[" + new SimpleDateFormat("MM-dd HH:mm:ss").format(new Date()) + " " + level + "] " + name
-                + " : ");
+        System.out.print(
+                "[" + new SimpleDateFormat("MM-dd HH:mm:ss").format(new Date()) + " " + level + "] " + name + " : ");
     }
 
     @Override
@@ -25,8 +25,7 @@ public class ConsoleLogger implements Logger {
 
     @Override
     public void error(String log, Object... args) {
-        if (level.equalsIgnoreCase(Levels.INFO) || level.equalsIgnoreCase(Levels.WARN)
-                || level.equalsIgnoreCase(Levels.ERROR)) {
+        if (isErrorEnabled()) {
             before("ERROR");
             System.err.println(String.format(log, args));
         }
@@ -34,7 +33,7 @@ public class ConsoleLogger implements Logger {
 
     @Override
     public void warn(String log, Object... args) {
-        if (level.equalsIgnoreCase(Levels.INFO) || level.equalsIgnoreCase(Levels.WARN)) {
+        if (isWarnEnabled()) {
             before("WARN");
             System.err.println(String.format(log, args));
         }
@@ -42,7 +41,7 @@ public class ConsoleLogger implements Logger {
 
     @Override
     public void info(String log, Object... args) {
-        if (level.equalsIgnoreCase(Levels.INFO)) {
+        if (isInfoEnabled()) {
             before("INFO");
             System.out.println(String.format(log, args));
         }
@@ -50,10 +49,65 @@ public class ConsoleLogger implements Logger {
 
     @Override
     public void debug(String log, Object... args) {
-        if (level.equalsIgnoreCase(Levels.DEBUG)) {
+        if (isDebugEnable()) {
             before("DEBUG");
             System.out.println(String.format(log, args));
         }
+    }
+
+    @Override
+    public void show(Throwable e) {
+        e.printStackTrace();
+    }
+
+    @Override
+    public void error(Throwable e) {
+        if (isErrorEnabled()) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void warn(Throwable e) {
+        if (isWarnEnabled()) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void info(Throwable e) {
+        if (isInfoEnabled()) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void debug(Throwable e) {
+        if (isDebugEnable()) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public boolean isErrorEnabled() {
+        return (level.equalsIgnoreCase(Levels.ERROR)) ? true : false;
+    }
+
+    @Override
+    public boolean isWarnEnabled() {
+        return (level.equalsIgnoreCase(Levels.WARN) || level.equalsIgnoreCase(Levels.ERROR)) ? true : false;
+    }
+
+    @Override
+    public boolean isInfoEnabled() {
+        return (level.equalsIgnoreCase(Levels.INFO) || level.equalsIgnoreCase(Levels.WARN)
+                || level.equalsIgnoreCase(Levels.ERROR)) ? true : false;
+    }
+
+    @Override
+    public boolean isDebugEnable() {
+        return (level.equalsIgnoreCase(Levels.DEBUG) || level.equalsIgnoreCase(Levels.INFO)
+                || level.equalsIgnoreCase(Levels.WARN) || level.equalsIgnoreCase(Levels.ERROR)) ? true : false;
     }
 
 }
