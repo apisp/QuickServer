@@ -16,51 +16,78 @@
 package net.apisp.quick.server;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+
+import net.apisp.quick.log.Logger;
+import net.apisp.quick.server.var.ServerContext;
 
 /**
  * @author UJUED
- * @date 2018-06-11 08:36:30
+ * @date 2018-06-12 15:57:49
  */
 public class DefaultQuickServer extends QuickServer {
+    private static final Logger LOGGER = Logger.get(DefaultQuickServer.class);
+    private static boolean shouldRunning = true;
+    private List<SocketAutonomy> keepList = new ArrayList<>(100);
 
     @Override
     public void run(ServerContext serverContext) throws Exception {
-        Selector selector = Selector.open();
-        ServerSocketChannel ssc = ServerSocketChannel.open().bind(new InetSocketAddress(serverContext.port()));
-        ssc.configureBlocking(false).register(selector, SelectionKey.OP_ACCEPT);
-        while (selector.select() > 0) {
-            for (Iterator<SelectionKey> it = selector.selectedKeys().iterator(); it.hasNext();) {
-                SelectionKey key = it.next();
-                it.remove();
-                if (key.isAcceptable()) {
-                    ServerSocketChannel sChannel = (ServerSocketChannel) key.channel();
-                    SocketChannel sc = sChannel.accept();
-                    sc.configureBlocking(false).register(selector, SelectionKey.OP_READ);
-                    key.interestOps(SelectionKey.OP_ACCEPT);
-                } else if (key.isReadable()) {
-                    SocketChannel sc = (SocketChannel) key.channel();
-                    try {
-                        ByteBuffer reqBuffer = ByteBuffer.allocate(1024 * 1024);
-                        sc.read(reqBuffer);
-                        reqBuffer.flip();
-                        HttpRequestInfo reqInfo = HttpRequestInfo.create(reqBuffer);
-                        HttpResponseExecutor.prepare(reqInfo, serverContext).execute(sc);
-                        key.interestOps(SelectionKey.OP_READ);
-                    } catch (IOException e) {
-                        LOGGER.debug(e);
-                        key.cancel();
-                        if (key.channel() != null) {
-                            sc.close();
+        QuickServerMonitor.work(keepList);
+        ServerSocket ss = new ServerSocket(serverContext.port());
+        while (shouldRunning) {
+            Socket sock = ss.accept();
+            LOGGER.debug("New connection come in.");
+            SocketAutonomy.activeAsync(sock, keepList);
+        }
+        ss.close();
+    }
+
+    /**
+     * HTTP/1.1 请求长连接定时清理
+     * 
+     * @author UJUED
+     * @date 2018-06-12 18:18:49
+     */
+    static class QuickServerMonitor extends Thread {
+        private static final Logger LOGGER = Logger.get(QuickServerMonitor.class);
+        public static final int SOCKET_MAX_FREE_TIME = 1000 * 6;
+        private List<SocketAutonomy> keepList;
+
+        public QuickServerMonitor(List<SocketAutonomy> keepList) {
+            this.keepList = keepList;
+        }
+
+        public static void work(List<SocketAutonomy> keepList) {
+            QuickServerMonitor monitor = new QuickServerMonitor(keepList);
+            monitor.setPriority(Thread.MIN_PRIORITY);
+            monitor.setDaemon(true);
+            monitor.start();
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (!this.isInterrupted()) {
+                    for (Iterator<SocketAutonomy> iter = keepList.iterator(); iter.hasNext();) {
+                        SocketAutonomy so = iter.next();
+                        LOGGER.debug("%s free time is %ds", so, so.freeTime() / 1000);
+                        if (so.freeTime() > SOCKET_MAX_FREE_TIME) {
+                            so.interrupt();
+                            try {
+                                so.close();
+                            } catch (IOException e) {
+                            }
+                            iter.remove();
+                            LOGGER.debug("%s is timeout. Closed.", so);
                         }
                     }
+                    Thread.sleep(1000 * 6);
                 }
+            } catch (InterruptedException e) {
             }
         }
     }

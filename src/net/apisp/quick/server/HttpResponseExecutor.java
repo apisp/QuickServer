@@ -4,35 +4,35 @@
 package net.apisp.quick.server;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.log.Logger;
+import net.apisp.quick.server.HttpRequestResolver.HttpRequestInfo;
 import net.apisp.quick.server.RequestProcessor.ResponseInfo;
 
 public class HttpResponseExecutor {
     private static final Logger LOGGER = Logger.get(HttpResponseExecutor.class);
     private HttpRequestInfo httpRequestInfo;
-    private ServerContext context;
+    private ResponseInfo httpResponseInfo;
 
-    private HttpResponseExecutor(HttpRequestInfo requestInfo, ServerContext context) {
-        this.httpRequestInfo = requestInfo;
-        this.context = context;
+    private HttpResponseExecutor(HttpRequestInfo httpRequestInfo, ResponseInfo httpResponseInfo) {
+        this.httpRequestInfo = httpRequestInfo;
+        this.httpResponseInfo = httpResponseInfo;
     }
 
-    public static HttpResponseExecutor prepare(HttpRequestInfo info, ServerContext context) {
-        return new HttpResponseExecutor(info, context);
+    public static HttpResponseExecutor execute(HttpRequestInfo httpRequestInfo) {
+        ResponseInfo respInfo = RequestProcessor.create(httpRequestInfo).process();
+        return new HttpResponseExecutor(httpRequestInfo, respInfo);
     }
 
-    public void execute(SocketChannel channel) throws UnsupportedEncodingException {
-        ResponseInfo respInfo = RequestProcessor
-                .create(this.context.hit(httpRequestInfo.method(), httpRequestInfo.uri())).process(httpRequestInfo);
-        ByteBuffer responseData = ByteBuffer.allocate(1024 * 1024 * 50);
+    public void response(OutputStream out) throws IOException {
+        ResponseInfo respInfo = this.httpResponseInfo;
+        ByteBuffer responseData = ByteBuffer.allocate(1024 * 50);
         // 响应行
         responseData.put(String.format("HTTP/1.1 %d %s", respInfo.getStatus().getCode(), respInfo.getStatus().getDesc())
                 .getBytes());
@@ -59,13 +59,11 @@ public class HttpResponseExecutor {
         // 响应体
         responseData.put(respInfo.getBody());
         responseData.flip();
-        while (responseData.hasRemaining()) {
-            try {
-                channel.write(responseData);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+
+        byte[] rD = new byte[responseData.limit()];
+        responseData.get(rD);
+        responseData = null;
+        out.write(rD);
         LOGGER.info("%s %s - %d", httpRequestInfo.method(), httpRequestInfo.uri(), respInfo.getStatus().getCode());
     }
 

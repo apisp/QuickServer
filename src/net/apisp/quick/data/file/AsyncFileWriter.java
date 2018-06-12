@@ -40,9 +40,16 @@ public class AsyncFileWriter implements CompletionHandler<Integer, Object>, Boot
         this.fileChannel = fileChannel;
         this.watcher = watcher;
         this.posi = startPosi;
-        this.dataBuffer = ByteBuffer.allocate(data.length);
-        this.dataBuffer.put(data);
-        this.dataBuffer.flip();
+        this.dataBuffer = ByteBuffer.wrap(data);
+    }
+
+    public AsyncFileWriter(AsynchronousFileChannel fileChannel, ByteBuffer data, long startPosi,
+            AtomicInteger watcher) {
+        watcher.incrementAndGet();
+        this.fileChannel = fileChannel;
+        this.watcher = watcher;
+        this.posi = startPosi;
+        this.dataBuffer = data;
     }
 
     @Override

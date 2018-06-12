@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.BindException;
 
 import net.apisp.quick.log.Logger;
+import net.apisp.quick.server.var.ServerContext;
 
 /**
  * QuickServer标准规范
@@ -30,7 +31,7 @@ public abstract class QuickServer {
     public static final Logger LOGGER = Logger.get(QuickServer.class);
     private ServerContext serverContext;
 
-    public void start() {
+    public final void start() {
         new QuickServerThread(serverContext, (context) -> {
             run(context);
         }).startAndDoAfterRunning((context) -> {
@@ -38,13 +39,13 @@ public abstract class QuickServer {
         });
     }
 
-    public void setContext(ServerContext serverContext) {
+    public final void setContext(ServerContext serverContext) {
         this.serverContext = serverContext;
     }
 
     public abstract void run(ServerContext serverContext) throws Exception;
 
-    public void afterRunning(ServerContext serverContext) throws Exception {
+    protected void afterRunning(ServerContext serverContext) throws Exception {
     }
 }
 
@@ -63,14 +64,16 @@ class QuickServerThread extends Thread {
         try {
             runner.run(serverContext);
         } catch (BindException e) {
+            serverContext.setNormative(false);
             LOGGER.error("The port %d already inuse.", serverContext.port());
         } catch (IOException e) {
+            serverContext.setNormative(false);
             LOGGER.error("Server start error, IO Exception occered.");
         } catch (Exception e) {
+            serverContext.setNormative(false);
             LOGGER.error("Server start error, Unkonwn Exception occered. %s", e);
             e.printStackTrace();
         }
-        serverContext.setNormative(false);
     }
 
     public void startAndDoAfterRunning(QuickServerRunner runner) {
@@ -86,7 +89,7 @@ class QuickServerThread extends Thread {
             LOGGER.error("Server start success, but after Exception occered.");
         }
     }
-    
+
     @FunctionalInterface
     interface QuickServerRunner {
         void run(ServerContext serverContext) throws Exception;

@@ -22,7 +22,7 @@ import net.apisp.quick.log.Logger;
 import net.apisp.quick.server.DefaultQuickServer;
 import net.apisp.quick.server.MappingResolver;
 import net.apisp.quick.server.QuickServer;
-import net.apisp.quick.server.ServerContext;
+import net.apisp.quick.server.var.ServerContext;
 
 /**
  * 框架帮助类

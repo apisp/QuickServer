@@ -6,7 +6,7 @@ package net.apisp.quick.core.std;
 import java.util.concurrent.ExecutorService;
 
 import net.apisp.quick.core.WebContext;
-import net.apisp.quick.server.ServerContext;
+import net.apisp.quick.server.var.ServerContext;
 
 public class QuickWebContext implements WebContext {
 

@@ -20,11 +20,13 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.apisp.quick.annotation.RequestBody;
+import net.apisp.quick.core.BodyBinary;
 import net.apisp.quick.core.WebContext;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpCookie;
@@ -33,10 +35,13 @@ import net.apisp.quick.core.http.HttpResponse;
 import net.apisp.quick.core.http.HttpStatus;
 import net.apisp.quick.core.std.QuickWebContext;
 import net.apisp.quick.log.Logger;
+import net.apisp.quick.server.HttpRequestResolver.HttpRequestInfo;
+import net.apisp.quick.server.var.RequestDataBody;
+import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.util.JSONs;
 
 /**
- * 请求处理器
+ * 请求处理器。控制器逻辑处理
  *
  * @author UJUED
  * @date 2018-6-8 11:11:39
@@ -44,9 +49,17 @@ import net.apisp.quick.util.JSONs;
 public class RequestProcessor {
     private static final Logger LOGGER = Logger.get(RequestProcessor.class);
     private RequestExecutorInfo executeInfo;
+    private HttpRequestInfo httpRequest;
 
-    private RequestProcessor(RequestExecutorInfo info) {
-        this.executeInfo = info;
+    private ServerContext serverContext = ServerContext.tryGet();
+    {
+        if (serverContext == null)
+            throw new IllegalStateException("ServerContext get error.");
+    }
+
+    private RequestProcessor(HttpRequestInfo httpRequest) {
+        this.httpRequest = httpRequest;
+        this.executeInfo = serverContext.hit(httpRequest.method(), httpRequest.uri());
     }
 
     /**
@@ -56,14 +69,17 @@ public class RequestProcessor {
      *            处理时需要的信息
      * @return
      */
-    public static RequestProcessor create(RequestExecutorInfo info) {
-        RequestProcessor processor = new RequestProcessor(info);
+    public static RequestProcessor create(HttpRequestInfo req) {
+        RequestProcessor processor = new RequestProcessor(req);
         return processor;
     }
 
-    public ResponseInfo process(HttpRequest request) {
+    public ResponseInfo process() {
         ResponseInfo responseInfo = new ResponseInfo();
-        if (request instanceof HttpRequestInfo && !((HttpRequestInfo) request).normative()) {
+        responseInfo.ensureHeaders(serverContext.getDefaultRespHeaders());
+
+        HttpRequestInfo request = this.httpRequest;
+        if (!request.normative()) {
             // 400 Bad Request ////////////////////////////////////////////////
             responseInfo.body = "<article style='font-size:18px;font-family: Consolas;color: #555;text-align: center;'><em>400</em> Bad Request</article>"
                     .getBytes();
@@ -72,10 +88,6 @@ public class RequestProcessor {
             contentType.put("Content-Type", ContentTypes.HTML);
             responseInfo.ensureHeaders(contentType);
             return responseInfo;
-        }
-        ServerContext serverContext = ServerContext.tryGet();
-        if (serverContext != null) {
-            responseInfo.ensureHeaders(serverContext.getDefaultRespHeaders());
         }
         if (executeInfo == null) {
             // 404 Not Found //////////////////////////////////////////////////
@@ -129,6 +141,8 @@ public class RequestProcessor {
                     } else {
                         params[i] = null;
                     }
+                } else if (BodyBinary.class.equals(type)) {
+                    params[i] = new RequestDataBody(request.getReqData(), request.getBodyOffset());
                 } else if (byte[].class.equals(type) || Byte[].class.equals(type)) {
                     params[i] = request.body();
                 } else if (String.class.equals(type)) {
@@ -247,6 +261,13 @@ public class RequestProcessor {
         public List<HttpCookie> getCookies() {
             return cookies;
         }
+
+        @Override
+        public String toString() {
+            return "ResponseInfo [body=" + Arrays.toString(body) + ", status=" + status + ", headers=" + headers
+                    + ", cookies=" + cookies + "]";
+        }
+
     }
 
     /**

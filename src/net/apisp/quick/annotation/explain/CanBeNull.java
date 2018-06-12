@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.data;
+package net.apisp.quick.annotation.explain;
 
-import java.nio.ByteBuffer;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+@Documented
+@Retention(SOURCE)
+@Target(FIELD)
 /**
  * @author UJUED
- * @date 2018-06-11 17:35:23
+ * @date 2018-06-12 21:32:18
  */
-public interface DataPersist {
-    long persist(byte[] part);
-
-    long persist(byte[] part, int offset, int length);
-
-    long persist(ByteBuffer part);
-
-    byte[] data(long offset, int length);
-
-    long dataLength();
+public @interface CanBeNull {
 
 }

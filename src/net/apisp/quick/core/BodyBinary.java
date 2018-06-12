@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.data;
+package net.apisp.quick.core;
 
 import java.nio.ByteBuffer;
 
 /**
  * @author UJUED
- * @date 2018-06-11 17:35:23
+ * @date 2018-06-12 11:27:36
  */
-public interface DataPersist {
-    long persist(byte[] part);
+public interface BodyBinary {
+    ByteBuffer data(long offset, int length);
 
-    long persist(byte[] part, int offset, int length);
-
-    long persist(ByteBuffer part);
-
-    byte[] data(long offset, int length);
-
-    long dataLength();
-
+    long length();
 }

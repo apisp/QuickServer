@@ -15,51 +15,102 @@
  */
 package net.apisp.quick.data.file;
 
+import java.io.Closeable;
 import java.io.IOException;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.file.AccessDeniedException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 import net.apisp.quick.data.DataPersist;
-import net.apisp.quick.log.Logger;
 
 /**
  * @author UJUED
- * @date 2018-06-11 17:46:11
+ * @date 2018-06-12 12:18:37
  */
-public class FileData implements DataPersist {
-    private static final Logger LOGGER = Logger.get(FileData.class);
-    private AtomicLong bytePosi = new AtomicLong(0);
+public class FileData implements DataPersist, Closeable {
+    private static ThreadLocal<FileData> threadLocal = new ThreadLocal<>();
+    private FileChannel fileChannel;
 
-    private AtomicInteger watcher = new AtomicInteger();
-    private AsynchronousFileChannel fileChannel;
+    private long fileLength = 0;
 
-    public FileData(Path dataFilePath) {
+    public synchronized static final FileData prepare(Path filePath) {
         try {
-            this.fileChannel = AsynchronousFileChannel.open(dataFilePath, StandardOpenOption.CREATE,
-                    StandardOpenOption.WRITE);
-        } catch (AccessDeniedException e) {
-            LOGGER.error("%s AccessDenied.", dataFilePath);
+            threadLocal.set(new FileData(FileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
+                    StandardOpenOption.READ)));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return threadLocal.get();
+    }
+
+    public static final boolean has() {
+        return threadLocal.get() == null ? false : true;
+    }
+
+    public static final FileData current() {
+        if (threadLocal.get() == null) {
+            throw new IllegalStateException("请先为该线程准备一个" + FileData.class);
+        }
+        return threadLocal.get();
+    }
+
+    public FileData(FileChannel fileChannel) {
+        this.fileChannel = fileChannel;
     }
 
     @Override
     public long persist(byte[] part) {
-        new AsyncFileWriter(fileChannel, part, bytePosi.get(), watcher).boot();
-        return bytePosi.addAndGet(part.length);
+        return persist(ByteBuffer.wrap(part));
     }
 
     @Override
-    public byte[] data(long startPosi, long stopPosi) {
-        return null;
+    public long persist(byte[] part, int offset, int length) {
+        return persist(ByteBuffer.wrap(part, offset, length));
     }
 
-    public boolean isFinished() {
-        return watcher.get() == 1 || watcher.get() == 0 ? true : false;
+    @Override
+    public long persist(ByteBuffer part) {
+        try {
+            fileChannel.write(part);
+            part.clear();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileLength += part.limit();
     }
+
+    public ByteBuffer buffer(long offset, int length) {
+        if (offset + length > fileLength || offset < 0) {
+            throw new IllegalArgumentException("Offset or length not standard.");
+        }
+        ByteBuffer dst = ByteBuffer.allocate(length);
+        try {
+            this.fileChannel.read(dst, offset);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        dst.flip();
+        return dst;
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.fileChannel.close();
+    }
+
+    @Override
+    public byte[] data(long offset, int length) {
+        ByteBuffer body = buffer(offset, length);
+        byte[] b = new byte[body.limit()];
+        body.get(b);
+        body = null;
+        return b;
+    }
+
+    @Override
+    public long dataLength() {
+        return fileLength;
+    }
+
 }

@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.server;
+package net.apisp.quick.server.var;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import net.apisp.quick.config.Configuration;
+import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 import net.apisp.quick.util.Safes;
 
@@ -32,23 +35,23 @@ import net.apisp.quick.util.Safes;
  */
 public class ServerContext {
     private static ServerContext instance;
-    private Map<String, RequestExecutorInfo> mappings;
+    private Map<String, RequestExecutorInfo> mappings = new HashMap<>();
     private ExecutorService executor;
     private boolean normative = true;
     private boolean crossDomain = false;
-    
+
     private Map<String, String> defaultRespHeaders = new HashMap<>();
 
     private int port;
     private Class<QuickServer> serverClass;
 
     private ServerContext() {
-        // 单例对象
-        mappings = new HashMap<>();
         executor = Executors.newFixedThreadPool((int) Configuration.get("server.threads"));
 
         port = (int) Configuration.get("server.port");
         serverClass = Safes.loadClass(Configuration.get("server").toString(), QuickServer.class);
+
+        defaultRespHeaders.put("Connection", "keep-alive");
     }
 
     /**
@@ -65,7 +68,7 @@ public class ServerContext {
         }
         return instance;
     }
-    
+
     /**
      * 尝试获取ServerContext， 再脱离QuickServer调用时，返回null值
      * 
@@ -150,5 +153,9 @@ public class ServerContext {
 
     public Map<String, String> getDefaultRespHeaders() {
         return defaultRespHeaders;
+    }
+
+    public Path getTmpPath(String fileName) {
+        return Paths.get((String) Configuration.get("server.tmp.dir"), fileName);
     }
 }

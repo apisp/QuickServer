@@ -13,23 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.data;
-
-import java.nio.ByteBuffer;
+package net.apisp.quick.ext;
 
 /**
  * @author UJUED
- * @date 2018-06-11 17:35:23
+ * @date 2018-06-12 10:35:45
  */
-public interface DataPersist {
-    long persist(byte[] part);
-
-    long persist(byte[] part, int offset, int length);
-
-    long persist(ByteBuffer part);
-
-    byte[] data(long offset, int length);
-
-    long dataLength();
+public class QuickController {
 
 }

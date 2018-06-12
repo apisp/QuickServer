@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.data;
+package net.apisp.quick.util;
 
-import java.nio.ByteBuffer;
+import java.util.UUID;
 
 /**
  * @author UJUED
- * @date 2018-06-11 17:35:23
+ * @date 2018-06-12 10:49:48
  */
-public interface DataPersist {
-    long persist(byte[] part);
-
-    long persist(byte[] part, int offset, int length);
-
-    long persist(ByteBuffer part);
-
-    byte[] data(long offset, int length);
-
-    long dataLength();
-
+public abstract class IDs {
+    public static final String uuid() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
 }

@@ -31,6 +31,7 @@ import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpMethods;
 import net.apisp.quick.log.Logger;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
+import net.apisp.quick.server.var.ServerContext;
 
 /**
  * 映射决策
