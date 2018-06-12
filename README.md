@@ -24,11 +24,12 @@ logging.level=INFO
 server=net.apisp.quick.server.DefaultQuickServer
 server.port=8908
 server.threads=24
+server.tmp.dir=${user.dir}
 ```
 配置中的`server`项，可能会使你心生疑惑，它是个这样的一个类：
 
 1. 它继承自`net.apisp.quick.server.QuickServer`，你可以用一些成熟的Server产品，如Jetty、Tomcat等来代替默认的QuickServer。你只需自己实现一个`net.apisp.quick.server.QuickServer`，并配置到配置文件`server`节点即可。
-2. 能获取到应用运行的上下文`net.apisp.quick.server.ServerContext`。
+2. 能获取到应用运行的上下文`net.apisp.quick.server.var.ServerContext`。
 
 上下文提供这些信息：`URI与逻辑函数的映射关系`，`一个线程池(池大小由配置文件决定)`， `配置信息`。
 
