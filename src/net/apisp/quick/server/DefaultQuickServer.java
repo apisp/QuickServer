@@ -15,14 +15,14 @@
  */
 package net.apisp.quick.server;
 
-import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import net.apisp.quick.log.Logger;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.var.ServerContext;
 
 /**
@@ -30,17 +30,17 @@ import net.apisp.quick.server.var.ServerContext;
  * @date 2018-06-12 15:57:49
  */
 public class DefaultQuickServer extends QuickServer {
-    private static final Logger LOGGER = Logger.get(DefaultQuickServer.class);
+    private static final Log LOG = LogFactory.getLog(DefaultQuickServer.class);
     private static boolean shouldRunning = true;
     private List<SocketAutonomy> keepList = new ArrayList<>(100);
 
     @Override
     public void run(ServerContext serverContext) throws Exception {
-        QuickServerMonitor.work(keepList);
+        QuickServerMonitor.start(keepList);
         ServerSocket ss = new ServerSocket(serverContext.port());
         while (shouldRunning) {
             Socket sock = ss.accept();
-            LOGGER.debug("New connection come in.");
+            LOG.debug("New connection come in.");
             SocketAutonomy.activeAsync(sock, keepList);
         }
         ss.close();
@@ -53,7 +53,6 @@ public class DefaultQuickServer extends QuickServer {
      * @date 2018-06-12 18:18:49
      */
     static class QuickServerMonitor extends Thread {
-        private static final Logger LOGGER = Logger.get(QuickServerMonitor.class);
         public static final int SOCKET_MAX_FREE_TIME = 1000 * 6;
         private List<SocketAutonomy> keepList;
 
@@ -61,10 +60,11 @@ public class DefaultQuickServer extends QuickServer {
             this.keepList = keepList;
         }
 
-        public static void work(List<SocketAutonomy> keepList) {
+        public static void start(List<SocketAutonomy> keepList) {
             QuickServerMonitor monitor = new QuickServerMonitor(keepList);
             monitor.setPriority(Thread.MIN_PRIORITY);
             monitor.setDaemon(true);
+            monitor.setName("monitor");
             monitor.start();
         }
 
@@ -73,16 +73,13 @@ public class DefaultQuickServer extends QuickServer {
             try {
                 while (!this.isInterrupted()) {
                     for (Iterator<SocketAutonomy> iter = keepList.iterator(); iter.hasNext();) {
-                        SocketAutonomy so = iter.next();
-                        LOGGER.debug("%s free time is %ds", so, so.freeTime() / 1000);
-                        if (so.freeTime() > SOCKET_MAX_FREE_TIME) {
-                            so.interrupt();
-                            try {
-                                so.close();
-                            } catch (IOException e) {
-                            }
+                        SocketAutonomy sa = iter.next();
+                        LOG.debug("%s free time is %ds", sa, sa.freeTime() / 1000);
+                        if (sa.freeTime() > SOCKET_MAX_FREE_TIME) {
+                            sa.interrupt();
+                            sa.close();
                             iter.remove();
-                            LOGGER.debug("%s is timeout. Closed.", so);
+                            LOG.debug("%s is timeout. Closed.", sa);
                         }
                     }
                     Thread.sleep(1000 * 6);

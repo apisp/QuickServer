@@ -38,19 +38,36 @@ public class RequestDataBody implements BodyBinary {
     }
 
     @Override
-    public ByteBuffer data(long offset, int length) {
-        if (reqData == null) {
-            return null;
-        }
-        return ByteBuffer.wrap(reqData.data(bodyOffset + offset, length));
-    }
-
-    @Override
     public long length() {
         if (reqData == null) {
             return -1;
         }
         return reqData.dataLength();
+    }
+
+    @Override
+    public void data(long offset, ByteBuffer buffer) {
+        if (reqData == null) {
+            return;
+        }
+        int cap = (int) (reqData.dataLength() - offset);
+        if (offset < 0) {
+            new IllegalArgumentException("offset must > 0");
+        }
+        if (cap > buffer.capacity()) {
+            cap = buffer.capacity();
+        }
+        buffer.clear();
+        buffer.put(reqData.data(offset, cap));
+        buffer.flip();
+    }
+
+    @Override
+    public byte[] data(long offset, int length) {
+        if (reqData == null) {
+            return null;
+        }
+        return reqData.data(bodyOffset + offset, length);
     }
 
 }

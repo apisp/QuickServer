@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.util;
+package net.apisp.quick.core;
 
-public abstract class Strings {
-    public static final boolean isEmpty(String string) {
-        return string == null ? true : (string.equals("") ? true : false);
-    }
+/**
+ * @author UJUED
+ * @date 2018-06-13 14:21:18
+ */
+public interface Cacheable<T> {
+    T cache(T obj);
 }

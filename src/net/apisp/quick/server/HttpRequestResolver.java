@@ -24,13 +24,15 @@ import net.apisp.quick.annotation.explain.CanBeNull;
 import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.data.DataPersist;
-import net.apisp.quick.log.Logger;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
 
 /**
  * @author UJUED
  * @date 2018-06-12 17:57:57
  */
 public class HttpRequestResolver {
+    private static final Log LOG = LogFactory.getLog(HttpRequestInfo.class);
     public static final HttpRequestInfo resolve(ByteBuffer requestBuffer) {
         HttpRequestInfo info = new HttpRequestInfo(requestBuffer);
         info.calc();
@@ -38,7 +40,6 @@ public class HttpRequestResolver {
     }
 
     public static class HttpRequestInfo implements HttpRequest {
-        private static final Logger LOGGER = Logger.get(HttpRequestInfo.class);
         private String method;
         private String uri;
         private String version;
@@ -145,7 +146,7 @@ public class HttpRequestResolver {
                 for (int i = 0; i < cks.length; i++) {
                     String[] kv = cks[i].split("=");
                     if (kv.length != 2) {
-                        LOGGER.warn("A cookie losed.");
+                        LOG.warn("A cookie losed.");
                         continue;
                     }
                     cookies.put(kv[0].trim().toUpperCase(), kv[1].trim());

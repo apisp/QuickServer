@@ -11,12 +11,13 @@ import java.util.List;
 import java.util.Map;
 
 import net.apisp.quick.core.http.HttpCookie;
-import net.apisp.quick.log.Logger;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.HttpRequestResolver.HttpRequestInfo;
 import net.apisp.quick.server.RequestProcessor.ResponseInfo;
 
 public class HttpResponseExecutor {
-    private static final Logger LOGGER = Logger.get(HttpResponseExecutor.class);
+    private static final Log LOG = LogFactory.getLog(HttpResponseExecutor.class);
     private HttpRequestInfo httpRequestInfo;
     private ResponseInfo httpResponseInfo;
 
@@ -64,7 +65,7 @@ public class HttpResponseExecutor {
         responseData.get(rD);
         responseData = null;
         out.write(rD);
-        LOGGER.info("%s %s - %d", httpRequestInfo.method(), httpRequestInfo.uri(), respInfo.getStatus().getCode());
+        LOG.info("%s %s - %d", httpRequestInfo.method(), httpRequestInfo.uri(), respInfo.getStatus().getCode());
     }
 
 }

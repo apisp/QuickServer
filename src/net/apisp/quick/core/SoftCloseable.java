@@ -20,5 +20,8 @@ package net.apisp.quick.core;
  * @date 2018-06-11 23:54:18
  */
 public interface SoftCloseable {
+    /**
+     * 需要做异常处理
+     */
     void close();
 }

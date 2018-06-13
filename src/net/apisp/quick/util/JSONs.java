@@ -1,5 +1,17 @@
 /**
- * Copyright (c) 2018-present, APISP.NET. 
+ * Copyright 2018-present, APISP.NET.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package net.apisp.quick.util;
 
@@ -8,7 +20,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import net.apisp.quick.log.Logger;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
 
 /**
  * JSON工具
@@ -17,7 +30,7 @@ import net.apisp.quick.log.Logger;
  * @author UJUED
  */
 public class JSONs {
-    private static final Logger lOGGER = Logger.get(JSONs.class);
+    private static final Log LOG = LogFactory.getLog(JSONs.class);
 
     public static class FieldValue<T> {
         private String field;
@@ -176,7 +189,7 @@ public class JSONs {
             obj = type.newInstance();
 
         } catch (InstantiationException | IllegalAccessException e) {
-            lOGGER.error("%s 需要无参数构造函数。", type);
+            LOG.error("%s 需要无参数构造函数。", type);
         }
         return obj;
     }

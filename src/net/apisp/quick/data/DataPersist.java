@@ -17,11 +17,13 @@ package net.apisp.quick.data;
 
 import java.nio.ByteBuffer;
 
+import net.apisp.quick.core.SoftCloseable;
+
 /**
  * @author UJUED
  * @date 2018-06-11 17:35:23
  */
-public interface DataPersist {
+public interface DataPersist extends SoftCloseable {
     long persist(byte[] part);
 
     long persist(byte[] part, int offset, int length);
@@ -31,5 +33,4 @@ public interface DataPersist {
     byte[] data(long offset, int length);
 
     long dataLength();
-
 }

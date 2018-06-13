@@ -1,12 +1,6 @@
 package net.apisp.quick.log;
 
-import net.apisp.quick.config.Configuration;
-
-public interface Logger {
-    public static Logger get(Class<?> clazz) {
-        // TODO chose a Logger
-        return new ConsoleLogger((String) Configuration.get("logging.level"), clazz.getName());
-    }
+public interface Log {
 
     public static final class Levels {
         public static String ERROR = "ERROR";
@@ -25,6 +19,8 @@ public interface Logger {
 
     void debug(String log, Object... args);
 
+    void log(String level, String log, Object... args);
+
     void show(Throwable e);
 
     void error(Throwable e);
@@ -34,6 +30,8 @@ public interface Logger {
     void info(Throwable e);
 
     void debug(Throwable e);
+
+    void log(String level, Throwable e);
 
     boolean isErrorEnabled();
 

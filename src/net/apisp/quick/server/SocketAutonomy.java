@@ -15,7 +15,6 @@
  */
 package net.apisp.quick.server;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,7 +25,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.apisp.quick.annotation.explain.CanBeNull;
+import net.apisp.quick.core.SoftCloseable;
 import net.apisp.quick.data.file.FileData;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.HttpRequestResolver.HttpRequestInfo;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.util.IDs;
@@ -35,7 +37,8 @@ import net.apisp.quick.util.IDs;
  * @author UJUED
  * @date 2018-06-12 16:05:50
  */
-public class SocketAutonomy extends Thread implements Closeable {
+public class SocketAutonomy extends Thread implements SoftCloseable {
+    private static final Log LOG = LogFactory.getLog(SocketAutonomy.class);
     private Socket sock;
     private Long recentTime;
 
@@ -57,24 +60,27 @@ public class SocketAutonomy extends Thread implements Closeable {
             byte[] first = null;
             int i = 0, n = 0;
             byte[] buf = new byte[1024 * 10];
+            String reqDataFile = null;
             while (!this.isInterrupted()) {
                 if ((i = is.read(buf)) == -1) {
                     sock.close();
+                    LOG.debug("Read -1, so this socket closed.");
                     break;
                 }
                 if (n == 0) {
                     first = Arrays.copyOfRange(buf, 0, i);
                 } else {
                     if (n == 1) {
-                        FileData.prepare(ServerContext.tryGet().getTmpPath(IDs.uuid()));
-                        FileData.current().persist(first);
+                        reqDataFile = IDs.uuid();
+                        FileData.create(reqDataFile, ServerContext.tryGet().getTmpPath(reqDataFile)).persist(first);
                     }
-                    FileData.current().persist(buf, 0, i);
+                    FileData.find(reqDataFile).persist(buf, 0, i);
                 }
                 n++; // 更新状态信息
                 if (is.available() == 0) {
                     n = 0;
-                    new ResponseThread(ByteBuffer.wrap(first), FileData.has() ? FileData.current() : null).start();
+                    new ResponseThread(ByteBuffer.wrap(first), FileData.find(reqDataFile)).start();
+                    reqDataFile = null;
                     this.recentTime = System.currentTimeMillis();
                 }
             }
@@ -94,8 +100,12 @@ public class SocketAutonomy extends Thread implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
-        this.sock.close();
+    public void close() {
+        try {
+            this.sock.close();
+        } catch (IOException e) {
+            LOG.debug(e);
+        }
     }
 
     /**

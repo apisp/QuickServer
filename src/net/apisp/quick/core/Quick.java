@@ -18,7 +18,8 @@ package net.apisp.quick.core;
 import java.util.Objects;
 
 import net.apisp.quick.config.Configuration;
-import net.apisp.quick.log.Logger;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.DefaultQuickServer;
 import net.apisp.quick.server.MappingResolver;
 import net.apisp.quick.server.QuickServer;
@@ -31,7 +32,7 @@ import net.apisp.quick.server.var.ServerContext;
  * @date 2018-06-08 10:34:37
  */
 public class Quick implements Bootable<ServerContext> {
-    private static final Logger LOGGER = Logger.get(Quick.class);
+    private static final Log LOG = LogFactory.getLog(Quick.class);
     private static QuickServer server;
     private Class<?> bootClass;
     private String[] bootArgs = new String[0];
@@ -80,14 +81,14 @@ public class Quick implements Bootable<ServerContext> {
             if (Objects.nonNull(serverClass)) {
                 try {
                     server = serverClass.newInstance();
-                    LOGGER.info("The server %s hit.", serverClass);
+                    LOG.info("The server %s hit.", serverClass);
                 } catch (InstantiationException | IllegalAccessException e) {
-                    LOGGER.warn("Who extends QuickServer need the non-args' constructor. Default server instance hit.");
+                    LOG.warn("Who extends QuickServer need the non-args' constructor. Default server instance hit.");
                     server = new DefaultQuickServer();
                 }
             } else {
                 server = new DefaultQuickServer();
-                LOGGER.info("The settings error! Default server instance hit.");
+                LOG.info("The settings error! Default server instance hit.");
             }
         }
         return server;

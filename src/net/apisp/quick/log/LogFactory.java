@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.util;
+package net.apisp.quick.log;
 
-public abstract class Strings {
-    public static final boolean isEmpty(String string) {
-        return string == null ? true : (string.equals("") ? true : false);
+import net.apisp.quick.config.Configuration;
+
+/**
+ * @author UJUED
+ * @date 2018-06-13 12:59:44
+ */
+public class LogFactory {
+    public static Log getLog(Class<?> clazz) {
+        // TODO chose a Logger
+        return new ConsoleLog((String) Configuration.get("logging.level"), clazz.getName());
     }
 }

@@ -22,7 +22,9 @@ import java.nio.ByteBuffer;
  * @date 2018-06-12 11:27:36
  */
 public interface BodyBinary {
-    ByteBuffer data(long offset, int length);
+    void data(long offset, ByteBuffer buffer);
+
+    byte[] data(long offset, int length);
 
     long length();
 }

@@ -21,6 +21,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.apisp.quick.data.DataPersist;
 
@@ -29,33 +31,22 @@ import net.apisp.quick.data.DataPersist;
  * @date 2018-06-12 12:18:37
  */
 public class FileData implements DataPersist, Closeable {
-    private static ThreadLocal<FileData> threadLocal = new ThreadLocal<>();
+    private static final Map<String, FileData> CACHE = new ConcurrentHashMap<>();
     private FileChannel fileChannel;
 
     private long fileLength = 0;
 
-    public synchronized static final FileData prepare(Path filePath) {
-        try {
-            threadLocal.set(new FileData(FileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
-                    StandardOpenOption.READ)));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return threadLocal.get();
+    public static FileData create(Path filePath) throws IOException {
+        return create(filePath.getFileName().toString(), filePath);
     }
 
-    public static final boolean has() {
-        return threadLocal.get() == null ? false : true;
+    public static FileData create(String name, Path filePath) throws IOException {
+        CACHE.put(name, new FileData(FileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
+                StandardOpenOption.READ, StandardOpenOption.DELETE_ON_CLOSE)));
+        return CACHE.get(name);
     }
 
-    public static final FileData current() {
-        if (threadLocal.get() == null) {
-            throw new IllegalStateException("请先为该线程准备一个" + FileData.class);
-        }
-        return threadLocal.get();
-    }
-
-    public FileData(FileChannel fileChannel) {
+    private FileData(FileChannel fileChannel) {
         this.fileChannel = fileChannel;
     }
 
@@ -95,8 +86,12 @@ public class FileData implements DataPersist, Closeable {
     }
 
     @Override
-    public void close() throws IOException {
-        this.fileChannel.close();
+    public void close() {
+        try {
+            this.fileChannel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -111,6 +106,20 @@ public class FileData implements DataPersist, Closeable {
     @Override
     public long dataLength() {
         return fileLength;
+    }
+
+    public static FileData find(String name) {
+        if (name == null) {
+            return null;
+        }
+        return CACHE.get(name);
+    }
+
+    public FileData cache(String name, FileData obj) {
+        if (name == null) {
+            return null;
+        }
+        return CACHE.put(name, obj);
     }
 
 }

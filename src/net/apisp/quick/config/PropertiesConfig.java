@@ -6,11 +6,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
-import net.apisp.quick.log.Logger;
-
 public class PropertiesConfig extends Configuration {
-
-    private static final Logger LOGGER = Logger.get(PropertiesConfig.class);
     private Properties properties;
     
     public PropertiesConfig() {
@@ -18,7 +14,7 @@ public class PropertiesConfig extends Configuration {
         try {
             properties.load(this.getClass().getResourceAsStream("/quick.properties"));
         } catch (Throwable e) {
-            LOGGER.error("未在classpath找到配置文件quick.properties");
+            new IllegalAccessException("未在classpath找到配置文件quick.properties");
         }
     }
     @Override

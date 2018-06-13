@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import net.apisp.quick.log.Logger.Levels;
+import net.apisp.quick.log.Log.Levels;
 
 public class DefaultConfig extends Configuration {
 

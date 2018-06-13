@@ -29,7 +29,8 @@ import net.apisp.quick.annotation.ResponseType;
 import net.apisp.quick.annotation.Scanning;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpMethods;
-import net.apisp.quick.log.Logger;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 import net.apisp.quick.server.var.ServerContext;
 
@@ -40,7 +41,7 @@ import net.apisp.quick.server.var.ServerContext;
  * @date 2018-06-08 11:46:34
  */
 public class MappingResolver {
-    private static Logger LOGGER = Logger.get(MappingResolver.class);
+    private static Log LOG = LogFactory.getLog(MappingResolver.class);
     private static MappingResolver instance;
     private Class<?> bootClass;
     private Class<?>[] classes;
@@ -138,7 +139,7 @@ public class MappingResolver {
                     try {
                         RequestExecutorInfo info = new RequestExecutorInfo(method, clazz.newInstance());
                         info.addHeader("Content-Type", responseType != null ? responseType.value() : ContentTypes.JSON);
-                        
+
                         // 跨域设置
                         if (!serverContext.isCrossDomain() && (shouldSetCrossDomain || crossDomain != null)) {
                             info.addHeader("Access-Control-Allow-Origin", "*")
@@ -146,9 +147,9 @@ public class MappingResolver {
                                     .addHeader("Access-Control-Allow-Headers", "x-requested-with");
                         }
                         serverContext.mapping(mappingKey, info);
-                        LOGGER.info("Mapping %s : %s", mappingKey, method.toGenericString());
+                        LOG.info("Mapping %s : %s", mappingKey, method.toGenericString());
                     } catch (InstantiationException | IllegalAccessException e) {
-                        LOGGER.error("控制器类需要无参数构造！");
+                        LOG.error("控制器类需要无参数构造！");
                     }
                 }
             }

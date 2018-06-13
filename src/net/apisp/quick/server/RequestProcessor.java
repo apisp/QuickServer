@@ -34,7 +34,8 @@ import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.core.http.HttpResponse;
 import net.apisp.quick.core.http.HttpStatus;
 import net.apisp.quick.core.std.QuickWebContext;
-import net.apisp.quick.log.Logger;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.HttpRequestResolver.HttpRequestInfo;
 import net.apisp.quick.server.var.RequestDataBody;
 import net.apisp.quick.server.var.ServerContext;
@@ -47,7 +48,7 @@ import net.apisp.quick.util.JSONs;
  * @date 2018-6-8 11:11:39
  */
 public class RequestProcessor {
-    private static final Logger LOGGER = Logger.get(RequestProcessor.class);
+    private static final Log LOG = LogFactory.getLog(RequestProcessor.class);
     private RequestExecutorInfo executeInfo;
     private HttpRequestInfo httpRequest;
 
@@ -160,6 +161,8 @@ public class RequestProcessor {
                 Object result = executeInfo.getMethod().invoke(executeInfo.getObject(), params);
 
                 // 逻辑正常 ///////////////////////////////////////////////////
+                if (request.getReqData() != null)
+                    request.getReqData().close();
                 // 注入逻辑方法里改动的Headers
                 responseInfo.ensureHeaders(executeInfo.getRespHeaders());
 
@@ -189,7 +192,7 @@ public class RequestProcessor {
                         .getBytes();
                 e.getCause().printStackTrace(); // 打印错误栈信息
             } catch (IllegalAccessException | IllegalArgumentException e) {
-                LOGGER.debug(e);
+                LOG.debug(e);
             }
         }
         return responseInfo.normalize();
