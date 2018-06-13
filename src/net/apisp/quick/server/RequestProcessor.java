@@ -37,7 +37,6 @@ import net.apisp.quick.core.std.QuickWebContext;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.HttpRequestResolver.HttpRequestInfo;
-import net.apisp.quick.server.var.RequestDataBody;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.util.JSONs;
 
@@ -114,18 +113,10 @@ public class RequestProcessor {
                 annos = annosParams[i];
                 toTypeInject: for (int j = 0; j < annos.length; j++) {
                     if (annos[j] instanceof RequestBody) {
-                        try {
-                            if (request.body() == null) {
-                                break toTypeInject;
-                            }
-                            if (type.equals(String.class)) {
-                                params[i] = new String(request.body(), "utf8");
-                            } else {
-                                params[i] = JSONs.convert(new String(request.body(), "utf8"), type);
-                            }
-                            continue nextParam; // 开始下一个参数注入
-                        } catch (UnsupportedEncodingException e) {
+                        if (request.body() == null) {
+                            break toTypeInject;
                         }
+                        continue nextParam; // 开始下一个参数注入
                     }
                 }
 
@@ -143,14 +134,7 @@ public class RequestProcessor {
                         params[i] = null;
                     }
                 } else if (BodyBinary.class.equals(type)) {
-                    params[i] = new RequestDataBody(request.getReqData(), request.getBodyOffset());
-                } else if (byte[].class.equals(type) || Byte[].class.equals(type)) {
                     params[i] = request.body();
-                } else if (String.class.equals(type)) {
-                    try {
-                        params[i] = new String(request.body(), "utf8");
-                    } catch (UnsupportedEncodingException e) {
-                    }
                 } else {
                     params[i] = null;
                 }

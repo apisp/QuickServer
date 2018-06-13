@@ -15,6 +15,8 @@
  */
 package net.apisp.quick.core.http;
 
+import net.apisp.quick.core.BodyBinary;
+
 /**
  * HTTP请求
  *
@@ -34,7 +36,7 @@ public interface HttpRequest {
 
     HttpCookie[] cookies();
 
-    byte[] body();
+    BodyBinary body();
 
     boolean normative();
 }

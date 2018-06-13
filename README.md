@@ -5,18 +5,37 @@
 ## 个人用
 QuickServer使用JavaNIO实现了简单的WebServer，可为快速提供API做好准备,你可以像下面这样来使用：
 ```java
-public class DemoProdect{
-    public static void main(String[] args){
-        Quick.boot(DemoProdect.class, args); // 这里提供一个Boot类
+import net.apisp.quick.annotation.*;
+import net.apisp.quick.core.*;
+import net.apisp.quick.core.http.*;
+import net.apisp.quick.log.*;
+
+@CrossDomain // 允许本应用提供的API跨域使用
+public class Demo {
+    private static final Log LOG = LogFactory.getLog(Demo.class);
+
+    public static void main(String[] args) throws InterruptedException {
+        new Quick(args).boot(); // 这里需要提供一个Boot类，默认是main函数所在类
     }
-    
-    @GetMapping("/hello")
-    public String hello(){
-        return "Hello World";
+
+    @GetMapping("/")
+    @ResponseType(ContentTypes.TXT) // 默认是JSON
+    public String hello(HttpRequest req, HttpResponse resp, BodyBinary body, WebContext ctx) {
+        LOG.info("Cookie string: %s", req.header("Cookie"));
+        LOG.info("Cookie 'libai': %s", req.cookie("libai").value());
+        LOG.info("Request body string: %s", req.body().toString());
+        LOG.info("Assert is true: %s", req.body().equals(body));
+
+        resp.cookie("libai", "李白带节奏");
+        resp.header("Authcode", "自定义响应头");
+
+        LOG.info("Server's port:%d", ctx.setting("server.port")); // 配置文件里的配置项，QuickServer监听的端口
+        return "Hello World"; // 响应内容
     }
 }
+
 ```
-编译并运行它，它会根据默认配置监听在`8908`端口，并为URI`/hello`与函数`public String DemoProdect.hello()`之间做好了映射.
+编译并运行它，它会根据默认配置监听在`8908`端口，并为URI`/`与函数`public String DemoProdect.hello()`之间做好了映射.
 
 默认配置是 @ujued 的偏好设置，你可以在`classpath`提供一份设置`优先配置 quick.properties`， 下面是默认配置的镜像：
 ```

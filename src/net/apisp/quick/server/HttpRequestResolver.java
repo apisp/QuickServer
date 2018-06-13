@@ -21,11 +21,14 @@ import java.util.Iterator;
 import java.util.Map;
 
 import net.apisp.quick.annotation.explain.CanBeNull;
+import net.apisp.quick.core.BodyBinary;
 import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.data.DataPersist;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
+import net.apisp.quick.server.var.FileRequestBody;
+import net.apisp.quick.server.var.MemRequestBody;
 
 /**
  * @author UJUED
@@ -33,6 +36,7 @@ import net.apisp.quick.log.LogFactory;
  */
 public class HttpRequestResolver {
     private static final Log LOG = LogFactory.getLog(HttpRequestInfo.class);
+
     public static final HttpRequestInfo resolve(ByteBuffer requestBuffer) {
         HttpRequestInfo info = new HttpRequestInfo(requestBuffer);
         info.calc();
@@ -51,6 +55,8 @@ public class HttpRequestResolver {
 
         @CanBeNull
         private DataPersist reqData;
+
+        private BodyBinary bodyBinary;
 
         private ByteBuffer requestBuffer;
 
@@ -165,6 +171,13 @@ public class HttpRequestResolver {
                 this.body = null;
             }
             this.requestBuffer.clear();
+
+            // BodyBinary
+            if (body == null) {
+                bodyBinary = new FileRequestBody(this.getReqData(), this.getBodyOffset());
+            } else {
+                bodyBinary = new MemRequestBody(body);
+            }
         }
 
         @Override
@@ -183,8 +196,8 @@ public class HttpRequestResolver {
         }
 
         @Override
-        public byte[] body() {
-            return body;
+        public BodyBinary body() {
+            return bodyBinary;
         }
 
         @Override

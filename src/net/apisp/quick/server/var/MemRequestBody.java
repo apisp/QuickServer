@@ -15,59 +15,58 @@
  */
 package net.apisp.quick.server.var;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
-import net.apisp.quick.annotation.explain.CanBeNull;
 import net.apisp.quick.core.BodyBinary;
-import net.apisp.quick.data.DataPersist;
 
 /**
  * @author UJUED
- * @date 2018-06-12 11:31:34
+ * @date 2018-06-13 15:09:05
  */
-public class RequestDataBody implements BodyBinary {
+public class MemRequestBody implements BodyBinary {
 
-    @CanBeNull
-    private DataPersist reqData;
+    private byte[] body;
 
-    private int bodyOffset;
-
-    public RequestDataBody(DataPersist reqData, int bodyOffset) {
-        this.reqData = reqData;
-        this.bodyOffset = bodyOffset;
-    }
-
-    @Override
-    public long length() {
-        if (reqData == null) {
-            return -1;
-        }
-        return reqData.dataLength();
+    public MemRequestBody(byte[] body) {
+        this.body = body;
     }
 
     @Override
     public void data(long offset, ByteBuffer buffer) {
-        if (reqData == null) {
-            return;
+        if (offset < 0 || offset >= body.length) {
+            throw new IllegalArgumentException("Offset error.");
         }
-        int cap = (int) (reqData.dataLength() - offset);
-        if (offset < 0) {
-            new IllegalArgumentException("offset must > 0");
-        }
+        int cap = (int) (body.length - offset);
         if (cap > buffer.capacity()) {
             cap = buffer.capacity();
         }
         buffer.clear();
-        buffer.put(reqData.data(offset, cap));
+        buffer.put(body, (int) offset, cap);
         buffer.flip();
     }
 
     @Override
     public byte[] data(long offset, int length) {
-        if (reqData == null) {
-            return null;
+        if (offset < 0 || offset + length > body.length) {
+            throw new IllegalArgumentException("Offset or length error.");
         }
-        return reqData.data(bodyOffset + offset, length);
+        return Arrays.copyOfRange(body, (int) offset, (int) offset + length);
+    }
+
+    @Override
+    public long length() {
+        return body.length;
+    }
+
+    @Override
+    public String toString() {
+        try {
+            return new String(this.body, "utf8");
+        } catch (UnsupportedEncodingException e) {
+        }
+        return null;
     }
 
 }
