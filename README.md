@@ -10,12 +10,12 @@ import net.apisp.quick.core.*;
 import net.apisp.quick.core.http.*;
 import net.apisp.quick.log.*;
 
-@CrossDomain // 允许本应用提供的API跨域使用
+@CrossDomain // 允许本应用提供的所有API跨域使用
 public class Demo {
     private static final Log LOG = LogFactory.getLog(Demo.class);
 
     public static void main(String[] args) throws InterruptedException {
-        new Quick(args).boot(); // 这里需要提供一个Boot类，默认是main函数所在类
+        new Quick(args).boot(); // 这里可以指定提供Boot类，默认是main函数所在类
     }
 
     @GetMapping("/")
