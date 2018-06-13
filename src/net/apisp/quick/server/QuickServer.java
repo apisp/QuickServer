@@ -23,7 +23,7 @@ import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.var.ServerContext;
 
 /**
- * QuickServer标准规范
+ * QuickServer规范
  * 
  * @author UJUED
  * @date 2018-06-08 10:33:31

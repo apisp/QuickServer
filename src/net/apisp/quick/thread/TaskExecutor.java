@@ -44,6 +44,7 @@ public class TaskExecutor {
 
     /**
      * 提交一个带参数的任务
+     * 
      * @param task
      * @param args
      */
@@ -56,6 +57,8 @@ public class TaskExecutor {
             thread.args = args;
             thread.taskQueue.offer(task);
         } catch (InterruptedException e) {
+            // 调用本方法的线程如果被中断，我们关闭线程池
+            this.shutdown();
         }
     }
 
@@ -76,14 +79,12 @@ public class TaskExecutor {
                 try {
                     task = taskQueue.take();
                 } catch (InterruptedException e) {
-                    System.out.println("interrupt.");
                     break;
                 }
                 task.run(args);
                 pool.offer(this);
                 LOG.debug("Me is free now.");
             }
-            System.out.println("over.");
         }
     }
 
@@ -96,13 +97,14 @@ public class TaskExecutor {
             try {
                 pool.take().interrupt();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                // 关闭线程池的线程被中断，那无力回天，我们什么也不做
             }
         }
     }
 
     /**
      * 创建cpu核心数2倍大小的线程池
+     * 
      * @return
      */
     public static TaskExecutor create() {
