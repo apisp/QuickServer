@@ -3,7 +3,7 @@
 ** 熟练使用QuickServer，对于你到Spring相关产品的使用迁移有不可描述的便利 **
 
 ## 个人用
-QuickServer使用JavaNIO实现了简单的WebServer，可为快速提供API做好准备,你可以像下面这样来使用：
+QuickServer已经实现了一个简单的WebServer，可为快速提供API做好准备，可以部署为微服务。你可以按下面步骤来使用：
 
 ###### 1.新建Java源码文件Demo.java
 ```java
@@ -36,10 +36,17 @@ public class Demo {
     }
 }
 ```
-###### 2.编译并运行它
+###### 2.这样编译并运行它
+类Uinx
 ```
 $ javac -cp .;quick-server-1.4.jar Demo.java
-$ java  -cp .;quick-server-1.4.jar Demo
+$ nohup java -cp .;quick-server-1.4.jar Demo
+```
+
+Windows
+```
+C:\Users\xxx>javac -encoding UTF-8 -cp .;quick-server-1.4.jar Demo.java
+C:\Users\xxx>javaw -Dfile.encoding=UTF-8 -cp .;quick-server-1.4.jar Demo
 ```
 它会根据默认配置监听在`8908`端口，并为URI`/`与函数`public String DemoProdect.hello()`之间做好了映射.
 
