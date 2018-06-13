@@ -24,6 +24,7 @@ import java.util.List;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.var.ServerContext;
+import net.apisp.quick.thread.TaskExecutor;
 
 /**
  * @author UJUED
@@ -32,10 +33,22 @@ import net.apisp.quick.server.var.ServerContext;
 public class DefaultQuickServer extends QuickServer {
     private static final Log LOG = LogFactory.getLog(DefaultQuickServer.class);
     private static boolean shouldRunning = true;
+    private static int processors = Runtime.getRuntime().availableProcessors();
+    public static final TaskExecutor socketAutonomyExecutor = TaskExecutor.create("socket", processors * 3 * 20);
+    public static final TaskExecutor responseExecutor = TaskExecutor.create("response", processors * 3);
+
     private List<SocketAutonomy> keepList = new ArrayList<>(100);
 
     @Override
     public void run(ServerContext serverContext) throws Exception {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                ServerContext.tryGet().executor().shutdown();
+                DefaultQuickServer.socketAutonomyExecutor.shutdown();
+                DefaultQuickServer.responseExecutor.shutdown();
+            }
+        });
         QuickServerMonitor.start(keepList);
         ServerSocket ss = new ServerSocket(serverContext.port());
         while (shouldRunning) {

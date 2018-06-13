@@ -3,10 +3,9 @@
  */
 package net.apisp.quick.core.std;
 
-import java.util.concurrent.ExecutorService;
-
 import net.apisp.quick.core.WebContext;
 import net.apisp.quick.server.var.ServerContext;
+import net.apisp.quick.thread.TaskExecutor;
 
 public class QuickWebContext implements WebContext {
 
@@ -28,7 +27,7 @@ public class QuickWebContext implements WebContext {
     }
 
     @Override
-    public ExecutorService exeutor() {
+    public TaskExecutor executor() {
         return serverContext.executor();
     }
 

@@ -24,7 +24,6 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 
-import net.apisp.quick.annotation.explain.CanBeNull;
 import net.apisp.quick.core.SoftCloseable;
 import net.apisp.quick.data.file.FileData;
 import net.apisp.quick.log.Log;
@@ -37,10 +36,11 @@ import net.apisp.quick.util.IDs;
  * @author UJUED
  * @date 2018-06-12 16:05:50
  */
-public class SocketAutonomy extends Thread implements SoftCloseable {
+public class SocketAutonomy implements SoftCloseable {
     private static final Log LOG = LogFactory.getLog(SocketAutonomy.class);
     private Socket sock;
     private Long recentTime;
+    private volatile boolean isInterrupted;
 
     public SocketAutonomy(Socket sock) {
         this.sock = sock;
@@ -50,44 +50,57 @@ public class SocketAutonomy extends Thread implements SoftCloseable {
     public static void activeAsync(Socket sock, List<SocketAutonomy> list) {
         SocketAutonomy me = new SocketAutonomy(sock);
         list.add(me);
-        me.start();
+        DefaultQuickServer.socketAutonomyExecutor.submit((args) -> {
+            SocketAutonomy sa = (SocketAutonomy) args[0];
+            try {
+                InputStream is = sock.getInputStream();
+                byte[] first = null;
+                int i = 0, n = 0;
+                byte[] buf = new byte[1024 * 10];
+                String reqDataFile = null;
+                while (!sa.isInterrupted) {
+                    if ((i = is.read(buf)) == -1) {
+                        sock.close();
+                        LOG.debug("Read -1, so this socket closed.");
+                        break;
+                    }
+                    if (n == 0) {
+                        first = Arrays.copyOfRange(buf, 0, i);
+                    } else {
+                        if (n == 1) {
+                            reqDataFile = IDs.uuid();
+                            FileData.create(reqDataFile, ServerContext.tryGet().getTmpPath(reqDataFile)).persist(first);
+                        }
+                        FileData.find(reqDataFile).persist(buf, 0, i);
+                    }
+                    n++; // 更新状态信息
+                    if (is.available() == 0) {
+                        // 请求数据接受完毕，开始响应
+                        DefaultQuickServer.responseExecutor.submit((args1) -> {
+                            ByteBuffer buffer = (ByteBuffer) args1[0];
+                            FileData reqData = (FileData) args1[1];
+                            HttpRequestInfo reqInfo = HttpRequestResolver.resolve(buffer).setReqData(reqData);
+                            try {
+                                OutputStream out = sock.getOutputStream();
+                                HttpResponseExecutor.execute(reqInfo).response(out);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }, ByteBuffer.wrap(first), FileData.find(reqDataFile));
+                        sa.recentTime = System.currentTimeMillis();
+                        n = 0;
+                        reqDataFile = null;
+                    }
+                }
+            } catch (SocketException e) {
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }, me);
     }
 
-    @Override
-    public void run() {
-        try {
-            InputStream is = sock.getInputStream();
-            byte[] first = null;
-            int i = 0, n = 0;
-            byte[] buf = new byte[1024 * 10];
-            String reqDataFile = null;
-            while (!this.isInterrupted()) {
-                if ((i = is.read(buf)) == -1) {
-                    sock.close();
-                    LOG.debug("Read -1, so this socket closed.");
-                    break;
-                }
-                if (n == 0) {
-                    first = Arrays.copyOfRange(buf, 0, i);
-                } else {
-                    if (n == 1) {
-                        reqDataFile = IDs.uuid();
-                        FileData.create(reqDataFile, ServerContext.tryGet().getTmpPath(reqDataFile)).persist(first);
-                    }
-                    FileData.find(reqDataFile).persist(buf, 0, i);
-                }
-                n++; // 更新状态信息
-                if (is.available() == 0) {
-                    n = 0;
-                    new ResponseThread(ByteBuffer.wrap(first), FileData.find(reqDataFile)).start();
-                    reqDataFile = null;
-                    this.recentTime = System.currentTimeMillis();
-                }
-            }
-        } catch (SocketException e) {
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void interrupt() {
+        this.isInterrupted = true;
     }
 
     public long freeTime() {
@@ -105,35 +118,6 @@ public class SocketAutonomy extends Thread implements SoftCloseable {
             this.sock.close();
         } catch (IOException e) {
             LOG.debug(e);
-        }
-    }
-
-    /**
-     * 响应线程
-     * 
-     * @author UJUED
-     * @date 2018-06-12 19:25:15
-     */
-    class ResponseThread extends Thread {
-        private ByteBuffer buffer;
-
-        @CanBeNull
-        private FileData reqData;
-
-        public ResponseThread(ByteBuffer buffer, FileData reqData) {
-            this.buffer = buffer;
-            this.reqData = reqData;
-        }
-
-        @Override
-        public void run() {
-            HttpRequestInfo reqInfo = HttpRequestResolver.resolve(buffer).setReqData(reqData);
-            try {
-                OutputStream out = sock.getOutputStream();
-                HttpResponseExecutor.execute(reqInfo).response(out);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

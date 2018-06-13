@@ -19,12 +19,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import net.apisp.quick.config.Configuration;
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
+import net.apisp.quick.thread.TaskExecutor;
 import net.apisp.quick.util.Safes;
 
 /**
@@ -36,7 +35,7 @@ import net.apisp.quick.util.Safes;
 public class ServerContext {
     private static ServerContext instance;
     private Map<String, RequestExecutorInfo> mappings = new HashMap<>();
-    private ExecutorService executor;
+    private TaskExecutor executor;
     private boolean normative = true;
     private boolean crossDomain = false;
 
@@ -46,7 +45,7 @@ public class ServerContext {
     private Class<QuickServer> serverClass;
 
     private ServerContext() {
-        executor = Executors.newFixedThreadPool((int) Configuration.get("server.threads"));
+        executor = TaskExecutor.create((int) Configuration.get("server.threads"));
 
         port = (int) Configuration.get("server.port");
         serverClass = Safes.loadClass(Configuration.get("server").toString(), QuickServer.class);
@@ -104,7 +103,7 @@ public class ServerContext {
      * 
      * @return
      */
-    public ExecutorService executor() {
+    public TaskExecutor executor() {
         return executor;
     }
 

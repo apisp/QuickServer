@@ -56,6 +56,7 @@ public abstract class QuickServer {
         public QuickServerThread(ServerContext serverContext, QuickServerRunner runner) {
             this.serverContext = serverContext;
             this.runner = runner;
+            this.setName("server");
         }
 
         @Override

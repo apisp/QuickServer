@@ -3,7 +3,7 @@
  */
 package net.apisp.quick.core;
 
-import java.util.concurrent.ExecutorService;
+import net.apisp.quick.thread.TaskExecutor;
 
 /**
  * WEB上下文
@@ -16,5 +16,5 @@ public interface WebContext {
 
     <T> T singleton(Class<T> type);
 
-    ExecutorService exeutor();
+    TaskExecutor executor();
 }
