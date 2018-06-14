@@ -53,6 +53,16 @@ public class Quick implements Bootable<ServerContext> {
         this.bootArgs = bootArgs;
     }
 
+    @Override
+    public ServerContext boot() {
+        ServerContext serverContext = null;
+        if (this.bootClass == null) {
+            serverContext = Quick.boot(bootArgs);
+        }
+        serverContext = Quick.boot(this.bootClass, bootArgs);
+        return serverContext;
+    }
+
     /**
      * 启动QuickServer
      * 
@@ -60,13 +70,26 @@ public class Quick implements Bootable<ServerContext> {
      *            包含URI与逻辑映射的类
      * @return
      */
-    public static ServerContext boot(Class<?> mainClass, String... args) {
+    public static ServerContext boot(Class<?> bootClass, String... args) {
         Configuration.applySystemArgs(args);
         ServerContext serverContext = ServerContext.init();
-        MappingResolver.prepare(mainClass, serverContext).resolve();
+        MappingResolver.prepare(bootClass, serverContext).resolve();
         server = choseServer(serverContext);
         startServer(serverContext);
         return serverContext;
+    }
+
+    /**
+     * 使用main函数所在类作为bootClass
+     */
+    public static ServerContext boot(String... args) {
+        Class<?> bootClass = null;
+        try {
+            bootClass = Quick.class.getClassLoader()
+                    .loadClass(Thread.currentThread().getStackTrace()[2].getClassName());
+        } catch (ClassNotFoundException e) {
+        }
+        return boot(bootClass, args);
     }
 
     /**
@@ -101,19 +124,4 @@ public class Quick implements Bootable<ServerContext> {
         server.setContext(serverContext);
         server.start();
     }
-
-    @Override
-    public ServerContext boot() {
-        ServerContext serverContext = null;
-        if (this.bootClass == null) {
-            try {
-                this.bootClass = this.getClass().getClassLoader()
-                        .loadClass(Thread.currentThread().getStackTrace()[2].getClassName());
-            } catch (ClassNotFoundException e) {
-            }
-        }
-        serverContext = Quick.boot(this.bootClass, bootArgs);
-        return serverContext;
-    }
-
 }

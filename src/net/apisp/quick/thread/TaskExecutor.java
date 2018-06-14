@@ -15,6 +15,8 @@
  */
 package net.apisp.quick.thread;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -28,16 +30,20 @@ import net.apisp.quick.log.LogFactory;
 public class TaskExecutor {
     private static final Log LOG = LogFactory.getLog(TaskExecutor.class);
     private BlockingQueue<HangableThread> pool;
+    private HangableThread[] poolRef;
+    private int lastPosition;
     private volatile boolean isShutdown;
     private int poolSize;
 
     private TaskExecutor(String name, int initSize) {
         this.poolSize = initSize;
         this.pool = new ArrayBlockingQueue<>(initSize);
+        this.poolRef = new HangableThread[initSize];
         for (int i = 0; i < initSize; i++) {
             HangableThread t = new HangableThread();
             t.setName(name + "-" + i);
             this.pool.offer(t);
+            this.poolRef[i] = t;
             t.start();
         }
     }
@@ -48,18 +54,15 @@ public class TaskExecutor {
      * @param task
      * @param args
      */
-    public void submit(Task task, Object... args) {
+    public synchronized void submit(Task task, Object... args) {
         if (isShutdown) {
             throw new IllegalStateException("My life is over. Thank you!");
         }
-        try {
-            HangableThread thread = pool.take();
-            thread.args = args;
-            thread.taskQueue.offer(task);
-        } catch (InterruptedException e) {
-            // 调用本方法的线程如果被中断，我们关闭线程池
-            this.shutdown();
+        HangableThread thread = pool.poll();
+        if (thread == null) {
+            thread = poolRef[lastPosition++ % poolSize];
         }
+        thread.taskQueue.offer(task, args);
     }
 
     /**
@@ -69,8 +72,7 @@ public class TaskExecutor {
      * @date 2018-06-13 23:16:06
      */
     class HangableThread extends Thread {
-        private BlockingQueue<Task> taskQueue = new ArrayBlockingQueue<>(10);
-        private Object[] args;
+        private ArgumentArrayBlockingQueue<Task> taskQueue = new ArgumentArrayBlockingQueue<>(10);
 
         @Override
         public void run() {
@@ -81,10 +83,26 @@ public class TaskExecutor {
                 } catch (InterruptedException e) {
                     break;
                 }
-                task.run(args);
+                task.run(taskQueue.argsCache.get(task));
+                taskQueue.argsCache.remove(task);
                 pool.offer(this);
                 LOG.debug("Me is free now.");
             }
+        }
+    }
+
+    class ArgumentArrayBlockingQueue<E> extends ArrayBlockingQueue<E> {
+        private static final long serialVersionUID = 1L;
+
+        private Map<E, Object[]> argsCache = new HashMap<>();
+
+        public ArgumentArrayBlockingQueue(int capacity) {
+            super(capacity);
+        }
+
+        public void offer(E task, Object[] args) {
+            this.argsCache.put(task, args);
+            this.offer(task);
         }
     }
 

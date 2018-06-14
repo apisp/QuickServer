@@ -212,7 +212,11 @@ public class HttpRequestResolver {
 
         @Override
         public HttpCookie cookie(String key) {
-            return new HttpCookie(key, cookies.get(key.toUpperCase()));
+            String value = cookies.get(key.toUpperCase());
+            if (value == null) {
+                return null;
+            }
+            return new HttpCookie(key, value);
         }
 
         @Override
