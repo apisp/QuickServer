@@ -57,4 +57,5 @@ server.tmp.dir=${user.dir}
 最后，还是打开你的Java IDE，尽情发挥吧！
 
 #### 3. 你还可以翻阅一下
-[开发手册](MANUAL.md) [APISP.NET](https://apisp.net)
+* [开发手册](MANUAL.md)  
+* [APISP.NET](https://apisp.net)
