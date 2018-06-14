@@ -18,7 +18,10 @@ package net.apisp.quick.server.var;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.apisp.quick.config.Configuration;
 import net.apisp.quick.server.QuickServer;
@@ -35,8 +38,10 @@ import net.apisp.quick.util.Safes;
 public class ServerContext {
     private static ServerContext instance;
     private Map<String, RequestExecutorInfo> mappings = new HashMap<>();
+    private Map<Pattern, RequestExecutorInfo> regMappings = new HashMap<>();
     private TaskExecutor executor;
     private boolean normative = true;
+
     private boolean crossDomain = false;
 
     private Map<String, String> defaultRespHeaders = new HashMap<>();
@@ -87,6 +92,10 @@ public class ServerContext {
         mappings.put(key, executeInfo);
     }
 
+    public void regMapping(Pattern pattern, RequestExecutorInfo info) {
+        this.regMappings.put(pattern, info);
+    }
+
     /**
      * 命中 mapping
      * 
@@ -95,7 +104,25 @@ public class ServerContext {
      * @return
      */
     public RequestExecutorInfo hit(String method, String uri) {
-        return mappings.get(method.toUpperCase() + " " + uri);
+        RequestExecutorInfo info = mappings.get(method.toUpperCase() + " " + uri);
+        if (info != null) {
+            return info;
+        }
+        Iterator<Map.Entry<Pattern, RequestExecutorInfo>> entryIter = regMappings.entrySet().iterator();
+        Map.Entry<Pattern, RequestExecutorInfo> entry;
+        while (entryIter.hasNext()) {
+            entry = entryIter.next();
+            if (uri.matches(entry.getKey().pattern())) {
+                info = entry.getValue();
+                Matcher matcher = entry.getKey().matcher(uri);
+                matcher.find();
+                for (int i = 0; i < matcher.groupCount(); i++) {
+                    info.addPathVariable(matcher.group(i + 1), i);
+                }
+                return info;
+            }
+        }
+        return info;
     }
 
     /**
@@ -140,6 +167,10 @@ public class ServerContext {
 
     public Object getSetting(String key) {
         return Configuration.get(key);
+    }
+
+    public String charset() {
+        return (String) Configuration.get("charset");
     }
 
     public boolean isCrossDomain() {

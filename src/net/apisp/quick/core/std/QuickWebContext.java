@@ -31,4 +31,9 @@ public class QuickWebContext implements WebContext {
         return serverContext.executor();
     }
 
+    @Override
+    public String charset() {
+        return serverContext.charset();
+    }
+
 }

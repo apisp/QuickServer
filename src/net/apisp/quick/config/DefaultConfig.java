@@ -11,6 +11,7 @@ public class DefaultConfig extends Configuration {
     Map<String, Object> configs = new HashMap<>();
 
     public DefaultConfig() {
+        configs.put("charset", "UTF-8");
         configs.put("logging.level", Levels.INFO);
         configs.put("server", "net.apisp.quick.server.DefaultQuickServer");
         configs.put("server.port", 8908);

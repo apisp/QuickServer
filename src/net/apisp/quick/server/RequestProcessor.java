@@ -19,13 +19,19 @@ import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.apisp.quick.annotation.PathVariable;
 import net.apisp.quick.annotation.RequestBody;
+import net.apisp.quick.config.Configuration;
 import net.apisp.quick.core.BodyBinary;
 import net.apisp.quick.core.WebContext;
 import net.apisp.quick.core.http.ContentTypes;
@@ -85,7 +91,7 @@ public class RequestProcessor {
                     .getBytes();
             responseInfo.status = HttpStatus.BAD_REQUEST;
             Map<String, String> contentType = new HashMap<>(1);
-            contentType.put("Content-Type", ContentTypes.HTML);
+            contentType.put("Content-Type", ContentTypes.HTML + ";charset=" + serverContext.charset());
             responseInfo.ensureHeaders(contentType);
             return responseInfo;
         }
@@ -95,13 +101,13 @@ public class RequestProcessor {
                     .getBytes();
             responseInfo.status = HttpStatus.NOT_FOUND;
             Map<String, String> contentType = new HashMap<>(1);
-            contentType.put("Content-Type", ContentTypes.HTML);
+            contentType.put("Content-Type", ContentTypes.HTML + ";charset=" + serverContext.charset());
             responseInfo.ensureHeaders(contentType);
         } else {
             Method method = executeInfo.getMethod();
             Class<?>[] types = method.getParameterTypes();
             Object[] params = new Object[types.length];
-            Class<?> type = null;
+            Class<?> type = null; // 参数类型
             Annotation[][] annosParams = method.getParameterAnnotations();
             Annotation[] annos = null;
 
@@ -117,6 +123,10 @@ public class RequestProcessor {
                             break toTypeInject;
                         }
                         continue nextParam; // 开始下一个参数注入
+                    } else if (annos[j] instanceof PathVariable) {
+                        PathVariable pv = (PathVariable) annos[j];
+                        params[i] = executeInfo.getPathVariable(pv.value(), type);
+                        continue nextParam;
                     }
                 }
 
@@ -153,23 +163,28 @@ public class RequestProcessor {
                 if (method.getReturnType().equals(byte[].class)) {
                     responseInfo.body = (byte[]) result;
                 } else if (result == null) {
-                    responseInfo.body = responseInfo.body;
                 } else {
+                    String resp = JSONs.convert(result);
+                    if (resp == null) {
+                        resp = result.toString();
+                    }
                     try {
-                        String resp = JSONs.convert(result);
-                        if (resp == null) {
-                            resp = result.toString();
-                        }
-                        responseInfo.body = resp.getBytes("utf8");
+                        responseInfo.body = resp.getBytes(serverContext.charset());
                     } catch (UnsupportedEncodingException e) {
-                        // never do here.
+                        // 配置了不支持的编码集，更改系统设置为UTF-8
+                        Configuration.applySystemArgs("charset=UTF-8");
+                        try {
+                            responseInfo.body = resp.getBytes("UTF-8");
+                        } catch (UnsupportedEncodingException e1) {
+                            // ??? UTF-8 在任何时候都不可能不被支持的。
+                        }
                     }
                 }
             } catch (InvocationTargetException e) {
                 // 逻辑异常 ///////////////////////////////////////////////////
                 // 500 Internal Server Error
                 Map<String, String> contentType = new HashMap<>(1);
-                contentType.put("Content-Type", ContentTypes.HTML);
+                contentType.put("Content-Type", ContentTypes.HTML + ";charset=" + serverContext.charset());
                 responseInfo.ensureHeaders(contentType);
                 responseInfo.status = HttpStatus.INTERNAL_SERVER_ERROR;
                 responseInfo.body = "<article style='font-size:18px;font-family: Consolas;color: #555;text-align: center;'><em>500</em> Internal Server Error</article>"
@@ -206,7 +221,8 @@ public class RequestProcessor {
         void ensureHeaders(Map<String, String> headers) {
             this.headers.putAll(headers);
             if (this.headers.get("Content-Type") == null) {
-                this.header("Content-Type", ContentTypes.JSON);
+                this.header("Content-Type", ContentTypes.JSON + ";charset=" + ServerContext.tryGet() == null ? "UTF-8"
+                        : ServerContext.tryGet().charset());
             }
         }
 
@@ -267,6 +283,8 @@ public class RequestProcessor {
         private Method method;
         private Object object;
         private Map<String, String> respHeaders = new HashMap<>();
+        private Map<String, Object> pathVariables = new HashMap<>();
+        private List<String> pathVariableNames = new ArrayList<>();
 
         public RequestExecutorInfo() {
         }
@@ -299,6 +317,64 @@ public class RequestProcessor {
 
         public Map<String, String> getRespHeaders() {
             return respHeaders;
+        }
+
+        public void addPathVariableName(String name) {
+            this.pathVariableNames.add(name);
+        }
+
+        public Object getPathVariable(String key, Class<?> type) {
+            Object obj = pathVariables.get(key);
+            if (obj == null) {
+                return null;
+            }
+            if (obj.getClass().equals(type)) { // String
+                try {
+                    return URLDecoder.decode(obj.toString(), ServerContext.tryGet().charset());
+                } catch (UnsupportedEncodingException e) {
+                    return obj;
+                }
+            } else if (Integer.class.equals(type) || int.class.equals(type)) {
+                int intVal = -1;
+                try {
+                    intVal = Integer.valueOf(obj.toString());
+                } catch (NumberFormatException e) {
+                    LOG.warn("PathVariable [%s] can't format to int.", key);
+                }
+                return intVal;
+            } else if (Double.class.equals(type) || double.class.equals(type)) {
+                double doubleVal = -1.0;
+                try {
+                    doubleVal = Double.valueOf(obj.toString());
+                } catch (NumberFormatException e) {
+                    LOG.warn("PathVariable [%s] can't format to double.", key);
+                }
+                return doubleVal;
+            } else if (Long.class.equals(type) || long.class.equals(type)) {
+                long longVal = -1;
+                try {
+                    longVal = Long.valueOf(obj.toString());
+                } catch (NumberFormatException e) {
+                    LOG.warn("PathVariable [%s] can't format to long.", key);
+                }
+                return longVal;
+            } else if (Date.class.equals(type)) {
+                Date d = null;
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    d = sdf.parse(obj.toString());
+                } catch (ParseException e) {
+                    LOG.warn("PathVariable [%s] can't format to date.", key);
+                }
+                return d;
+            } else {
+                System.out.println("final do it.");
+                return obj.toString();
+            }
+        }
+
+        public void addPathVariable(String value, int index) {
+            this.pathVariables.put(this.pathVariableNames.get(index), value);
         }
     }
 }

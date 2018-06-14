@@ -17,4 +17,6 @@ public interface WebContext {
     <T> T singleton(Class<T> type);
 
     TaskExecutor executor();
+
+    String charset();
 }

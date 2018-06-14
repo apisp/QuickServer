@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.core;
+package net.apisp.quick.annotation;
 
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+@Documented
+@Retention(RUNTIME)
+@Target({ METHOD, PARAMETER })
 /**
  * @author UJUED
- * @date 2018-06-12 10:39:15
+ * @date 2018-06-14 14:18:06
  */
-public class RequestDataPersist {
-
+public @interface PathVariable {
+    String value();
 }

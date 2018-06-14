@@ -19,6 +19,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import net.apisp.quick.annotation.CrossDomain;
 import net.apisp.quick.annotation.DeleteMapping;
@@ -138,7 +139,8 @@ public class MappingResolver {
                     mappingKey = httpMethod + " " + uri.trim();
                     try {
                         RequestExecutorInfo info = new RequestExecutorInfo(method, clazz.newInstance());
-                        info.addHeader("Content-Type", responseType != null ? responseType.value() : ContentTypes.JSON);
+                        info.addHeader("Content-Type", (responseType != null ? responseType.value() : ContentTypes.JSON)
+                                + "; charset=" + serverContext.charset());
 
                         // 跨域设置
                         if (!serverContext.isCrossDomain() && (shouldSetCrossDomain || crossDomain != null)) {
@@ -146,7 +148,31 @@ public class MappingResolver {
                                     .addHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD")
                                     .addHeader("Access-Control-Allow-Headers", "x-requested-with");
                         }
-                        serverContext.mapping(mappingKey, info);
+                        if (mappingKey.indexOf('{') != -1 && mappingKey.indexOf('}') != -1) {
+                            StringBuilder regString = new StringBuilder();
+                            StringBuilder varName = new StringBuilder();
+                            char[] segment = uri.trim().toCharArray();
+                            boolean recordStart = false;
+                            for (int p = 0; p < segment.length; p++) {
+                                if (segment[p] == '{') {
+                                    recordStart = true;
+                                    continue;
+                                } else if (segment[p] == '}') {
+                                    recordStart = false;
+                                    regString.append("(.*)?");
+                                    info.addPathVariableName(varName.toString());
+                                    varName.delete(0, varName.length());
+                                } else if (recordStart) {
+                                    varName.append(segment[p]);
+                                    continue;
+                                } else {
+                                    regString.append(segment[p]);
+                                }
+                            }
+                            serverContext.regMapping(Pattern.compile(regString.toString()), info);
+                        } else {
+                            serverContext.mapping(mappingKey, info);
+                        }
                         LOG.info("Mapping %s : %s", mappingKey, method.toGenericString());
                     } catch (InstantiationException | IllegalAccessException e) {
                         LOG.error("控制器类需要无参数构造！");

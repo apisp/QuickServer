@@ -15,6 +15,7 @@ import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.HttpRequestResolver.HttpRequestInfo;
 import net.apisp.quick.server.RequestProcessor.ResponseInfo;
+import net.apisp.quick.server.var.ServerContext;
 
 public class HttpResponseExecutor {
     private static final Log LOG = LogFactory.getLog(HttpResponseExecutor.class);
@@ -52,7 +53,7 @@ public class HttpResponseExecutor {
         // Cookies
         List<HttpCookie> cookies = respInfo.getCookies();
         for (int i = 0; i < cookies.size(); i++) {
-            responseData.put(("Set-Cookie: " + cookies.get(i).toString()).getBytes("utf8"));
+            responseData.put(("Set-Cookie: " + cookies.get(i).toString()).getBytes(ServerContext.tryGet().charset()));
             responseData.put("\r\n".getBytes());
         }
         responseData.put("\r\n".getBytes());
