@@ -58,7 +58,7 @@ C:\Users\xxx>javaw -Dfile.encoding=UTF-8 -cp .;quick-server-1.4.jar Demo
 ```
 它会根据默认配置监听在`8908`端口，并为URI`/`与函数`public String Demo.hello(..)`之间做好了映射.
 
-默认配置是 @ujued 的偏好设置，你可以在`classpath`提供一份设置`优先配置 quick.properties`， 下面是默认配置的镜像：
+默认配置是 @ujued 的偏好设置，你可以在`classpath`提供一份优先配置`quick.properties`， 下面是默认配置的镜像：
 ```
 logging.level=INFO
 server=net.apisp.quick.server.DefaultQuickServer
@@ -66,7 +66,7 @@ server.port=8908
 server.threads=24
 server.tmp.dir=${user.dir}
 ```
-配置中的`server`项，可能会使你心生疑惑，它是个这样的一个类：
+你可以覆盖这些默认配置。当然优先级最高的还是从command传进来的args。配置中的`server`项，可能会使你心生疑惑，它是个这样的一个类：
 
 1. 它继承自`net.apisp.quick.server.QuickServer`，你可以用一些成熟的Server产品，如Jetty、Tomcat等来代替默认的QuickServer。你只需自己实现一个`net.apisp.quick.server.QuickServer`，并配置到配置文件`server`节点即可。
 2. 能获取到应用运行的上下文`net.apisp.quick.server.var.ServerContext`。
