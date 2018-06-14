@@ -7,40 +7,17 @@ QuickServer已经实现了一个简单的WebServer，可为快速提供API做好
 
 ###### 1.新建Java源码文件Demo.java
 ```java
-import net.apisp.quick.annotation.CrossDomain;
 import net.apisp.quick.annotation.GetMapping;
-import net.apisp.quick.core.BodyBinary;
 import net.apisp.quick.core.Quick;
-import net.apisp.quick.core.WebContext;
-import net.apisp.quick.core.http.HttpRequest;
-import net.apisp.quick.core.http.HttpResponse;
-import net.apisp.quick.util.IDs;
 
-@CrossDomain // 允许本应用提供的API跨域使用
 public class Demo {
     public static void main(String[] args) {
-        Quick.boot(Demo.class, args); // 这里指定了Boot类和命令行配置，也可以不指定Boot类，默认是main函数所在类
+        Quick.boot(args);
     }
 
     @GetMapping("/")
-    public String hello(HttpRequest req, HttpResponse resp, BodyBinary body, WebContext ctx) {
-        StringBuilder acknowledge = new StringBuilder();
-        acknowledge.append('{');
-        acknowledge.append("\"all_cookies\": \"").append(req.header("Cookie")).append("\", ");
-        acknowledge.append("\"sessionid\": \"")
-                .append(req.cookie("sessionid") == null ? "" : req.cookie("sessionid").value()).append("\", ");
-        acknowledge.append("\"req_body\": \"").append(req.body().toString()).append("\", ");
-        acknowledge.append("\"assert_true\": ").append(req.body() == body).append(", ");
-        acknowledge.append("\"server_port\": ").append(ctx.setting("server.port")).append(", ");
-        acknowledge.append("\"message\": \"").append("Hello World").append("\"");
-        acknowledge.append('}');
-
-        if (req.cookie("sessionid") == null) {
-            resp.cookie("sessionid", IDs.uuid());
-        }
-        resp.header("My-Header", "some checkcode");
-
-        return acknowledge.toString(); // 响应内容
+    public String hello() {
+        return "Hello World"; // 响应内容
     }
 }
 ```
