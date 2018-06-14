@@ -60,7 +60,7 @@ public class Quick implements Bootable<ServerContext> {
         this.bootClass = bootClass;
         this.bootArgs = bootArgs;
         this.serverContext = ServerContext.init();
-        this.server = choseServer(serverContext);
+        this.server = Quick.newServer(serverContext.serverClass());
     }
 
     /**
@@ -99,9 +99,8 @@ public class Quick implements Bootable<ServerContext> {
      * @param serverContext
      * @return
      */
-    private static synchronized QuickServer choseServer(ServerContext serverContext) {
+    private static synchronized QuickServer newServer(Class<QuickServer> serverClass) {
         QuickServer quickServer = null;
-        Class<QuickServer> serverClass = serverContext.serverClass();
         if (Objects.nonNull(serverClass)) {
             try {
                 quickServer = serverClass.newInstance();
