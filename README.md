@@ -1,11 +1,11 @@
 # QuickServer快速构建API
-* 用Java快速提供想要的API，那就快来试试QuickServer框架吧  *
-* 熟练使用QuickServer，对于你到Spring相关产品的使用迁移有不可描述的便利 *
+*用Java快速提供想要的API，那就快来试试QuickServer框架吧 *
+*熟练使用QuickServer，对于你到Spring相关产品的使用迁移有不可描述的便利*
 
 ## 个人用
 QuickServer已经实现了一个简单的WebServer，可为快速提供API做好准备，可以部署为微服务。你可以按下面步骤来使用：
 
-###### 1.新建Java源码文件Demo.java
+#### 1.新建Java源码文件Demo.java
 ```java
 import net.apisp.quick.annotation.GetMapping;
 import net.apisp.quick.core.Quick;
@@ -21,9 +21,9 @@ public class Demo {
     }
 }
 ```
-* 如果要基于默认配置正常运行，该文件需要时UTF-8编码模式 *
+*如果要基于默认配置正常运行，该文件需要用UTF-8编码*
 
-###### 2.编译并运行
+#### 2.编译并运行
 类Uinx
 ```
 $ javac -cp .:quick-server-1.4.jar Demo.java
