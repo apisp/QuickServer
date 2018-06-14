@@ -6,6 +6,7 @@
 QuickServer已经实现了一个简单的WebServer，可为快速提供API做好准备，可以部署为微服务。你可以按下面步骤来使用：
 
 ###### 1.新建Java源码文件Demo.java
+> 如果要基于默认配置正常运行，该文件需要时UTF-8编码模式
 ```java
 import net.apisp.quick.annotation.GetMapping;
 import net.apisp.quick.core.Quick;
@@ -17,11 +18,11 @@ public class Demo {
 
     @GetMapping("/")
     public String hello() {
-        return "Hello World"; // 响应内容
+        return "Hello World";
     }
 }
 ```
-###### 2.这样编译并运行它
+###### 2.编译并运行
 类Uinx
 ```
 $ javac -cp .:quick-server-1.4.jar Demo.java
