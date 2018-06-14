@@ -17,7 +17,7 @@ package net.apisp.quick.server.var;
 
 import java.nio.ByteBuffer;
 
-import net.apisp.quick.annotation.explain.CanBeNull;
+import net.apisp.quick.annotation.CanBeNull;
 import net.apisp.quick.core.BodyBinary;
 import net.apisp.quick.data.DataPersist;
 

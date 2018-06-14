@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.annotation;
+package net.apisp.quick.ioc;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+/**
+ * @author UJUED
+ * @date 2018-06-15 00:29:29
+ */
+public interface Container {
+    <T> T singleton(Class<T> type);
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-@Documented
-@Retention(RUNTIME)
-@Target({ TYPE, METHOD })
-public @interface CrossDomain {
+    Object singleton(String name);
 }

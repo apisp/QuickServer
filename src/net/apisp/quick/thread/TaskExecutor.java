@@ -15,8 +15,6 @@
  */
 package net.apisp.quick.thread;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -62,7 +60,7 @@ public class TaskExecutor {
         if (thread == null) {
             thread = poolRef[lastPosition++ % poolSize];
         }
-        thread.taskQueue.offer(task, args);
+        thread.taskQueue.offer(new TaskUnit(task, args));
     }
 
     /**
@@ -72,37 +70,21 @@ public class TaskExecutor {
      * @date 2018-06-13 23:16:06
      */
     class HangableThread extends Thread {
-        private ArgumentArrayBlockingQueue<Task> taskQueue = new ArgumentArrayBlockingQueue<>(10);
+        private BlockingQueue<TaskUnit> taskQueue = new ArrayBlockingQueue<>(10);
 
         @Override
         public void run() {
-            Task task = null;
+            TaskUnit task = null;
             while (!this.isInterrupted()) {
                 try {
                     task = taskQueue.take();
                 } catch (InterruptedException e) {
                     break;
                 }
-                task.run(taskQueue.argsCache.get(task));
-                taskQueue.argsCache.remove(task);
+                task.getTask().run(task.getArgs());
                 pool.offer(this);
                 LOG.debug("Me is free now.");
             }
-        }
-    }
-
-    class ArgumentArrayBlockingQueue<E> extends ArrayBlockingQueue<E> {
-        private static final long serialVersionUID = 1L;
-
-        private Map<E, Object[]> argsCache = new HashMap<>();
-
-        public ArgumentArrayBlockingQueue(int capacity) {
-            super(capacity);
-        }
-
-        public void offer(E task, Object[] args) {
-            this.argsCache.put(task, args);
-            this.offer(task);
         }
     }
 

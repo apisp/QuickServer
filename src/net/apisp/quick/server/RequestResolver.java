@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import net.apisp.quick.annotation.explain.CanBeNull;
+import net.apisp.quick.annotation.CanBeNull;
 import net.apisp.quick.core.BodyBinary;
 import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.core.http.HttpRequest;

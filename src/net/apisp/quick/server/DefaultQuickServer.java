@@ -101,5 +101,4 @@ public class DefaultQuickServer extends QuickServer {
             }
         }
     }
-
 }

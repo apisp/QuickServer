@@ -3,6 +3,7 @@
  */
 package net.apisp.quick.core;
 
+import net.apisp.quick.ioc.Container;
 import net.apisp.quick.thread.TaskExecutor;
 
 /**
@@ -11,10 +12,8 @@ import net.apisp.quick.thread.TaskExecutor;
  * @author UJUED
  * @date 2018-06-10 11:10:22
  */
-public interface WebContext {
+public interface WebContext extends Container {
     Object setting(String key);
-
-    <T> T singleton(Class<T> type);
 
     TaskExecutor executor();
 

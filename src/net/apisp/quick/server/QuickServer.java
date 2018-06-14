@@ -17,10 +17,14 @@ package net.apisp.quick.server;
 
 import java.io.IOException;
 import java.net.BindException;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.var.ServerContext;
+import net.apisp.quick.thread.Task;
+import net.apisp.quick.thread.TaskUnit;
 
 /**
  * QuickServer规范
@@ -29,10 +33,15 @@ import net.apisp.quick.server.var.ServerContext;
  * @date 2018-06-08 10:33:31
  */
 public abstract class QuickServer {
-    public static final Log LOG = LogFactory.getLog(QuickServer.class);
     private ServerContext serverContext;
+    protected List<TaskUnit> events = new ArrayList<>();
 
     public final void start() {
+        TaskUnit unit = null;
+        for (int i = 0; i < events.size(); i++) {
+            unit = events.get(i);
+            unit.getTask().run(unit.getArgs());
+        }
         new QuickServerThread(serverContext, (context) -> {
             run(context);
         }).startAndDoAfterRunning((context) -> {
@@ -44,55 +53,60 @@ public abstract class QuickServer {
         this.serverContext = serverContext;
     }
 
+    public final void addEvent(Task event, Object... args) {
+        events.add(new TaskUnit(event, args));
+    }
+
     public abstract void run(ServerContext serverContext) throws Exception;
 
     protected void afterRunning(ServerContext serverContext) throws Exception {
     }
+}
 
-    class QuickServerThread extends Thread {
-        private ServerContext serverContext;
-        private QuickServerRunner runner;
+class QuickServerThread extends Thread {
+    private static final Log LOG = LogFactory.getLog(QuickServer.class);
+    private ServerContext serverContext;
+    private QuickServerRunner runner;
 
-        public QuickServerThread(ServerContext serverContext, QuickServerRunner runner) {
-            this.serverContext = serverContext;
-            this.runner = runner;
-            this.setName("server");
+    public QuickServerThread(ServerContext serverContext, QuickServerRunner runner) {
+        this.serverContext = serverContext;
+        this.runner = runner;
+        this.setName("server");
+    }
+
+    @Override
+    public void run() {
+        try {
+            runner.run(serverContext);
+        } catch (BindException e) {
+            serverContext.setNormative(false);
+            LOG.error("The port %d already inuse.", serverContext.port());
+        } catch (IOException e) {
+            serverContext.setNormative(false);
+            LOG.error("Server start error, IO Exception occered.");
+        } catch (Exception e) {
+            serverContext.setNormative(false);
+            LOG.error("Server start error, Unkonwn Exception occered. %s", e);
+            e.printStackTrace();
         }
+    }
 
-        @Override
-        public void run() {
-            try {
+    public void startAndDoAfterRunning(QuickServerRunner runner) {
+        this.start();
+        try {
+            Thread.sleep(100);
+            if (serverContext.isNormative()) {
+                LOG.show("Started Quick API Server on port (%s)", serverContext.port());
                 runner.run(serverContext);
-            } catch (BindException e) {
-                serverContext.setNormative(false);
-                LOG.error("The port %d already inuse.", serverContext.port());
-            } catch (IOException e) {
-                serverContext.setNormative(false);
-                LOG.error("Server start error, IO Exception occered.");
-            } catch (Exception e) {
-                serverContext.setNormative(false);
-                LOG.error("Server start error, Unkonwn Exception occered. %s", e);
-                e.printStackTrace();
             }
-        }
-
-        public void startAndDoAfterRunning(QuickServerRunner runner) {
-            this.start();
-            try {
-                Thread.sleep(100);
-                if (serverContext.isNormative()) {
-                    LOG.show("Started Quick API Server on port (%s)", serverContext.port());
-                    runner.run(serverContext);
-                }
-            } catch (InterruptedException e) {
-            } catch (Exception e) {
-                LOG.error("Server start success, but after Exception occered.");
-            }
+        } catch (InterruptedException e) {
+        } catch (Exception e) {
+            LOG.error("Server start success, but after Exception occered.");
         }
     }
+}
 
-    @FunctionalInterface
-    interface QuickServerRunner {
-        void run(ServerContext serverContext) throws Exception;
-    }
+@FunctionalInterface
+interface QuickServerRunner {
+    void run(ServerContext serverContext) throws Exception;
 }

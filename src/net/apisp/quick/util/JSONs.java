@@ -151,7 +151,7 @@ public class JSONs {
                 }
             } else if (fields[i].getType().equals(String.class) || fields[i].getType().equals(Date.class)) {
                 try {
-                    jsonStr.put(fields[i].getName(), fields[i].get(pojo).toString());
+                    jsonStr.put(fields[i].getName(), (String) fields[i].get(pojo));
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     e.printStackTrace();
                 }

@@ -17,13 +17,12 @@ public class QuickWebContext implements WebContext {
 
     @Override
     public Object setting(String key) {
-        return serverContext.getSetting(key);
+        return serverContext.setting(key);
     }
 
     @Override
     public <T> T singleton(Class<T> type) {
-        // TODO Auto-generated method stub
-        return null;
+        return serverContext.singleton(type);
     }
 
     @Override
@@ -34,6 +33,11 @@ public class QuickWebContext implements WebContext {
     @Override
     public String charset() {
         return serverContext.charset();
+    }
+
+    @Override
+    public Object singleton(String name) {
+        return serverContext.singleton(name);
     }
 
 }

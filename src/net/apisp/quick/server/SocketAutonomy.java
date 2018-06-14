@@ -69,7 +69,7 @@ public class SocketAutonomy implements SoftCloseable {
                     } else {
                         if (n == 1) {
                             reqDataFile = IDs.uuid();
-                            FileData.create(reqDataFile, ServerContext.tryGet().getTmpPath(reqDataFile)).persist(first);
+                            FileData.create(reqDataFile, ServerContext.tryGet().tmpDirPath(reqDataFile)).persist(first);
                         }
                         FileData.find(reqDataFile).persist(buf, 0, i);
                     }

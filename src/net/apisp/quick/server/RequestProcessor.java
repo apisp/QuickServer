@@ -29,11 +29,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.apisp.quick.annotation.PathVariable;
-import net.apisp.quick.annotation.RequestBody;
 import net.apisp.quick.config.Configuration;
 import net.apisp.quick.core.BodyBinary;
 import net.apisp.quick.core.WebContext;
+import net.apisp.quick.core.annotation.PathVariable;
+import net.apisp.quick.core.annotation.RequestBody;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.core.http.HttpRequest;
@@ -59,13 +59,43 @@ public class RequestProcessor {
 
     private ServerContext serverContext = ServerContext.tryGet();
     {
-        if (serverContext == null)
+        if (serverContext == null) {
             throw new IllegalStateException("ServerContext get error.");
+        }
     }
 
     private RequestProcessor(HttpRequestInfo httpRequest) {
         this.httpRequest = httpRequest;
         this.executeInfo = serverContext.hit(httpRequest.method(), httpRequest.uri());
+    }
+
+    private void responseInfoApplyStatus(ResponseInfo responseInfo, HttpStatus status) {
+        String userAgent = httpRequest.header("User-Agent");
+        if (userAgent != null && userAgent.contains("Mozilla")) {
+            byte[] beforeCode = (byte[]) serverContext.singleton("exception.response.beforeCode");
+            byte[] code = String.valueOf(status.getCode()).getBytes();
+            byte[] afterCode = (byte[]) serverContext.singleton("exception.response.afterCode");
+            byte[] desc = status.getDesc().getBytes();
+            byte[] afterDesc = (byte[]) serverContext.singleton("exception.response.afterDesc");
+            responseInfo.body = new byte[beforeCode.length + code.length + afterCode.length + desc.length
+                    + afterDesc.length];
+            int posi = 0;
+            System.arraycopy(beforeCode, 0, responseInfo.body, posi, beforeCode.length);
+            posi += beforeCode.length;
+            System.arraycopy(code, 0, responseInfo.body, posi, code.length);
+            posi += code.length;
+            System.arraycopy(afterCode, 0, responseInfo.body, posi, afterCode.length);
+            posi += afterCode.length;
+            System.arraycopy(desc, 0, responseInfo.body, posi, desc.length);
+            posi += desc.length;
+            System.arraycopy(afterDesc, 0, responseInfo.body, posi, afterDesc.length);
+        } else {
+            responseInfo.body = (status.getCode() + " " + status.getDesc()).getBytes();
+        }
+        responseInfo.status = status;
+        Map<String, String> contentType = new HashMap<>(1);
+        contentType.put("Content-Type", ContentTypes.HTML + ";charset=" + serverContext.charset());
+        responseInfo.ensureHeaders(contentType);
     }
 
     /**
@@ -82,117 +112,102 @@ public class RequestProcessor {
 
     public ResponseInfo process() {
         ResponseInfo responseInfo = new ResponseInfo();
-        responseInfo.ensureHeaders(serverContext.getDefaultRespHeaders());
+        // 上下文要求的响应头
+        responseInfo.ensureHeaders(serverContext.responseHeaders());
 
         HttpRequestInfo request = this.httpRequest;
         if (!request.normative()) {
-            // 400 Bad Request ////////////////////////////////////////////////
-            responseInfo.body = "<article style='font-size:18px;font-family: Consolas;color: #555;text-align: center;'><em>400</em> Bad Request</article>"
-                    .getBytes();
-            responseInfo.status = HttpStatus.BAD_REQUEST;
-            Map<String, String> contentType = new HashMap<>(1);
-            contentType.put("Content-Type", ContentTypes.HTML + ";charset=" + serverContext.charset());
-            responseInfo.ensureHeaders(contentType);
-            return responseInfo;
+            // 400 Bad Request //////////////////////////////////////////////
+            responseInfoApplyStatus(responseInfo, HttpStatus.BAD_REQUEST);
+            return responseInfo.normalize();
         }
         if (executeInfo == null) {
-            // 404 Not Found //////////////////////////////////////////////////
-            responseInfo.body = "<article style='font-size:18px;font-family: Consolas;color: #555;text-align: center;'><em>404</em> Not Found</article>"
-                    .getBytes();
-            responseInfo.status = HttpStatus.NOT_FOUND;
-            Map<String, String> contentType = new HashMap<>(1);
-            contentType.put("Content-Type", ContentTypes.HTML + ";charset=" + serverContext.charset());
-            responseInfo.ensureHeaders(contentType);
-        } else {
-            Method method = executeInfo.getMethod();
-            Class<?>[] types = method.getParameterTypes();
-            Object[] params = new Object[types.length];
-            Class<?> type = null; // 参数类型
-            Annotation[][] annosParams = method.getParameterAnnotations();
-            Annotation[] annos = null;
+            responseInfoApplyStatus(responseInfo, HttpStatus.NOT_FOUND);
+            return responseInfo.normalize();
+        }
+        Method method = executeInfo.getMethod();
+        Class<?>[] types = method.getParameterTypes();
+        Object[] params = new Object[types.length];
+        Class<?> type = null; // 参数类型
+        Annotation[][] annosParams = method.getParameterAnnotations();
+        Annotation[] annos = null;
 
-            // 按类型、注解注入参数 //////////////////////////////////////////////
-            nextParam: for (int i = 0; i < types.length; i++) {
-                type = types[i];
+        // 按类型、注解注入参数 //////////////////////////////////////////////
+        nextParam: for (int i = 0; i < types.length; i++) {
+            type = types[i];
 
-                // 优先按注解注入 ///////////////////////////////////////////////
-                annos = annosParams[i];
-                toTypeInject: for (int j = 0; j < annos.length; j++) {
-                    if (annos[j] instanceof RequestBody) {
-                        if (request.body() == null) {
-                            break toTypeInject;
-                        }
-                        continue nextParam; // 开始下一个参数注入
-                    } else if (annos[j] instanceof PathVariable) {
-                        PathVariable pv = (PathVariable) annos[j];
-                        params[i] = executeInfo.getPathVariable(pv.value(), type);
-                        continue nextParam;
+            // 优先按注解注入 ///////////////////////////////////////////////
+            annos = annosParams[i];
+            toTypeInject: for (int j = 0; j < annos.length; j++) {
+                if (annos[j] instanceof RequestBody) {
+                    if (request.body() == null) {
+                        break toTypeInject;
                     }
+                    continue nextParam; // 开始下一个参数注入
+                } else if (annos[j] instanceof PathVariable) {
+                    PathVariable pv = (PathVariable) annos[j];
+                    params[i] = executeInfo.getPathVariable(pv.value(), type);
+                    continue nextParam;
                 }
+            }
 
-                // 类型注入 ///////////////////////////////////////////////////
-                if (Integer.class.equals(type) || int.class.equals(type)) {
-                    params[i] = 0;
-                } else if (HttpRequest.class.equals(type)) {
-                    params[i] = request;
-                } else if (HttpResponse.class.equals(type)) {
-                    params[i] = responseInfo;
-                } else if (WebContext.class.equals(type)) {
-                    if (serverContext != null) {
-                        params[i] = new QuickWebContext(serverContext);
-                    } else {
-                        params[i] = null;
-                    }
-                } else if (BodyBinary.class.equals(type)) {
-                    params[i] = request.body();
+            // 类型注入 ///////////////////////////////////////////////////
+            if (Integer.class.equals(type) || int.class.equals(type)) {
+                params[i] = 0;
+            } else if (HttpRequest.class.equals(type)) {
+                params[i] = request;
+            } else if (HttpResponse.class.equals(type)) {
+                params[i] = responseInfo;
+            } else if (WebContext.class.equals(type)) {
+                if (serverContext != null) {
+                    params[i] = new QuickWebContext(serverContext);
                 } else {
                     params[i] = null;
                 }
-
+            } else if (BodyBinary.class.equals(type)) {
+                params[i] = request.body();
+            } else {
+                params[i] = null;
             }
 
-            try {
-                Object result = executeInfo.getMethod().invoke(executeInfo.getObject(), params);
+        }
 
-                // 逻辑正常 ///////////////////////////////////////////////////
-                if (request.getReqData() != null)
-                    request.getReqData().close();
-                // 注入逻辑方法里改动的Headers
-                responseInfo.ensureHeaders(executeInfo.getRespHeaders());
+        try {
+            Object result = executeInfo.getMethod().invoke(executeInfo.getObject(), params);
 
-                if (method.getReturnType().equals(byte[].class)) {
-                    responseInfo.body = (byte[]) result;
-                } else if (result == null) {
-                } else {
-                    String resp = JSONs.convert(result);
-                    if (resp == null) {
-                        resp = result.toString();
-                    }
+            // 逻辑正常 ///////////////////////////////////////////////////
+            if (request.getReqData() != null)
+                request.getReqData().close();
+            // 注入逻辑方法里改动的Headers
+            responseInfo.ensureHeaders(executeInfo.getRespHeaders());
+
+            if (method.getReturnType().equals(byte[].class)) {
+                responseInfo.body = (byte[]) result;
+            } else if (result == null) {
+            } else {
+                String resp = JSONs.convert(result);
+                if (resp == null) {
+                    resp = result.toString();
+                }
+                try {
+                    responseInfo.body = resp.getBytes(serverContext.charset());
+                } catch (UnsupportedEncodingException e) {
+                    // 配置了不支持的编码集，更改系统设置为UTF-8
+                    Configuration.applySystemArgs("charset=UTF-8");
                     try {
-                        responseInfo.body = resp.getBytes(serverContext.charset());
-                    } catch (UnsupportedEncodingException e) {
-                        // 配置了不支持的编码集，更改系统设置为UTF-8
-                        Configuration.applySystemArgs("charset=UTF-8");
-                        try {
-                            responseInfo.body = resp.getBytes("UTF-8");
-                        } catch (UnsupportedEncodingException e1) {
-                            // ??? UTF-8 在任何时候都不可能不被支持的。
-                        }
+                        responseInfo.body = resp.getBytes("UTF-8");
+                    } catch (UnsupportedEncodingException e1) {
+                        // ??? UTF-8 在任何时候都不可能不被支持的。
                     }
                 }
-            } catch (InvocationTargetException e) {
-                // 逻辑异常 ///////////////////////////////////////////////////
-                // 500 Internal Server Error
-                Map<String, String> contentType = new HashMap<>(1);
-                contentType.put("Content-Type", ContentTypes.HTML + ";charset=" + serverContext.charset());
-                responseInfo.ensureHeaders(contentType);
-                responseInfo.status = HttpStatus.INTERNAL_SERVER_ERROR;
-                responseInfo.body = "<article style='font-size:18px;font-family: Consolas;color: #555;text-align: center;'><em>500</em> Internal Server Error</article>"
-                        .getBytes();
-                e.getCause().printStackTrace(); // 打印错误栈信息
-            } catch (IllegalAccessException | IllegalArgumentException e) {
-                LOG.debug(e);
             }
+        } catch (InvocationTargetException e) {
+            // 逻辑异常 ///////////////////////////////////////////////////
+            // 500 Internal Server Error
+            responseInfoApplyStatus(responseInfo, HttpStatus.INTERNAL_SERVER_ERROR);
+            e.getCause().printStackTrace(); // 打印错误栈信息
+        } catch (IllegalAccessException | IllegalArgumentException e) {
+            LOG.debug(e);
         }
         return responseInfo.normalize();
     }
@@ -213,6 +228,11 @@ public class RequestProcessor {
             this.body = body;
         }
 
+        /**
+         * 使用之前必须调用本方法
+         * 
+         * @return
+         */
         public ResponseInfo normalize() {
             this.header("Content-Length", String.valueOf(body.length));
             return this;

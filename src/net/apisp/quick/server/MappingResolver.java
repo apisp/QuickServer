@@ -21,13 +21,13 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import net.apisp.quick.annotation.CrossDomain;
-import net.apisp.quick.annotation.DeleteMapping;
-import net.apisp.quick.annotation.GetMapping;
-import net.apisp.quick.annotation.PostMapping;
-import net.apisp.quick.annotation.PutMapping;
-import net.apisp.quick.annotation.ResponseType;
-import net.apisp.quick.annotation.Scanning;
+import net.apisp.quick.core.annotation.CrossDomain;
+import net.apisp.quick.core.annotation.DeleteMapping;
+import net.apisp.quick.core.annotation.GetMapping;
+import net.apisp.quick.core.annotation.PostMapping;
+import net.apisp.quick.core.annotation.PutMapping;
+import net.apisp.quick.core.annotation.ResponseType;
+import net.apisp.quick.core.annotation.Scanning;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpMethods;
 import net.apisp.quick.log.Log;
@@ -59,10 +59,9 @@ public class MappingResolver {
                 this.classes = Arrays.copyOf(cls, cls.length + 1);
                 continue;
             } else if (annos[i] instanceof CrossDomain) {
-                serverContext.getDefaultRespHeaders().put("Access-Control-Allow-Origin", "*");
-                serverContext.getDefaultRespHeaders().put("Access-Control-Allow-Methods",
-                        "POST,GET,OPTIONS,DELETE,PUT,HEAD");
-                serverContext.getDefaultRespHeaders().put("Access-Control-Allow-Headers", "x-requested-with");
+                serverContext.responseHeaders().put("Access-Control-Allow-Origin", "*");
+                serverContext.responseHeaders().put("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD");
+                serverContext.responseHeaders().put("Access-Control-Allow-Headers", "x-requested-with");
                 serverContext.setCrossDomain(true);
                 continue;
             }
@@ -144,12 +143,12 @@ public class MappingResolver {
 
                         // 跨域设置
                         if (!serverContext.isCrossDomain() && (shouldSetCrossDomain || crossDomain != null)) {
-                            info.addHeader("Access-Control-Allow-Origin", "*")
-                                    .addHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD")
-                                    .addHeader("Access-Control-Allow-Headers", "x-requested-with");
+                            info.addHeader("Access-Control-Allow-Origin", "*");
+                            info.addHeader("Access-Control-Allow-Headers", "x-requested-with");
+                            info.addHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD");
                         }
                         if (mappingKey.indexOf('{') != -1 && mappingKey.indexOf('}') != -1) {
-                            StringBuilder regString = new StringBuilder();
+                            StringBuilder regString = new StringBuilder(httpMethod + "\\s");
                             StringBuilder varName = new StringBuilder();
                             char[] segment = uri.trim().toCharArray();
                             boolean recordStart = false;
@@ -169,7 +168,7 @@ public class MappingResolver {
                                     regString.append(segment[p]);
                                 }
                             }
-                            serverContext.regMapping(Pattern.compile(regString.toString()), info);
+                            serverContext.regexMapping(Pattern.compile(regString.toString()), info);
                         } else {
                             serverContext.mapping(mappingKey, info);
                         }

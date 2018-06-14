@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.annotation;
+package net.apisp.quick.ioc.annotation;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 @Documented
 @Retention(RUNTIME)
-@Target({ METHOD, PARAMETER })
+@Target(ElementType.TYPE)
 /**
  * @author UJUED
- * @date 2018-06-14 14:18:06
+ * @date 2018-06-15 01:19:33
  */
-public @interface PathVariable {
-    String value();
+public @interface Controller {
+
 }
