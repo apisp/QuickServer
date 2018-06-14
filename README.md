@@ -19,7 +19,7 @@ import net.apisp.quick.util.IDs;
 @CrossDomain // 允许本应用提供的API跨域使用
 public class Demo {
     public static void main(String[] args) {
-        Quick.boot(args); // 这里可以指定Boot类，默认是main函数所在类
+        Quick.boot(Demo.class, args); // 这里指定了Boot类和命令行配置，也可以不指定Boot类，默认是main函数所在类
     }
 
     @GetMapping("/")
@@ -60,6 +60,7 @@ C:\Users\xxx>javaw -Dfile.encoding=UTF-8 -cp .;quick-server-1.4.jar Demo
 
 默认配置是 @ujued 的偏好设置，你可以在`classpath`提供一份优先配置`quick.properties`， 下面是默认配置的镜像：
 ```
+charset=UTF-8
 logging.level=INFO
 server=net.apisp.quick.server.DefaultQuickServer
 server.port=8908
@@ -71,6 +72,6 @@ server.tmp.dir=${user.dir}
 1. 它继承自`net.apisp.quick.server.QuickServer`，你可以用一些成熟的Server产品，如Jetty、Tomcat等来代替默认的QuickServer。你只需自己实现一个`net.apisp.quick.server.QuickServer`，并配置到配置文件`server`节点即可。
 2. 能获取到应用运行的上下文`net.apisp.quick.server.var.ServerContext`。
 
-上下文提供这些信息：`URI与逻辑函数的映射关系`，`一个线程池(池大小由配置文件决定)`， `配置信息`。
+上下文提供这些信息：`URI与逻辑函数的映射关系`，`一个线程池`， `配置信息`。
 
 打开你的Java IDE，尽情发挥吧！
