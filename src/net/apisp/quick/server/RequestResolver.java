@@ -34,7 +34,7 @@ import net.apisp.quick.server.var.MemRequestBody;
  * @author UJUED
  * @date 2018-06-12 17:57:57
  */
-public class HttpRequestResolver {
+public class RequestResolver {
     private static final Log LOG = LogFactory.getLog(HttpRequestInfo.class);
 
     public static final HttpRequestInfo resolve(ByteBuffer requestBuffer) {

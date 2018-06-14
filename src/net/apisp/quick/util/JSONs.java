@@ -61,21 +61,16 @@ public class JSONs {
     }
 
     public static class JSON {
-        private List<FieldValue<Double>> numPairs = new ArrayList<>();
+        private List<FieldValue<Object>> objPairs = new ArrayList<>();
         private List<FieldValue<String>> strPairs = new ArrayList<>();
-        private List<FieldValue<JSON>> jsonPairs = new ArrayList<>();
         private List<FieldValue<List<?>>> listPairs = new ArrayList<>();
 
-        public void put(String field, Double value) {
-            numPairs.add(new FieldValue<Double>(field, value));
+        public void put(String field, Object value) {
+            objPairs.add(new FieldValue<Object>(field, value));
         }
 
         public void put(String field, String value) {
             strPairs.add(new FieldValue<String>(field, value));
-        }
-
-        public void put(String field, JSON value) {
-            jsonPairs.add(new FieldValue<JSONs.JSON>(field, value));
         }
 
         public void put(String field, List<?> value) {
@@ -86,17 +81,13 @@ public class JSONs {
         public String toString() {
             StringBuilder jsonBuilder = new StringBuilder();
             jsonBuilder.append('{');
-            for (int i = 0; i < numPairs.size(); i++) {
-                jsonBuilder.append('"').append(numPairs.get(i).getField()).append('"').append(':').append(' ')
-                        .append(numPairs.get(i).getValue()).append(',').append(' ');
+            for (int i = 0; i < objPairs.size(); i++) {
+                jsonBuilder.append('"').append(objPairs.get(i).getField()).append('"').append(':').append(' ')
+                        .append(objPairs.get(i).getValue()).append(',').append(' ');
             }
             for (int i = 0; i < strPairs.size(); i++) {
                 jsonBuilder.append('"').append(strPairs.get(i).getField()).append('"').append(':').append(' ')
                         .append('"').append(strPairs.get(i).getValue()).append('"').append(',').append(' ');
-            }
-            for (int i = 0; i < jsonPairs.size(); i++) {
-                jsonBuilder.append('"').append(jsonPairs.get(i).getField()).append('"').append(':').append(' ')
-                        .append(jsonPairs.get(i).getValue()).append(',').append(' ');
             }
             for (int i = 0; i < listPairs.size(); i++) {
                 jsonBuilder.append('"').append(listPairs.get(i).getField()).append('"').append(':').append(' ')
@@ -151,9 +142,10 @@ public class JSONs {
             if (fields[i].getType().equals(Integer.class) || fields[i].getType().equals(int.class)
                     || fields[i].getType().equals(Double.class) || fields[i].getType().equals(Double.class)
                     || fields[i].getType().equals(double.class) || fields[i].getType().equals(Short.class)
-                    || fields[i].getType().equals(short.class)) {
+                    || fields[i].getType().equals(short.class) || fields[i].getType().equals(Boolean.class)
+                    || fields[i].getType().equals(boolean.class)) {
                 try {
-                    jsonStr.put(fields[i].getName(), Double.valueOf(fields[i].get(pojo).toString()));
+                    jsonStr.put(fields[i].getName(), fields[i].get(pojo));
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     e.printStackTrace();
                 }

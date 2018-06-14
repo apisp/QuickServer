@@ -28,7 +28,7 @@ import net.apisp.quick.core.SoftCloseable;
 import net.apisp.quick.data.file.FileData;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
-import net.apisp.quick.server.HttpRequestResolver.HttpRequestInfo;
+import net.apisp.quick.server.RequestResolver.HttpRequestInfo;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.util.IDs;
 
@@ -79,10 +79,10 @@ public class SocketAutonomy implements SoftCloseable {
                         DefaultQuickServer.responseExecutor.submit((args1) -> {
                             ByteBuffer buffer = (ByteBuffer) args1[0];
                             FileData reqData = (FileData) args1[1];
-                            HttpRequestInfo reqInfo = HttpRequestResolver.resolve(buffer).setReqData(reqData);
+                            HttpRequestInfo reqInfo = RequestResolver.resolve(buffer).setReqData(reqData);
                             try {
                                 OutputStream out = sock.getOutputStream();
-                                HttpResponseExecutor.execute(reqInfo).response(out);
+                                ResponseExecutor.execute(reqInfo).response(out);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }

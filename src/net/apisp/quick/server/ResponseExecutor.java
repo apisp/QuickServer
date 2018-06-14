@@ -13,23 +13,23 @@ import java.util.Map;
 import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
-import net.apisp.quick.server.HttpRequestResolver.HttpRequestInfo;
+import net.apisp.quick.server.RequestResolver.HttpRequestInfo;
 import net.apisp.quick.server.RequestProcessor.ResponseInfo;
 import net.apisp.quick.server.var.ServerContext;
 
-public class HttpResponseExecutor {
-    private static final Log LOG = LogFactory.getLog(HttpResponseExecutor.class);
+public class ResponseExecutor {
+    private static final Log LOG = LogFactory.getLog(ResponseExecutor.class);
     private HttpRequestInfo httpRequestInfo;
     private ResponseInfo httpResponseInfo;
 
-    private HttpResponseExecutor(HttpRequestInfo httpRequestInfo, ResponseInfo httpResponseInfo) {
+    private ResponseExecutor(HttpRequestInfo httpRequestInfo, ResponseInfo httpResponseInfo) {
         this.httpRequestInfo = httpRequestInfo;
         this.httpResponseInfo = httpResponseInfo;
     }
 
-    public static HttpResponseExecutor execute(HttpRequestInfo httpRequestInfo) {
+    public static ResponseExecutor execute(HttpRequestInfo httpRequestInfo) {
         ResponseInfo respInfo = RequestProcessor.create(httpRequestInfo).process();
-        return new HttpResponseExecutor(httpRequestInfo, respInfo);
+        return new ResponseExecutor(httpRequestInfo, respInfo);
     }
 
     public void response(OutputStream out) throws IOException {

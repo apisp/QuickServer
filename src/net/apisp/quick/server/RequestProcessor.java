@@ -42,7 +42,7 @@ import net.apisp.quick.core.http.HttpStatus;
 import net.apisp.quick.core.std.QuickWebContext;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
-import net.apisp.quick.server.HttpRequestResolver.HttpRequestInfo;
+import net.apisp.quick.server.RequestResolver.HttpRequestInfo;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.util.JSONs;
 

@@ -159,7 +159,7 @@ public class MappingResolver {
                                     continue;
                                 } else if (segment[p] == '}') {
                                     recordStart = false;
-                                    regString.append("(.*)?");
+                                    regString.append("([^/]*)?");
                                     info.addPathVariableName(varName.toString());
                                     varName.delete(0, varName.length());
                                 } else if (recordStart) {
