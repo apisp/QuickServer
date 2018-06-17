@@ -22,10 +22,10 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 import net.apisp.quick.core.annotation.CrossDomain;
-import net.apisp.quick.core.annotation.DeleteMapping;
-import net.apisp.quick.core.annotation.GetMapping;
-import net.apisp.quick.core.annotation.PostMapping;
-import net.apisp.quick.core.annotation.PutMapping;
+import net.apisp.quick.core.annotation.Delete;
+import net.apisp.quick.core.annotation.Get;
+import net.apisp.quick.core.annotation.Post;
+import net.apisp.quick.core.annotation.Put;
 import net.apisp.quick.core.annotation.ResponseType;
 import net.apisp.quick.core.annotation.Scanning;
 import net.apisp.quick.core.http.ContentTypes;
@@ -79,10 +79,10 @@ public class MappingResolver {
     public void resolve() {
         Class<?> clazz;
         Method method;
-        GetMapping getMapping = null;
-        PostMapping postMaping = null;
-        PutMapping putMapping = null;
-        DeleteMapping deleteMapping = null;
+        Get getMapping = null;
+        Post postMaping = null;
+        Put putMapping = null;
+        Delete deleteMapping = null;
 
         ResponseType responseType = null;
         CrossDomain crossDomain = null;
@@ -100,10 +100,10 @@ public class MappingResolver {
             Method[] methods = clazz.getDeclaredMethods();
             for (int i = 0; i < methods.length; i++) {
                 method = methods[i];
-                getMapping = method.getAnnotation(GetMapping.class);
-                postMaping = method.getAnnotation(PostMapping.class);
-                putMapping = method.getAnnotation(PutMapping.class);
-                deleteMapping = method.getAnnotation(DeleteMapping.class);
+                getMapping = method.getAnnotation(Get.class);
+                postMaping = method.getAnnotation(Post.class);
+                putMapping = method.getAnnotation(Put.class);
+                deleteMapping = method.getAnnotation(Delete.class);
 
                 responseType = method.getAnnotation(ResponseType.class);
 
@@ -161,8 +161,12 @@ public class MappingResolver {
                                     regString.append("([^/]*)?");
                                     info.addPathVariableName(varName.toString());
                                     varName.delete(0, varName.length());
+                                    continue;
                                 } else if (recordStart) {
                                     varName.append(segment[p]);
+                                    continue;
+                                } else if (segment[p] == '/') {
+                                    regString.append("/+");
                                     continue;
                                 } else {
                                     regString.append(segment[p]);

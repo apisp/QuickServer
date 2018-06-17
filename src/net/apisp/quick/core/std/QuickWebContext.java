@@ -40,4 +40,14 @@ public class QuickWebContext implements WebContext {
         return serverContext.singleton(name);
     }
 
+    @Override
+    public void accept(Object obj) {
+        serverContext.accept(obj);
+    }
+
+    @Override
+    public void accept(String name, Object obj) {
+        serverContext.accept(name, obj);
+    }
+
 }

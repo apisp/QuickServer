@@ -15,16 +15,27 @@
  */
 package net.apisp.quick.ioc;
 
+import net.apisp.quick.core.Cacheable;
+
 /**
  * @author UJUED
- * @date 2018-06-15 00:29:29
+ * @date 2018-06-15 11:35:15
  */
-public interface Container {
-    <T> T singleton(Class<T> type);
+public class InstanceFactory implements Cacheable<Container> {
+    private Class<?>[] classes;
+    private Object[] instances;
 
-    Object singleton(String name);
+    public InstanceFactory(Class<?>[] classes) {
+        this.classes = classes;
+    }
 
-    void accept(Object obj);
+    public Object[] instances() {
+        instances = classes;
+        return instances;
+    }
+    @Override
+    public Container cache(Container container) {
+        return null;
+    }
 
-    void accept(String name, Object obj);
 }

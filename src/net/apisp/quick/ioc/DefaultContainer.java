@@ -55,4 +55,14 @@ public class DefaultContainer implements Container {
         return cache.get(name);
     }
 
+    @Override
+    public void accept(Object obj) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void accept(String name, Object obj) {
+        // TODO Auto-generated method stub
+
+    }
 }

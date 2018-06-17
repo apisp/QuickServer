@@ -17,14 +17,8 @@ package net.apisp.quick.ioc;
 
 /**
  * @author UJUED
- * @date 2018-06-15 00:29:29
+ * @date 2018-06-15 11:07:05
  */
-public interface Container {
-    <T> T singleton(Class<T> type);
-
-    Object singleton(String name);
-
-    void accept(Object obj);
-
-    void accept(String name, Object obj);
+public interface ClassScanner {
+    Class<?>[] attain(Class<?> aOrI);
 }

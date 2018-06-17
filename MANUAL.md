@@ -1,7 +1,7 @@
 # Quick Server 开发手册
 
 #### 1.注解驱动开发的便利
-1. `@GetMapping` `@PostMapping` `@PutMapping` `@DeleteMapping` `@PathVariable` 为RESTful API开发助力。
+1. `@Get` `@Post` `@Put` `@Delete` `@PathVariable` 为RESTful API开发助力。
 2. `@CrosDomain`允许某个API跨域使用，可以作用在方法、控制器类、启动类。
 3. `@Scanning`指定所有的控制器类。只能作用在启动类。
 4. `@ResponseType`指定响应数据类型。只能作用在方法。
@@ -31,7 +31,7 @@ public class Demo {
         Quick.boot(Demo.class, args); // 这里可以指定Boot类，默认是main函数所在类
     }
 
-    @GetMapping("/{name}/{version}")
+    @Get("/{name}/{version}")
     public Acknowledge hello(@PathVariable("name") String name, @PathVariable("version") String version,
             HttpRequest req, HttpResponse resp, BodyBinary body, WebContext ctx) {
         Acknowledge acknowledge = new Acknowledge();

@@ -8,7 +8,7 @@ QuickServer已经实现了一个简单的WebServer，可为快速提供API做好
 
 #### 1.新建Java源码文件Demo.java
 ```java
-import net.apisp.quick.annotation.GetMapping;
+import net.apisp.quick.annotation.Get;
 import net.apisp.quick.core.Quick;
 
 public class Demo {
@@ -16,7 +16,7 @@ public class Demo {
         Quick.boot(args);
     }
 
-    @GetMapping("/")
+    @Get("/")
     public String hello() {
         return "Hello World";
     }

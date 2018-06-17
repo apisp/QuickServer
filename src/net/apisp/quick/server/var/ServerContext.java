@@ -180,4 +180,14 @@ public class ServerContext implements WebContext, QuickContext {
     public void regexMapping(Pattern pattern, RequestExecutorInfo info) {
         this.regMappings.put(pattern, info);
     }
+
+    @Override
+    public void accept(Object obj) {
+        this.container.accept(obj);
+    }
+
+    @Override
+    public void accept(String name, Object obj) {
+        this.accept(name, obj);
+    }
 }

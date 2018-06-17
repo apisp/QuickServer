@@ -39,6 +39,7 @@ public class Quick implements Bootable<ServerContext> {
     private String[] bootArgs = new String[0];
 
     public Quick() {
+        this(null, new String[0]);
     }
 
     public Quick(String[] bootArgs) {
@@ -68,9 +69,6 @@ public class Quick implements Bootable<ServerContext> {
      */
     private void startServer(ServerContext serverContext) {
         server.setContext(serverContext);
-        server.addEvent((args) -> {
-            // TODO @Factory 缓存单例对象
-        });
         server.start();
     }
 
