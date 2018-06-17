@@ -7,7 +7,7 @@
 4. `@ResponseType`指定响应数据类型。只能作用在方法。
 
 #### 2.关于Mapping方法
-1. 参数按需动态注入。你可以添加的参数类型有：`HttpRequest` `HttpResponse` `WebContext` `BodyBinary`。 你也可以用注解标注其他的参数，`@PathVariable`标注的参数会被注入请求路径相应的变量。
+1. 参数按需动态注入。你可以添加的参数类型有：`HttpRequest` `HttpResponse` `WebContext` `BodyBinary`。 你也可以用注解标注其他的参数，`@Variable`标注的参数会被注入请求路径相应的变量。
 2. 返回值即是响应内容。你可以用`@ResponseType`指定响应内容的类型，默认是`application/json`。返回值类型可以是void，这时你需要在参数`HttpResponse`中指定响应的数据。
 
 #### 3.示例
