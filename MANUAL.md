@@ -32,7 +32,7 @@ public class Demo {
     }
 
     @Get("/{name}/{version}")
-    public Acknowledge hello(@PathVariable("name") String name, @PathVariable("version") String version,
+    public Acknowledge hello(@Variable("name") String name, @Variable("version") String version,
             HttpRequest req, HttpResponse resp, BodyBinary body, WebContext ctx) {
         Acknowledge acknowledge = new Acknowledge();
         acknowledge.allCookies = req.header("Cookie");
