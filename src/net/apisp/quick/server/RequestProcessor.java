@@ -32,7 +32,7 @@ import java.util.Map;
 import net.apisp.quick.config.Configuration;
 import net.apisp.quick.core.BodyBinary;
 import net.apisp.quick.core.WebContext;
-import net.apisp.quick.core.annotation.PathVariable;
+import net.apisp.quick.core.annotation.Variable;
 import net.apisp.quick.core.annotation.RequestBody;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpCookie;
@@ -144,8 +144,8 @@ public class RequestProcessor {
                         break toTypeInject;
                     }
                     continue nextParam; // 开始下一个参数注入
-                } else if (annos[j] instanceof PathVariable) {
-                    PathVariable pv = (PathVariable) annos[j];
+                } else if (annos[j] instanceof Variable) {
+                    Variable pv = (Variable) annos[j];
                     params[i] = executeInfo.getPathVariable(pv.value(), type);
                     continue nextParam;
                 }

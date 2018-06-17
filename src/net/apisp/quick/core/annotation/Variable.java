@@ -30,6 +30,6 @@ import java.lang.annotation.Target;
  * @author UJUED
  * @date 2018-06-14 14:18:06
  */
-public @interface PathVariable {
+public @interface Variable {
     String value();
 }
