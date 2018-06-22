@@ -33,13 +33,14 @@ public class TaskExecutor {
     private volatile boolean isShutdown;
     private int poolSize;
 
-    private TaskExecutor(String name, int initSize) {
+    private TaskExecutor(String name, int initSize, boolean isDaemon) {
         this.poolSize = initSize;
         this.pool = new ArrayBlockingQueue<>(initSize);
         this.poolRef = new HangableThread[initSize];
         for (int i = 0; i < initSize; i++) {
             HangableThread t = new HangableThread();
             t.setName(name + "-" + i);
+            t.setDaemon(isDaemon);
             this.pool.offer(t);
             this.poolRef[i] = t;
             t.start();
@@ -108,14 +109,14 @@ public class TaskExecutor {
      * @return
      */
     public static TaskExecutor create() {
-        return new TaskExecutor("quick", Runtime.getRuntime().availableProcessors() * 2);
+        return new TaskExecutor("quick", Runtime.getRuntime().availableProcessors() * 2, true);
     }
 
     public static TaskExecutor create(int initSize) {
-        return new TaskExecutor("quick", initSize);
+        return new TaskExecutor("quick", initSize, true);
     }
 
     public static TaskExecutor create(String name, int initSize) {
-        return new TaskExecutor(name, initSize);
+        return new TaskExecutor(name, initSize, true);
     }
 }

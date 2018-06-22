@@ -15,6 +15,8 @@
  */
 package net.apisp.quick.core;
 
+import java.net.URI;
+import java.net.URL;
 import java.util.Objects;
 
 import net.apisp.quick.config.Configuration;
@@ -30,6 +32,7 @@ import net.apisp.quick.server.MappingResolver;
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.thread.Task;
+import net.apisp.quick.util.Quicks;
 
 /**
  * 框架帮助类
@@ -43,6 +46,7 @@ public class Quick implements Bootable<ServerContext> {
     private QuickServer server;
     private ServerContext serverContext;
     private String[] bootArgs = new String[0];
+    private URI userBin;
 
     public Quick() {
         this(null, new String[0]);
@@ -63,8 +67,10 @@ public class Quick implements Bootable<ServerContext> {
     private Quick(Class<?> bootClass, int index, String[] bootArgs) {
         if (bootClass == null) {
             try {
-                bootClass = Quick.class.getClassLoader()
-                        .loadClass(Thread.currentThread().getStackTrace()[index].getClassName());
+                String bootClassName = Thread.currentThread().getStackTrace()[index].getClassName();
+                bootClass = Quick.class.getClassLoader().loadClass(bootClassName);
+                URL url = bootClass.getResource("/" + bootClassName.replace('.', '/') + ".class");
+                userBin = URI.create(url.toString().substring(0, url.toString().length() - bootClassName.length() - 6));
             } catch (ClassNotFoundException e) {
             }
         }
@@ -76,12 +82,12 @@ public class Quick implements Bootable<ServerContext> {
 
     private void prepareServer() {
         // 单例缓存
-        DefaultClassScanner classScanner = DefaultClassScanner.create("");
+        DefaultClassScanner classScanner = DefaultClassScanner.create(userBin, Quicks.packageName(bootClass.getName()));
         Class<?>[] factories = classScanner.getByAnnotation(Factory.class);
         Class<?>[] singletons = classScanner.getByAnnotation(Singleton.class);
         SingletonRegister singletonRegister = new SingletonRegister();
         singletonRegister.classes(singletons).factories(factories).cache(serverContext);
-        
+
         // 解决URI的映射关系
         Class<?>[] controllerClss = classScanner.getByAnnotation(Controller.class);
         MappingResolver.prepare(bootClass, serverContext).setControllerClasses(controllerClss).resolve();

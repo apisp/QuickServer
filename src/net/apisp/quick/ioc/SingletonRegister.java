@@ -134,7 +134,9 @@ public class SingletonRegister implements Cacheable<Container> {
             if (lazyAcceptList.size() > 1000 && System.currentTimeMillis()
                     - startTime < (Runtime.getRuntime().availableProcessors() >= 2 ? 10 : 20)) {
                 try {
-                    lock.wait(200);
+                    synchronized (lock) {
+                        lock.wait(200);
+                    }
                     LOG.debug("Waiting for thread cache-1");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -153,7 +155,6 @@ public class SingletonRegister implements Cacheable<Container> {
                 params[k] = container.singleton(paramTypes[k]);
                 if (params[k] == null) {
                     lazyAcceptList.add(lazyAcceptList.get(i));
-                    LOG.debug("size:%d, i:%d", lazyAcceptList.size(), i);
                     continue nextAcceptable;
                 }
             }
@@ -188,7 +189,9 @@ public class SingletonRegister implements Cacheable<Container> {
             if (classList.size() > 1000 && System.currentTimeMillis()
                     - startTime < (Runtime.getRuntime().availableProcessors() >= 2 ? 10 : 20)) {
                 try {
-                    lock.wait(200);
+                    synchronized (lock) {
+                        lock.wait(200);
+                    }
                     LOG.debug("Waiting for thread cache-1");
                 } catch (InterruptedException e) {
                     e.printStackTrace();

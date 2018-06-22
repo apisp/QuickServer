@@ -18,11 +18,13 @@ package net.apisp.quick.ioc;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -37,61 +39,56 @@ import java.util.stream.Stream;
 public class DefaultClassScanner implements ClassScanner {
     private Set<Class<?>> classes = new HashSet<>();
     private Path rootPath;
-    {
-        try {
-            rootPath = Paths.get(ClassLoader.getSystemResource("").toURI());
-        } catch (URISyntaxException e) {
-        }
-    }
-
-    public DefaultClassScanner(Path path) {
-        collect(path);
-    }
 
     private Set<Class<?>> collect(Path root) {
         Stream<Path> list = null;
         try {
-            list = Files.list(root).filter((t) -> {
-                if (t.toFile().isDirectory()) {
-                    collect(t);
-                    return false;
-                }
-                return true;
-            });
+            list = Files.list(root);
             list.forEach(new Consumer<Path>() {
                 @Override
                 public void accept(Path t) {
                     if (!t.toString().endsWith(".class")) {
+                        collect(t);
                         return;
                     }
                     String className = getClassNameByPath(t);
                     try {
-                        classes.add(Class.forName(className));
-                    } catch (ClassNotFoundException e) {
+                        classes.add(ClassLoader.getSystemClassLoader().loadClass(className));
+                    } catch (ClassNotFoundException | NoClassDefFoundError e) {
                     }
                 }
 
                 private String getClassNameByPath(Path t) {
                     String tmp = t.subpath(rootPath.getNameCount(), t.getNameCount()).toString();
-                    return tmp.substring(0, tmp.length() - 6).replace('\\', '.');
+                    return tmp.substring(0, tmp.length() - 6).replace('\\', '.').replace('/', '.');
                 }
             });
 
         } catch (IOException e) {
-            e.printStackTrace();
+        } finally {
+            if (list != null) {
+                list.close();
+            }
         }
         return classes;
     }
 
-    public static DefaultClassScanner create(String packageName) {
-        URI uri = null;
-        try {
-            uri = ClassLoader.getSystemResource(packageName.replace('.', '/')).toURI();
-        } catch (NullPointerException e) {
-            throw new RuntimeException("没有此包");
-        } catch (URISyntaxException e) {
+    public static DefaultClassScanner create(URI uri, String packageName) {
+        Path path = null;
+        if (uri.getScheme().equals("jar")) {
+            try {
+                FileSystem zipfs = FileSystems.newFileSystem(uri, new HashMap<>());
+                path = zipfs.getPath("/");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            path = Paths.get(uri);
         }
-        return new DefaultClassScanner(Paths.get(uri));
+        DefaultClassScanner classScanner = new DefaultClassScanner();
+        classScanner.rootPath = path;
+        classScanner.collect(path.resolve(packageName.replace('.', '/')));
+        return classScanner;
     }
 
     @Override
@@ -121,7 +118,6 @@ public class DefaultClassScanner implements ClassScanner {
 
     @Override
     public Class<?>[] get(Class<?> cls) {
-        // TODO Auto-generated method stub
         return null;
     }
 
