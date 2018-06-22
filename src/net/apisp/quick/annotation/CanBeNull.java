@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-@Documented
-@Retention(SOURCE)
-@Target(FIELD)
 /**
  * @author UJUED
  * @date 2018-06-12 21:32:18
  */
+@Documented
+@Retention(SOURCE)
+@Target(FIELD)
 public @interface CanBeNull {
 
 }

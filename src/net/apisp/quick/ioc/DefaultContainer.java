@@ -45,9 +45,10 @@ public class DefaultContainer implements Container {
         cache.put("exception.response.afterDesc", afterDesc);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T singleton(Class<T> type) {
-        return null;
+        return (T) cache.get(type.getName());
     }
 
     @Override
@@ -57,12 +58,11 @@ public class DefaultContainer implements Container {
 
     @Override
     public void accept(Object obj) {
-        // TODO Auto-generated method stub
+        this.cache.put(obj.getClass().getName(), obj);
     }
 
     @Override
     public void accept(String name, Object obj) {
-        // TODO Auto-generated method stub
-
+        this.cache.put(name, obj);
     }
 }

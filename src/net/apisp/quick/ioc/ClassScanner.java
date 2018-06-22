@@ -15,10 +15,17 @@
  */
 package net.apisp.quick.ioc;
 
+import java.lang.annotation.Annotation;
+
 /**
  * @author UJUED
  * @date 2018-06-15 11:07:05
  */
 public interface ClassScanner {
-    Class<?>[] attain(Class<?> aOrI);
+
+    Class<?>[] get(Class<?> cls);
+
+    Class<?>[] getByAnnotation(Class<? extends Annotation> anno);
+
+    Class<?>[] getByInterface(Class<?> ifce);
 }

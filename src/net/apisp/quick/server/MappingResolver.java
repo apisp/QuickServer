@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018, Ujued and APISP.NET.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@ package net.apisp.quick.server;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import net.apisp.quick.core.annotation.CrossDomain;
@@ -30,6 +32,7 @@ import net.apisp.quick.core.annotation.ResponseType;
 import net.apisp.quick.core.annotation.Scanning;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpMethods;
+import net.apisp.quick.ioc.Injections;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
@@ -45,7 +48,7 @@ public class MappingResolver {
     private static Log LOG = LogFactory.getLog(MappingResolver.class);
     private static MappingResolver instance;
     private Class<?> bootClass;
-    private Class<?>[] classes;
+    private Set<Class<?>> controllerClasses = new HashSet<>();
     private ServerContext serverContext;
 
     public MappingResolver() {
@@ -56,7 +59,9 @@ public class MappingResolver {
         for (int i = 0; i < annos.length; i++) {
             if (annos[i] instanceof Scanning) {
                 Class<?>[] cls = ((Scanning) annos[i]).value();
-                this.classes = Arrays.copyOf(cls, cls.length + 1);
+                for (int j = 0; j < cls.length; j++) {
+                    controllerClasses.add(cls[j]);
+                }
                 continue;
             } else if (annos[i] instanceof CrossDomain) {
                 serverContext.responseHeaders().put("Access-Control-Allow-Origin", "*");
@@ -66,11 +71,14 @@ public class MappingResolver {
                 continue;
             }
         }
-        if (this.classes == null) {
-            this.classes = new Class<?>[] { bootClass };
-        } else {
-            this.classes[this.classes.length - 1] = bootClass;
+        controllerClasses.add(bootClass);
+    }
+
+    public MappingResolver setControllerClasses(Class<?>[] classes) {
+        for (int i = 0; i < classes.length; i++) {
+            this.controllerClasses.add(classes[i]);
         }
+        return this;
     }
 
     /**
@@ -87,9 +95,18 @@ public class MappingResolver {
         ResponseType responseType = null;
         CrossDomain crossDomain = null;
 
-        String mappingKey;
-        for (int j = 0; j < classes.length; j++) {
-            clazz = classes[j];
+        String mappingKey = null;
+        Object controller = null;
+        Iterator<Class<?>> controllerIter = controllerClasses.iterator();
+        while (controllerIter.hasNext()) {
+            clazz = (Class<?>) controllerIter.next();
+            // 创建单例控制器对象，未缓存到WebContext
+            try {
+                controller = clazz.newInstance();
+                Injections.inject(controller, serverContext); // 单例对象自动注入Controller
+            } catch (InstantiationException | IllegalAccessException e1) {
+                LOG.error("控制器类需要无参数构造！");
+            }
 
             // Controller 域下所有API可能需要跨域
             boolean shouldSetCrossDomain = false;
@@ -136,57 +153,61 @@ public class MappingResolver {
                         break;
                     }
                     mappingKey = httpMethod + " " + uri.trim();
-                    try {
-                        RequestExecutorInfo info = new RequestExecutorInfo(method, clazz.newInstance());
-                        info.addHeader("Content-Type", (responseType != null ? responseType.value() : ContentTypes.JSON)
-                                + "; charset=" + serverContext.charset());
 
-                        // 跨域设置
-                        if (!serverContext.isCrossDomain() && (shouldSetCrossDomain || crossDomain != null)) {
-                            info.addHeader("Access-Control-Allow-Origin", "*");
-                            info.addHeader("Access-Control-Allow-Headers", "x-requested-with");
-                            info.addHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD");
-                        }
-                        if (mappingKey.indexOf('{') != -1 && mappingKey.indexOf('}') != -1) {
-                            StringBuilder regString = new StringBuilder(httpMethod + "\\s");
-                            StringBuilder varName = new StringBuilder();
-                            char[] segment = uri.trim().toCharArray();
-                            boolean recordStart = false;
-                            for (int p = 0; p < segment.length; p++) {
-                                if (segment[p] == '{') {
-                                    recordStart = true;
-                                    continue;
-                                } else if (segment[p] == '}') {
-                                    recordStart = false;
-                                    regString.append("([^/]*)?");
-                                    info.addPathVariableName(varName.toString());
-                                    varName.delete(0, varName.length());
-                                    continue;
-                                } else if (recordStart) {
-                                    varName.append(segment[p]);
-                                    continue;
-                                } else if (segment[p] == '/') {
-                                    regString.append("/+");
-                                    continue;
-                                } else {
-                                    regString.append(segment[p]);
-                                }
-                            }
-                            serverContext.regexMapping(Pattern.compile(regString.toString()), info);
-                        } else {
-                            serverContext.mapping(mappingKey, info);
-                        }
-                        LOG.info("Mapping %s : %s", mappingKey, method.toGenericString());
-                    } catch (InstantiationException | IllegalAccessException e) {
-                        LOG.error("控制器类需要无参数构造！");
+                    RequestExecutorInfo info = new RequestExecutorInfo(method, controller);
+                    info.addHeader("Content-Type", (responseType != null ? responseType.value() : ContentTypes.JSON)
+                            + "; charset=" + serverContext.charset());
+
+                    // 跨域设置
+                    if (!serverContext.isCrossDomain() && (shouldSetCrossDomain || crossDomain != null)) {
+                        info.addHeader("Access-Control-Allow-Origin", "*");
+                        info.addHeader("Access-Control-Allow-Headers", "x-requested-with");
+                        info.addHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD");
                     }
+                    if (mappingKey.indexOf('{') != -1 && mappingKey.indexOf('}') != -1) {
+                        StringBuilder regString = new StringBuilder(httpMethod + "\\s");
+                        StringBuilder varName = new StringBuilder();
+                        char[] segment = uri.trim().toCharArray();
+                        boolean recordStart = false;
+                        for (int p = 0; p < segment.length; p++) {
+                            if (segment[p] == '{') {
+                                recordStart = true;
+                                continue;
+                            } else if (segment[p] == '}') {
+                                recordStart = false;
+                                regString.append("([^/]*)?");
+                                info.addPathVariableName(varName.toString());
+                                varName.delete(0, varName.length());
+                                continue;
+                            } else if (recordStart) {
+                                varName.append(segment[p]);
+                                continue;
+                            } else if (segment[p] == '/') {
+                                regString.append("/+");
+                                continue;
+                            } else {
+                                regString.append(segment[p]);
+                            }
+                        }
+                        serverContext.regexMapping(Pattern.compile(regString.toString()), info);
+                    } else {
+                        serverContext.mapping(mappingKey, info);
+                    }
+                    LOG.info("Mapping %s : %s", mappingKey, method.toGenericString());
                 }
             }
         }
+        // for (int j = 0; j < classes.length; j++) {
+        // if ((clazz = classes[j]) == null) {
+        // continue;
+        // }
+        //
+        //
+        // }
     }
 
     /**
-     * 准备映射
+     * 准备URI与业务逻辑函数的映射
      *
      * @param classes
      */

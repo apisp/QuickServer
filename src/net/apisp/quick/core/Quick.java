@@ -18,12 +18,17 @@ package net.apisp.quick.core;
 import java.util.Objects;
 
 import net.apisp.quick.config.Configuration;
+import net.apisp.quick.ioc.DefaultClassScanner;
+import net.apisp.quick.ioc.SingletonRegister;
+import net.apisp.quick.ioc.annotation.Controller;
+import net.apisp.quick.ioc.annotation.Singleton;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.DefaultQuickServer;
 import net.apisp.quick.server.MappingResolver;
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.var.ServerContext;
+import net.apisp.quick.thread.Task;
 
 /**
  * 框架帮助类
@@ -51,10 +56,14 @@ public class Quick implements Bootable<ServerContext> {
     }
 
     public Quick(Class<?> bootClass, String[] bootArgs) {
+        this(bootClass, 2, bootArgs);
+    }
+
+    private Quick(Class<?> bootClass, int index, String[] bootArgs) {
         if (bootClass == null) {
             try {
                 bootClass = Quick.class.getClassLoader()
-                        .loadClass(Thread.currentThread().getStackTrace()[2].getClassName());
+                        .loadClass(Thread.currentThread().getStackTrace()[index].getClassName());
             } catch (ClassNotFoundException e) {
             }
         }
@@ -64,10 +73,22 @@ public class Quick implements Bootable<ServerContext> {
         this.server = Quick.newServer(serverContext.serverClass());
     }
 
+    private void prepareServer() {
+        // 单例缓存
+        DefaultClassScanner classScanner = DefaultClassScanner.create("");
+        Class<?>[] singletons = classScanner.getByAnnotation(Singleton.class);
+        SingletonRegister singletonRegister = new SingletonRegister();
+        singletonRegister.set(singletons).cache(serverContext);
+
+        // 解决URI的映射关系
+        Class<?>[] controllerClss = classScanner.getByAnnotation(Controller.class);
+        MappingResolver.prepare(bootClass, serverContext).setControllerClasses(controllerClss).resolve();
+    }
+
     /**
      * Server设置上下文 -> 启动
      */
-    private void startServer(ServerContext serverContext) {
+    private void startServer() {
         server.setContext(serverContext);
         server.start();
     }
@@ -75,8 +96,8 @@ public class Quick implements Bootable<ServerContext> {
     @Override
     public ServerContext boot() {
         Configuration.applySystemArgs(bootArgs);
-        MappingResolver.prepare(bootClass, serverContext).resolve();
-        startServer(serverContext);
+        prepareServer();
+        startServer();
         return serverContext;
     }
 
@@ -88,7 +109,7 @@ public class Quick implements Bootable<ServerContext> {
      * 使用main函数所在类作为bootClass
      */
     public static ServerContext boot(String... args) {
-        return new Quick(args).boot();
+        return new Quick(null, 3, args).boot();
     }
 
     /**
@@ -112,6 +133,16 @@ public class Quick implements Bootable<ServerContext> {
             LOG.info("The settings error! Default server instance hit.");
         }
         return quickServer;
+    }
+
+    /**
+     * 添加些事件，在Server启动前会按添加顺序执行
+     * 
+     * @param event
+     * @param args
+     */
+    public void addEvent(Task event, Object... args) {
+        server.addEvent(event, args);
     }
 
 }
