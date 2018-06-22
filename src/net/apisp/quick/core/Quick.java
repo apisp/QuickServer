@@ -21,6 +21,7 @@ import net.apisp.quick.config.Configuration;
 import net.apisp.quick.ioc.DefaultClassScanner;
 import net.apisp.quick.ioc.SingletonRegister;
 import net.apisp.quick.ioc.annotation.Controller;
+import net.apisp.quick.ioc.annotation.Factory;
 import net.apisp.quick.ioc.annotation.Singleton;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
@@ -76,10 +77,11 @@ public class Quick implements Bootable<ServerContext> {
     private void prepareServer() {
         // 单例缓存
         DefaultClassScanner classScanner = DefaultClassScanner.create("");
+        Class<?>[] factories = classScanner.getByAnnotation(Factory.class);
         Class<?>[] singletons = classScanner.getByAnnotation(Singleton.class);
         SingletonRegister singletonRegister = new SingletonRegister();
-        singletonRegister.set(singletons).cache(serverContext);
-
+        singletonRegister.classes(singletons).factories(factories).cache(serverContext);
+        
         // 解决URI的映射关系
         Class<?>[] controllerClss = classScanner.getByAnnotation(Controller.class);
         MappingResolver.prepare(bootClass, serverContext).setControllerClasses(controllerClss).resolve();
