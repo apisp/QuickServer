@@ -53,7 +53,7 @@ public class Demo {
 ```
 
 ## 二、具体章节
-[QuickServer Arch](https://raw.githubusercontent.com/apisp/QuickServer/master/images/quick-server-arch.png)
+![QuickServer Arch](https://raw.githubusercontent.com/apisp/QuickServer/master/images/quick-server-arch.png)
 ### 1.核心
 撰写中...
 ### 2.IOC
