@@ -15,11 +15,28 @@
  */
 package net.apisp.quick.util;
 
+import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+
 public class Classpaths {
-    public static boolean existFile(String filename){
-        if(filename.charAt(0) == '/'){
+    public static boolean existFile(String filename) {
+        if (filename.charAt(0) == '/') {
             filename = filename.substring(1);
         }
         return Classpaths.class.getResource("/" + filename) == null ? false : true;
+    }
+
+    public static Path get(String file) throws FileNotFoundException {
+        try {
+            URL url = ClassLoader.getSystemResource(file);
+            if (url == null) {
+                throw new FileNotFoundException(file);
+            }
+            return Quicks.tactfulPath(url.toURI());
+        } catch (URISyntaxException e) {
+            throw new FileNotFoundException(file);
+        }
     }
 }

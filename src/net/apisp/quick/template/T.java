@@ -16,6 +16,7 @@
 package net.apisp.quick.template;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -54,6 +55,14 @@ public class T {
         } finally {
             this.vars = null;
         }
-        return null;
+        return "";
+    }
+
+    public byte[] render2bin(Path thtml) {
+        try {
+            return render(thtml).getBytes((String) Configuration.get("charset"));
+        } catch (UnsupportedEncodingException e) {
+            return render(thtml).getBytes();
+        }
     }
 }

@@ -15,6 +15,7 @@
  */
 package net.apisp.quick.server;
 
+import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -33,8 +34,8 @@ import java.util.Optional;
 import net.apisp.quick.config.Configuration;
 import net.apisp.quick.core.BodyBinary;
 import net.apisp.quick.core.WebContext;
-import net.apisp.quick.core.annotation.Variable;
 import net.apisp.quick.core.annotation.RequestBody;
+import net.apisp.quick.core.annotation.Variable;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.core.http.HttpRequest;
@@ -45,6 +46,8 @@ import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestResolver.HttpRequestInfo;
 import net.apisp.quick.server.var.ServerContext;
+import net.apisp.quick.template.T;
+import net.apisp.quick.util.Classpaths;
 import net.apisp.quick.util.JSONs;
 
 /**
@@ -117,6 +120,7 @@ public class RequestProcessor {
             return responseInfo.normalize();
         }
         Method method = executeInfo.getMethod();
+        Map<String, Object> model = new HashMap<>();
         Class<?>[] types = method.getParameterTypes();
         Object[] params = new Object[types.length];
         Class<?> type = null; // 参数类型
@@ -157,24 +161,33 @@ public class RequestProcessor {
                 }
             } else if (BodyBinary.class.equals(type)) {
                 params[i] = request.body();
+            } else if (Map.class.equals(type)) {
+                params[i] = model;
             } else {
-                params[i] = null;
+                params[i] = serverContext.singleton(type);
             }
 
         }
 
-        try {
-            Object result = executeInfo.getMethod().invoke(executeInfo.getObject(), params);
+        
 
-            // 逻辑正常 ///////////////////////////////////////////////////
-            if (request.getReqData() != null)
+        try {
+            Object result = method.invoke(executeInfo.getObject(), params);
+            
+            // 逻辑方法执行完毕，关闭请求文件
+            if (request.getReqData() != null) {
                 request.getReqData().close();
+            }
             // 注入逻辑方法里改动的Headers
             responseInfo.ensureHeaders(executeInfo.getRespHeaders());
-
+            
             if (method.getReturnType().equals(byte[].class)) {
                 responseInfo.body = (byte[]) result;
             } else if (result == null) {
+                // 已经设置好body
+            } else if (executeInfo.getViewDirectory() != null && result instanceof String) {
+                responseInfo.body = serverContext.singleton(T.class).setVariables(model)
+                        .render2bin(Classpaths.get(executeInfo.getViewDirectory() + (String) result));
             } else {
                 String resp = JSONs.convert(result);
                 if (resp == null) {
@@ -199,6 +212,9 @@ public class RequestProcessor {
             e.getCause().printStackTrace(); // 打印错误栈信息
         } catch (IllegalAccessException | IllegalArgumentException e) {
             LOG.debug(e);
+        } catch (FileNotFoundException e) {
+            // 404 Not Found
+            responseInfoApplyStatus(responseInfo, HttpStatus.NOT_FOUND);
         }
         return responseInfo.normalize();
     }
@@ -296,6 +312,7 @@ public class RequestProcessor {
         private Map<String, String> respHeaders = new HashMap<>();
         private Map<String, Object> pathVariables = new HashMap<>();
         private List<String> pathVariableNames = new ArrayList<>();
+        private String viewDirectory;
 
         public RequestExecutorInfo() {
         }
@@ -319,6 +336,14 @@ public class RequestProcessor {
 
         public void setObject(Object object) {
             this.object = object;
+        }
+
+        public String getViewDirectory() {
+            return viewDirectory;
+        }
+
+        public void setViewDirectory(String viewDirectory) {
+            this.viewDirectory = viewDirectory;
         }
 
         public RequestExecutorInfo addHeader(String key, String value) {

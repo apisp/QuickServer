@@ -29,6 +29,7 @@ import net.apisp.quick.core.annotation.Post;
 import net.apisp.quick.core.annotation.Put;
 import net.apisp.quick.core.annotation.ResponseType;
 import net.apisp.quick.core.annotation.Scanning;
+import net.apisp.quick.core.annotation.View;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpMethods;
 import net.apisp.quick.ioc.Injections;
@@ -93,6 +94,7 @@ public class MappingResolver {
         Delete deleteMapping = null;
 
         ResponseType responseType = null;
+        View view = null;
         CrossDomain crossDomain = null;
 
         String mappingKey = null;
@@ -124,6 +126,7 @@ public class MappingResolver {
                 deleteMapping = method.getAnnotation(Delete.class);
 
                 responseType = method.getAnnotation(ResponseType.class);
+                view = method.getAnnotation(View.class);
 
                 // 上下文设置了跨域，就不需要检查
                 if (!serverContext.isCrossDomain()) {
@@ -158,6 +161,21 @@ public class MappingResolver {
                     RequestExecutorInfo info = new RequestExecutorInfo(method, controller);
                     info.addHeader("Content-Type", (responseType != null ? responseType.value() : ContentTypes.JSON)
                             + "; charset=" + serverContext.charset());
+                    if (view != null) {
+                        StringBuilder dir = new StringBuilder(view.value());
+                        while (true) {
+                            if (dir.length() > 0 && dir.charAt(0) == '/') {
+                                dir.deleteCharAt(0);
+                            } else {
+                                break;
+                            }
+                        }
+                        if (dir.length() > 0 && dir.charAt(dir.length() - 1) != '/') {
+                            dir.append('/');
+                        }
+                        info.setViewDirectory(dir.toString());
+                        info.addHeader("Content-Type", ContentTypes.HTML + "; charset=" + serverContext.charset());
+                    }
 
                     // 跨域设置
                     if (!serverContext.isCrossDomain() && (shouldSetCrossDomain || crossDomain != null)) {
