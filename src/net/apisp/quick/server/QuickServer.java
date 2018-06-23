@@ -25,6 +25,7 @@ import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.thread.Task;
 import net.apisp.quick.thread.TaskUnit;
+import net.apisp.quick.util.Quicks;
 
 /**
  * QuickServer规范
@@ -79,13 +80,13 @@ class QuickServerThread extends Thread {
         try {
             runner.run(serverContext);
         } catch (BindException e) {
-            serverContext.setNormative(false);
+            Quicks.invoke(serverContext, "setNormative", false);
             LOG.error("The port %d already inuse.", serverContext.port());
         } catch (IOException e) {
-            serverContext.setNormative(false);
+            Quicks.invoke(serverContext, "setNormative", false);
             LOG.error("Server start error, IO Exception occered.");
         } catch (Exception e) {
-            serverContext.setNormative(false);
+            Quicks.invoke(serverContext, "setNormative", false);
             LOG.error("Server start error, Unkonwn Exception occered. %s", e);
             e.printStackTrace();
         }

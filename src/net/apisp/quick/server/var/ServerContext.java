@@ -15,6 +15,8 @@
  */
 package net.apisp.quick.server.var;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -23,10 +25,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.apisp.quick.annotation.ReflectionCall;
 import net.apisp.quick.config.Configuration;
 import net.apisp.quick.core.WebContext;
+import net.apisp.quick.core.annotation.ResponseType;
+import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.ioc.Container;
 import net.apisp.quick.ioc.DefaultContainer;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 import net.apisp.quick.thread.TaskExecutor;
@@ -39,6 +46,7 @@ import net.apisp.quick.util.Safes;
  * @date 2018-06-08 09:05:07
  */
 public class ServerContext implements WebContext, QuickContext {
+    private static final Log LOG = LogFactory.getLog(ServerContext.class);
     private static ServerContext instance;
     private Map<String, RequestExecutorInfo> mappings = new HashMap<>();
     private Map<Pattern, RequestExecutorInfo> regMappings = new HashMap<>();
@@ -85,15 +93,18 @@ public class ServerContext implements WebContext, QuickContext {
         return instance;
     }
 
-    public void setNormative(boolean normative) {
-        this.normative = normative;
-    }
-
     public boolean isCrossDomain() {
         return crossDomain;
     }
 
-    public void setCrossDomain(boolean crossDomain) {
+    @ReflectionCall("net.apisp.quick.server.QuickServerThread.run()")
+    private void setNormative(Boolean normative) {
+        this.normative = normative;
+    }
+
+    @ReflectionCall("net.apisp.quick.server.MappingResolver.prepare()")
+    private void setCrossDomain(Boolean crossDomain) {
+        System.out.println("used.");
         this.crossDomain = crossDomain;
     }
 
@@ -165,7 +176,7 @@ public class ServerContext implements WebContext, QuickContext {
         }
         return info;
     }
-    
+
     @Override
     public boolean isNormative() {
         return normative;
@@ -173,12 +184,65 @@ public class ServerContext implements WebContext, QuickContext {
 
     @Override
     public void mapping(String key, RequestExecutorInfo executeInfo) {
+        LOG.info("Mapping %s : %s", key, executeInfo.getMethod().toGenericString());
+        if (key.indexOf('{') > key.indexOf('}')) {
+            String[] md_uri = key.split(" ");
+            String httpMethod = md_uri[0];
+            String uri = md_uri[1];
+            StringBuilder regString = new StringBuilder(httpMethod + "\\s");
+            StringBuilder varName = new StringBuilder();
+            char[] segment = uri.trim().toCharArray();
+            boolean recordStart = false;
+            for (int p = 0; p < segment.length; p++) {
+                if (segment[p] == '{') {
+                    recordStart = true;
+                    continue;
+                } else if (segment[p] == '}') {
+                    recordStart = false;
+                    regString.append("([^/]*)?");
+                    executeInfo.addPathVariableName(varName.toString());
+                    varName.delete(0, varName.length());
+                    continue;
+                } else if (recordStart) {
+                    varName.append(segment[p]);
+                    continue;
+                } else if (segment[p] == '/') {
+                    regString.append("/+");
+                    continue;
+                } else {
+                    regString.append(segment[p]);
+                }
+            }
+            this.regMappings.put(Pattern.compile(regString.toString()), executeInfo);
+            return;
+        }
         mappings.put(key, executeInfo);
     }
 
     @Override
-    public void regexMapping(Pattern pattern, RequestExecutorInfo info) {
-        this.regMappings.put(pattern, info);
+    public void mapping(String key, Class<?> controller, String methodName, Class<?>... paramTypes) {
+        try {
+            Method method = controller.getDeclaredMethod(methodName, paramTypes);
+            ResponseType responseType = null;
+            if ((responseType = method.getAnnotation(ResponseType.class)) == null) {
+                responseType = new ResponseType() {
+                    @Override
+                    public Class<? extends Annotation> annotationType() {
+                        return ResponseType.class;
+                    }
+
+                    @Override
+                    public String value() {
+                        return ContentTypes.JSON;
+                    }
+                };
+            }
+            RequestExecutorInfo info = new RequestExecutorInfo(method, this.singleton(controller));
+            info.addHeader("Content-Type", responseType.value() + "; charset=" + this.charset());
+            mapping(key, info);
+        } catch (NoSuchMethodException | SecurityException e) {
+            LOG.warn(e.getMessage());
+        }
     }
 
     @Override
@@ -188,6 +252,6 @@ public class ServerContext implements WebContext, QuickContext {
 
     @Override
     public void accept(String name, Object obj) {
-        this.accept(name, obj);
+        this.container.accept(name, obj);
     }
 }

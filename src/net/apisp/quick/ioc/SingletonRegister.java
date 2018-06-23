@@ -99,7 +99,6 @@ public class SingletonRegister implements Cacheable<Container> {
                 continue;
             }
             Method[] methods = factories[i].getMethods();
-
             nextMethod: for (int j = 0; j < methods.length; j++) {
                 if ((acceptInfo = methods[j].getAnnotation(Accept.class)) != null) {
                     Class<?>[] paramTypes = methods[j].getParameterTypes();
@@ -108,7 +107,7 @@ public class SingletonRegister implements Cacheable<Container> {
                         params[k] = container.singleton(paramTypes[k]);
                         if (params[k] == null) {
                             lazyAcceptList.add(new AcceptableInfo(methods[j], obj, paramTypes, acceptInfo));
-                            break nextMethod;
+                            continue nextMethod;
                         }
                     }
                     try {
@@ -117,9 +116,8 @@ public class SingletonRegister implements Cacheable<Container> {
                             if (acceptInfo.value().length() > 0) {
                                 container.accept(acceptInfo.value(), acceptable);
                             } else {
-                                container.accept(acceptable);
+                                container.accept(methods[j].getReturnType().getName(), acceptable);
                             }
-                            LOG.debug("Cached object %s", acceptable);
                         }
                     } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                         e.printStackTrace();
@@ -127,17 +125,17 @@ public class SingletonRegister implements Cacheable<Container> {
                 }
             }
         }
-
         // lazyAccept
         long startTime = System.currentTimeMillis();
         nextAcceptable: for (int i = 0; i < lazyAcceptList.size(); i++) {
             if (lazyAcceptList.size() > 1000 && System.currentTimeMillis()
                     - startTime < (Runtime.getRuntime().availableProcessors() >= 2 ? 10 : 20)) {
                 try {
+                    LOG.debug("Waiting for thread cache-1");
                     synchronized (lock) {
                         lock.wait(200);
                     }
-                    LOG.debug("Waiting for thread cache-1");
+                    LOG.debug("lalal, %d, %s", i, lazyAcceptList.get(i).method);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -164,9 +162,8 @@ public class SingletonRegister implements Cacheable<Container> {
                     if (acceptInfo.value().length() > 0) {
                         container.accept(acceptInfo.value(), acceptable);
                     } else {
-                        container.accept(acceptable);
+                        container.accept(lazyAcceptList.get(i).method.getReturnType().getName(), acceptable);
                     }
-                    LOG.debug("Cached object %s", acceptable);
                 }
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 e.printStackTrace();
@@ -189,10 +186,10 @@ public class SingletonRegister implements Cacheable<Container> {
             if (classList.size() > 1000 && System.currentTimeMillis()
                     - startTime < (Runtime.getRuntime().availableProcessors() >= 2 ? 10 : 20)) {
                 try {
+                    LOG.debug("Waiting for thread cache-1");
                     synchronized (lock) {
                         lock.wait(200);
                     }
-                    LOG.debug("Waiting for thread cache-1");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -231,7 +228,6 @@ public class SingletonRegister implements Cacheable<Container> {
                     }
                 }
                 container.accept(obj);
-                LOG.debug("Cached object %s", obj);
             } else {
                 classList.add(classList.get(i));
             }

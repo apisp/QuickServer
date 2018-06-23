@@ -13,7 +13,7 @@ public class ConsoleLog implements Log {
     }
 
     private String before() {
-        return new SimpleDateFormat("MM-dd HH:mm:ss").format(new Date()) + " %6s [%10s] %-40s <|  ";
+        return new SimpleDateFormat("MM-dd HH:mm:ss").format(new Date()) + " %6s [%10s] %-42s <|  ";
     }
 
     @Override

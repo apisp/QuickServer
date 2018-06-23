@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Ujued and APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,20 @@
  */
 package net.apisp.quick.annotation;
 
-import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-/**
- * @author UJUED
- * @date 2018-06-12 21:32:18
- */
 @Documented
 @Retention(SOURCE)
-@Target(FIELD)
-public @interface CanBeNull {
-
+@Target(METHOD)
+/**
+ * @author Ujued
+ * @date 2018-06-23 12:30:17
+ */
+public @interface ReflectionCall {
+    String value();
 }

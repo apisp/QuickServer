@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import net.apisp.quick.core.annotation.CrossDomain;
 import net.apisp.quick.core.annotation.Delete;
@@ -37,6 +36,7 @@ import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 import net.apisp.quick.server.var.ServerContext;
+import net.apisp.quick.util.Quicks;
 
 /**
  * 映射决策
@@ -67,7 +67,7 @@ public class MappingResolver {
                 serverContext.responseHeaders().put("Access-Control-Allow-Origin", "*");
                 serverContext.responseHeaders().put("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD");
                 serverContext.responseHeaders().put("Access-Control-Allow-Headers", "x-requested-with");
-                serverContext.setCrossDomain(true);
+                Quicks.invoke(serverContext, "setCrossDomain", true);
                 continue;
             }
         }
@@ -100,10 +100,11 @@ public class MappingResolver {
         Iterator<Class<?>> controllerIter = controllerClasses.iterator();
         while (controllerIter.hasNext()) {
             clazz = (Class<?>) controllerIter.next();
-            // 创建单例控制器对象，未缓存到WebContext
+            // 创建单例控制器对象，并缓存到WebContext
             try {
                 controller = clazz.newInstance();
                 Injections.inject(controller, serverContext); // 单例对象自动注入Controller
+                serverContext.accept(controller);
             } catch (InstantiationException | IllegalAccessException e1) {
                 LOG.error("控制器类需要无参数构造！");
             }
@@ -164,46 +165,10 @@ public class MappingResolver {
                         info.addHeader("Access-Control-Allow-Headers", "x-requested-with");
                         info.addHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD");
                     }
-                    if (mappingKey.indexOf('{') != -1 && mappingKey.indexOf('}') != -1) {
-                        StringBuilder regString = new StringBuilder(httpMethod + "\\s");
-                        StringBuilder varName = new StringBuilder();
-                        char[] segment = uri.trim().toCharArray();
-                        boolean recordStart = false;
-                        for (int p = 0; p < segment.length; p++) {
-                            if (segment[p] == '{') {
-                                recordStart = true;
-                                continue;
-                            } else if (segment[p] == '}') {
-                                recordStart = false;
-                                regString.append("([^/]*)?");
-                                info.addPathVariableName(varName.toString());
-                                varName.delete(0, varName.length());
-                                continue;
-                            } else if (recordStart) {
-                                varName.append(segment[p]);
-                                continue;
-                            } else if (segment[p] == '/') {
-                                regString.append("/+");
-                                continue;
-                            } else {
-                                regString.append(segment[p]);
-                            }
-                        }
-                        serverContext.regexMapping(Pattern.compile(regString.toString()), info);
-                    } else {
-                        serverContext.mapping(mappingKey, info);
-                    }
-                    LOG.info("Mapping %s : %s", mappingKey, method.toGenericString());
+                    serverContext.mapping(mappingKey, info);
                 }
             }
         }
-        // for (int j = 0; j < classes.length; j++) {
-        // if ((clazz = classes[j]) == null) {
-        // continue;
-        // }
-        //
-        //
-        // }
     }
 
     /**

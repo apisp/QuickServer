@@ -17,7 +17,7 @@ package net.apisp.quick.server.var;
 
 import java.nio.ByteBuffer;
 
-import net.apisp.quick.annotation.CanBeNull;
+import net.apisp.quick.annotation.Nullable;
 import net.apisp.quick.core.BodyBinary;
 import net.apisp.quick.data.DataPersist;
 
@@ -27,7 +27,7 @@ import net.apisp.quick.data.DataPersist;
  */
 public class FileRequestBody implements BodyBinary {
 
-    @CanBeNull
+    @Nullable
     private DataPersist reqData;
 
     private int bodyOffset;

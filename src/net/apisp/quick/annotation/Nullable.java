@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.log;
+package net.apisp.quick.annotation;
 
-import net.apisp.quick.config.Configuration;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
  * @author UJUED
- * @date 2018-06-13 12:59:44
+ * @date 2018-06-12 21:32:18
  */
-public class LogFactory {
-    public static Log getLog(Class<?> clazz) {
-        // TODO chose a Logger
-        return new ConsoleLog((String) Configuration.get("logging.level"), clazz.getName());
-    }
-    public static Log getLog(String logName) {
-        // TODO chose a Logger
-        return new ConsoleLog((String) Configuration.get("logging.level"), logName);
-    }
+@Documented
+@Retention(SOURCE)
+@Target(FIELD)
+public @interface Nullable {
+
 }

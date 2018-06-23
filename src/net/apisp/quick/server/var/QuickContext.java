@@ -17,7 +17,6 @@ package net.apisp.quick.server.var;
 
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
@@ -41,6 +40,5 @@ public interface QuickContext {
 
     void mapping(String key, RequestExecutorInfo executeInfo);
 
-    void regexMapping(Pattern pattern, RequestExecutorInfo info);
-
+    void mapping(String key, Class<?> controllerClass, String methodName, Class<?>... paramTypes);
 }

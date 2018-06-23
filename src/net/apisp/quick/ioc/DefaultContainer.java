@@ -18,12 +18,16 @@ package net.apisp.quick.ioc;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
+
 /**
  * @author UJUED
  * @date 2018-06-15 00:29:50
  */
 public class DefaultContainer implements Container {
 
+    private static Log LOG = LogFactory.getLog(DefaultContainer.class);
     private Map<String, Object> cache = new HashMap<>();
 
     public DefaultContainer() {
@@ -59,10 +63,12 @@ public class DefaultContainer implements Container {
     @Override
     public void accept(Object obj) {
         this.cache.put(obj.getClass().getName(), obj);
+        LOG.info("Cached object %s", obj.getClass().getName());
     }
 
     @Override
     public void accept(String name, Object obj) {
         this.cache.put(name, obj);
+        LOG.info("Cached object %s", name);
     }
 }
