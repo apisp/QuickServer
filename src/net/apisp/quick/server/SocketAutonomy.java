@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestResolver.HttpRequestInfo;
 import net.apisp.quick.server.var.ServerContext;
-import net.apisp.quick.util.IDs;
+import net.apisp.quick.util.Strings;
 
 /**
  * @author UJUED
@@ -68,7 +68,7 @@ public class SocketAutonomy implements SoftCloseable {
                         first = Arrays.copyOfRange(buf, 0, i);
                     } else {
                         if (n == 1) {
-                            reqDataFile = IDs.uuid();
+                            reqDataFile = Strings.uuid();
                             FileData.create(reqDataFile, ServerContext.tryGet().tmpDirPath(reqDataFile)).persist(first);
                         }
                         FileData.find(reqDataFile).persist(buf, 0, i);

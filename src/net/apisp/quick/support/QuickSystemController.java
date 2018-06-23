@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public class QuickSystemController {
     @ResponseType(ContentTypes.HTML)
     public void html_index(HttpResponse resp) throws IOException, URISyntaxException {
         resp.body(Files.readAllBytes(
-                Quicks.prettyGetPath(this.getClass().getResource("/net/apisp/quick/support/html/index.html").toURI())));
+                Quicks.tactfulPath(this.getClass().getResource("/net/apisp/quick/support/html/index.html").toURI())));
     }
 
     @Get("/_quick/info")

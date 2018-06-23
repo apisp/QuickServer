@@ -15,8 +15,15 @@
  */
 package net.apisp.quick.util;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Ujued
@@ -52,19 +59,32 @@ public abstract class Strings {
     }
 
     /**
-     * 按 {} 和 给定参数 格式化字符串
+     * 生成UUID
+     * 
+     * @return
+     */
+    public static final String uuid() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+
+    /**
+     * 模板函数。按 {} 和 给定参数 顺序格式化字符串
      * 
      * @param pattern
      * @param args
      * @return
      */
-    public static String format(String pattern, Object... args) {
+    public static String template(String pattern, Object... args) {
         StringBuilder finalStr = new StringBuilder();
         int index = 0;
         for (int i = 0; i < pattern.length(); i++) {
             char c = pattern.charAt(i);
             if (c == '{' && pattern.charAt(++i) == '}') {
-                finalStr.append(args[index++].toString());
+                if (index < args.length) {
+                    finalStr.append(args[index++].toString());
+                } else {
+                    finalStr.append("{}");
+                }
                 continue;
             } else if (c == '{') {
                 i--;
@@ -72,5 +92,25 @@ public abstract class Strings {
             finalStr.append(c);
         }
         return finalStr.toString();
+    }
+
+    /**
+     * 高级模板。根据${variable}从字典中找到并格式化字符串
+     * 
+     * @param content
+     * @param vars
+     * @return
+     */
+    public static String template(String content, Map<String, Object> vars) {
+        if (Objects.isNull(vars)) {
+            vars = new HashMap<>();
+        }
+        Pattern p = Pattern.compile("\\$\\{[^\\{\\}]+?\\}");
+        Matcher matcher = p.matcher(content);
+        while (matcher.find()) {
+            String key = matcher.group().substring(2, matcher.group().length() - 1);
+            content = content.replace(matcher.group(), Optional.ofNullable(vars.get(key)).orElse("").toString());
+        }
+        return content;
     }
 }

@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import net.apisp.quick.config.Configuration;
 import net.apisp.quick.core.BodyBinary;
@@ -72,23 +73,13 @@ public class RequestProcessor {
     private void responseInfoApplyStatus(ResponseInfo responseInfo, HttpStatus status) {
         String userAgent = httpRequest.header("User-Agent");
         if (userAgent != null && userAgent.contains("Mozilla")) {
-            byte[] beforeCode = (byte[]) serverContext.singleton("exception.response.beforeCode");
-            byte[] code = String.valueOf(status.getCode()).getBytes();
-            byte[] afterCode = (byte[]) serverContext.singleton("exception.response.afterCode");
-            byte[] desc = status.getDesc().getBytes();
-            byte[] afterDesc = (byte[]) serverContext.singleton("exception.response.afterDesc");
-            responseInfo.body = new byte[beforeCode.length + code.length + afterCode.length + desc.length
-                    + afterDesc.length];
-            int posi = 0;
-            System.arraycopy(beforeCode, 0, responseInfo.body, posi, beforeCode.length);
-            posi += beforeCode.length;
-            System.arraycopy(code, 0, responseInfo.body, posi, code.length);
-            posi += code.length;
-            System.arraycopy(afterCode, 0, responseInfo.body, posi, afterCode.length);
-            posi += afterCode.length;
-            System.arraycopy(desc, 0, responseInfo.body, posi, desc.length);
-            posi += desc.length;
-            System.arraycopy(afterDesc, 0, responseInfo.body, posi, afterDesc.length);
+            try {
+                Optional<String> body = Optional
+                        .ofNullable((String) serverContext.singleton(String.valueOf(status.getCode() + ".html")));
+                responseInfo.body = body.orElse(String.valueOf(status.getCode())).getBytes(serverContext.charset());
+            } catch (UnsupportedEncodingException e) {
+                responseInfo.body = ((String) serverContext.singleton(status.getDesc())).getBytes();
+            }
         } else {
             responseInfo.body = (status.getCode() + " " + status.getDesc()).getBytes();
         }

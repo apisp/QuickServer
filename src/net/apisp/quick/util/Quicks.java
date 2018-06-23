@@ -63,7 +63,13 @@ public abstract class Quicks {
         }
     }
 
-    public static Path prettyGetPath(URI uri) {
+    /**
+     * 根据URI获取合适的Path。目前仅支持系统FS和ZIPFS
+     * 
+     * @param uri
+     * @return
+     */
+    public static Path tactfulPath(URI uri) {
         Path path = null;
         if (uri.getScheme().equals("jar")) {
             int index = uri.toString().indexOf('!') + 1;

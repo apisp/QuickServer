@@ -24,34 +24,34 @@ public class ConsoleLog implements Log {
 
     @Override
     public void show(String log, Object... args) {
-        System.out.println(before("SHOW") + Strings.format(log, args));
+        System.out.println(before("SHOW") + Strings.template(log, args));
     }
 
     @Override
     public void error(String log, Object... args) {
         if (isErrorEnabled()) {
-            System.err.println(before(Levels.ERROR) + Strings.format(log, args));
+            System.err.println(before(Levels.ERROR) + Strings.template(log, args));
         }
     }
 
     @Override
     public void warn(String log, Object... args) {
         if (isWarnEnabled()) {
-            System.err.println(before(Levels.WARN) + Strings.format(log, args));
+            System.err.println(before(Levels.WARN) + Strings.template(log, args));
         }
     }
 
     @Override
     public void info(String log, Object... args) {
         if (isInfoEnabled()) {
-            System.out.println(before(Levels.INFO) + Strings.format(log, args));
+            System.out.println(before(Levels.INFO) + Strings.template(log, args));
         }
     }
 
     @Override
     public void debug(String log, Object... args) {
         if (isDebugEnable()) {
-            System.out.println(before(Levels.DEBUG) + Strings.format(log, args));
+            System.out.println(before(Levels.DEBUG) + Strings.template(log, args));
         }
     }
 
@@ -113,7 +113,7 @@ public class ConsoleLog implements Log {
     @Override
     public void log(String level, String log, Object... args) {
         if (this.level.equals(level)) {
-            System.out.println(before(level) + Strings.format(log, args));
+            System.out.println(before(level) + Strings.template(log, args));
         }
     }
 

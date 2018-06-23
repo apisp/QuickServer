@@ -15,8 +15,15 @@
  */
 package net.apisp.quick.support;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+
 import net.apisp.quick.ioc.annotation.Accept;
 import net.apisp.quick.ioc.annotation.Factory;
+import net.apisp.quick.template.T;
+import net.apisp.quick.util.Quicks;
 
 /**
  * @author Ujued
@@ -25,28 +32,50 @@ import net.apisp.quick.ioc.annotation.Factory;
 @Factory
 public class QuickSystemFactory {
 
-    @Accept("exception.response.beforeCode")
-    public byte[] beforeCode() {
-        return new byte[] { 60, 97, 114, 116, 105, 99, 108, 101, 32, 115, 116, 121, 108, 101, 61, 39, 102, 111, 110,
-                116, 45, 115, 105, 122, 101, 58, 50, 50, 112, 120, 59, 102, 111, 110, 116, 45, 102, 97, 109, 105, 108,
-                121, 58, 32, 67, 111, 110, 115, 111, 108, 97, 115, 59, 99, 111, 108, 111, 114, 58, 32, 35, 53, 53, 53,
-                59, 116, 101, 120, 116, 45, 97, 108, 105, 103, 110, 58, 32, 99, 101, 110, 116, 101, 114, 59, 109, 97,
-                114, 103, 105, 110, 58, 32, 49, 48, 112, 120, 32, 48, 39, 62, 60, 101, 109, 32, 115, 116, 121, 108, 101,
-                61, 39, 99, 111, 108, 111, 114, 58, 114, 101, 100, 59, 102, 111, 110, 116, 45, 119, 101, 105, 103, 104,
-                116, 58, 98, 111, 108, 100, 39, 62 };
+    @Accept
+    public T template() {
+        return T.newT();
     }
 
-    @Accept("exception.response.afterCode")
-    public byte[] afterCode() {
-        return new byte[] { 60, 47, 101, 109, 62, 32 };
+    @Accept("404.html")
+    public String notFoundHTML(T t) {
+        try {
+            Map<String, Object> vars = new HashMap<>();
+            vars.put("title", "404 Not Found");
+            vars.put("code", 404);
+            vars.put("desc", "Not Found");
+            URI errURI = this.getClass().getResource("/net/apisp/quick/support/html/err.thtml").toURI();
+            return t.setVariables(vars).render(Quicks.tactfulPath(errURI));
+        } catch (URISyntaxException e) {
+        }
+        return "404 Not Found";
     }
 
-    @Accept("exception.response.afterDesc")
-    public byte[] afterDesc() {
-        return new byte[] { 60, 112, 32, 115, 116, 121, 108, 101, 61, 39, 102, 111, 110, 116, 45, 115, 105, 122, 101,
-                58, 49, 52, 112, 120, 59, 100, 105, 115, 112, 108, 97, 121, 58, 32, 98, 108, 111, 99, 107, 59, 109, 97,
-                114, 103, 105, 110, 58, 49, 48, 112, 120, 32, 48, 59, 116, 101, 120, 116, 45, 97, 108, 105, 103, 110,
-                58, 32, 99, 101, 110, 116, 101, 114, 39, 62, 81, 117, 105, 99, 107, 83, 101, 114, 118, 101, 114, 47, 49,
-                46, 48, 60, 47, 112, 62, 60, 47, 97, 114, 116, 105, 99, 108, 101, 62 };
+    @Accept("400.html")
+    public String badRequestHTML(T t) {
+        try {
+            Map<String, Object> vars = new HashMap<>();
+            vars.put("title", "400 Bad Request");
+            vars.put("code", 400);
+            vars.put("desc", "Bad Request");
+            URI errURI = this.getClass().getResource("/net/apisp/quick/support/html/err.thtml").toURI();
+            return t.setVariables(vars).render(Quicks.tactfulPath(errURI));
+        } catch (URISyntaxException e) {
+        }
+        return "404 Bad Request";
+    }
+
+    @Accept("500.html")
+    public String internalServerErrorHTML(T t) {
+        try {
+            Map<String, Object> vars = new HashMap<>();
+            vars.put("title", "500 Internal Server Error");
+            vars.put("code", 500);
+            vars.put("desc", "Internal Server Error");
+            URI errURI = this.getClass().getResource("/net/apisp/quick/support/html/err.thtml").toURI();
+            return t.setVariables(vars).render(Quicks.tactfulPath(errURI));
+        } catch (URISyntaxException e) {
+        }
+        return "500 Internal Server Error";
     }
 }
