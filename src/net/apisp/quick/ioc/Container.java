@@ -15,6 +15,8 @@
  */
 package net.apisp.quick.ioc;
 
+import java.util.Set;
+
 /**
  * @author UJUED
  * @date 2018-06-15 00:29:29
@@ -27,4 +29,6 @@ public interface Container {
     void accept(Object obj);
 
     void accept(String name, Object obj);
+
+    Set<String> objects();
 }

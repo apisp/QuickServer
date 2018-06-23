@@ -16,11 +16,10 @@
 package net.apisp.quick.core;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.Objects;
 
 import net.apisp.quick.config.Configuration;
-import net.apisp.quick.ioc.DefaultClassScanner;
+import net.apisp.quick.ioc.SimpleClassScanner;
 import net.apisp.quick.ioc.SingletonRegister;
 import net.apisp.quick.ioc.annotation.Controller;
 import net.apisp.quick.ioc.annotation.Factory;
@@ -69,8 +68,8 @@ public class Quick implements Bootable<ServerContext> {
             try {
                 String bootClassName = Thread.currentThread().getStackTrace()[index].getClassName();
                 bootClass = Quick.class.getClassLoader().loadClass(bootClassName);
-                URL url = bootClass.getResource("/" + bootClassName.replace('.', '/') + ".class");
-                userBin = URI.create(url.toString().substring(0, url.toString().length() - bootClassName.length() - 6));
+                String url = bootClass.getResource("/" + bootClassName.replace('.', '/') + ".class").toString();
+                userBin = URI.create(url.substring(0, url.length() - bootClassName.length() - 6));
             } catch (ClassNotFoundException e) {
             }
         }
@@ -82,15 +81,24 @@ public class Quick implements Bootable<ServerContext> {
 
     private void prepareServer() {
         // 单例缓存
-        DefaultClassScanner classScanner = DefaultClassScanner.create(userBin, Quicks.packageName(bootClass.getName()));
+        SimpleClassScanner classScanner = SimpleClassScanner.create(userBin, Quicks.packageName(bootClass.getName()));
         Class<?>[] factories = classScanner.getByAnnotation(Factory.class);
         Class<?>[] singletons = classScanner.getByAnnotation(Singleton.class);
         SingletonRegister singletonRegister = new SingletonRegister();
         singletonRegister.classes(singletons).factories(factories).cache(serverContext);
 
+        // QuickServer support
+        String supportPackage = "/net/apisp/quick/support/";
+        String url = this.getClass().getResource(supportPackage).toString();
+        URI uri = URI.create(url.substring(0, url.length() - supportPackage.length()));
+        SimpleClassScanner supportClassScanner = SimpleClassScanner.create(uri, "net.apisp.quick.support");
+        singletonRegister.factories(supportClassScanner.getByAnnotation(Factory.class)).cache(serverContext);
+
         // 解决URI的映射关系
         Class<?>[] controllerClss = classScanner.getByAnnotation(Controller.class);
-        MappingResolver.prepare(bootClass, serverContext).setControllerClasses(controllerClss).resolve();
+        Class<?>[] supportControllerClss = supportClassScanner.getByAnnotation(Controller.class);
+        MappingResolver.prepare(bootClass, serverContext).addControllerClasses(controllerClss)
+                .addControllerClasses(supportControllerClss).resolve();
     }
 
     /**

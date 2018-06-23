@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,7 +32,7 @@ import net.apisp.quick.core.WebContext;
 import net.apisp.quick.core.annotation.ResponseType;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.ioc.Container;
-import net.apisp.quick.ioc.DefaultContainer;
+import net.apisp.quick.ioc.SimpleContainer;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.QuickServer;
@@ -59,7 +60,7 @@ public class ServerContext implements WebContext, QuickContext {
 
     private Map<String, String> defaultRespHeaders = new HashMap<>();
 
-    private Container container = new DefaultContainer();
+    private Container container = new SimpleContainer();
 
     private ServerContext() {
         port = (int) Configuration.get("server.port");
@@ -253,5 +254,10 @@ public class ServerContext implements WebContext, QuickContext {
     @Override
     public void accept(String name, Object obj) {
         this.container.accept(name, obj);
+    }
+
+    @Override
+    public Set<String> objects() {
+        return this.container.objects();
     }
 }

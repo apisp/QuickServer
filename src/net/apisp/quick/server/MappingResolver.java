@@ -74,7 +74,7 @@ public class MappingResolver {
         controllerClasses.add(bootClass);
     }
 
-    public MappingResolver setControllerClasses(Class<?>[] classes) {
+    public MappingResolver addControllerClasses(Class<?>[] classes) {
         for (int i = 0; i < classes.length; i++) {
             this.controllerClasses.add(classes[i]);
         }

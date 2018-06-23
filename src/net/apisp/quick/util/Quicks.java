@@ -15,8 +15,15 @@
  */
 package net.apisp.quick.util;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
 
 /**
  * 实验性质的工具
@@ -34,6 +41,7 @@ public abstract class Quicks {
 
     /**
      * 反射执行某对象函数
+     * 
      * @param obj
      * @param methodName
      * @param args
@@ -53,5 +61,23 @@ public abstract class Quicks {
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             e.printStackTrace();
         }
+    }
+
+    public static Path prettyGetPath(URI uri) {
+        Path path = null;
+        if (uri.getScheme().equals("jar")) {
+            int index = uri.toString().indexOf('!') + 1;
+            URI rootUri = URI.create(uri.toString().substring(0, index));
+            String filePath = uri.toString().substring(index, uri.toString().length());
+            try {
+                FileSystem zipfs = FileSystems.newFileSystem(rootUri, new HashMap<>());
+                path = zipfs.getPath(filePath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            path = Paths.get(uri);
+        }
+        return path;
     }
 }

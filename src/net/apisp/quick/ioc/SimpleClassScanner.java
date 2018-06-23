@@ -36,7 +36,7 @@ import java.util.stream.Stream;
  * @author UJUED
  * @date 2018-06-15 11:08:11
  */
-public class DefaultClassScanner implements ClassScanner {
+public class SimpleClassScanner implements ClassScanner {
     private Set<Class<?>> classes = new HashSet<>();
     private Path rootPath;
 
@@ -73,7 +73,7 @@ public class DefaultClassScanner implements ClassScanner {
         return classes;
     }
 
-    public static DefaultClassScanner create(URI uri, String packageName) {
+    public static SimpleClassScanner create(URI uri, String packageName) {
         Path path = null;
         if (uri.getScheme().equals("jar")) {
             try {
@@ -85,7 +85,7 @@ public class DefaultClassScanner implements ClassScanner {
         } else {
             path = Paths.get(uri);
         }
-        DefaultClassScanner classScanner = new DefaultClassScanner();
+        SimpleClassScanner classScanner = new SimpleClassScanner();
         classScanner.rootPath = path;
         classScanner.collect(path.resolve(packageName.replace('.', '/')));
         return classScanner;

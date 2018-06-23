@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+<title>Quick Server</title>
+<style type="text/css">
+*{padding: 0; margin: 0;}
+body{font-family: Consolas, 'Microsoft YaHei';font-size: 14px;border: none;}
+h1 {font-weight: normal; font-size:24px;margin: 10px;color: #345546;text-align: center;}
+#info {padding: 10px;color: green;}
+</style>
+</head>
+<body>
+<h1>欢迎使用 Quick Server ！</h1>
+<div id="info"></div>
+<script type="text/javascript">
+var req = new XMLHttpRequest()
+req.open('GET', '/_quick/info', true)
+req.onreadystatechange = function() {
+    if (req.readyState == 4) {  
+        if(req.status == 200){ 
+            var info = document.getElementById('info')
+            info.innerHTML = req.response;
+        } else{
+            alert('net error.')
+        }
+    }
+}
+req.send()
+</script>
+</body>
+</html>

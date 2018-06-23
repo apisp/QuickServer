@@ -33,7 +33,7 @@ import net.apisp.quick.log.LogFactory;
  */
 public class SingletonRegister implements Cacheable<Container> {
     private static final Log LOG = LogFactory.getLog(SingletonRegister.class);
-    private List<Class<?>> classList = new ArrayList<>();
+    private Class<?>[] classes;
     private Class<?>[] factories;
     private Object lock = "";
 
@@ -42,10 +42,12 @@ public class SingletonRegister implements Cacheable<Container> {
     }
 
     public SingletonRegister classes(Class<?>[] classes) {
-        this.classList.clear();
-        for (int i = 0; i < classes.length; i++) {
-            this.classList.add(classes[i]);
-        }
+        this.classes = classes;
+        return this;
+    }
+
+    public SingletonRegister factories(Class<?>[] factories) {
+        this.factories = factories;
         return this;
     }
 
@@ -174,12 +176,11 @@ public class SingletonRegister implements Cacheable<Container> {
         }
     }
 
-    public SingletonRegister factories(Class<?>[] factories) {
-        this.factories = factories;
-        return this;
-    }
-
     private void createSingletonsByClasses(Container container) {
+        List<Class<?>> classList = new ArrayList<>();
+        for (int i = 0; i < classes.length; i++) {
+            classList.add(classes[i]);
+        }
         boolean canInject = true;
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < classList.size(); i++) {
