@@ -12,6 +12,7 @@ public class DefaultConfig extends Configuration {
 
     public DefaultConfig() {
         configs.put("charset", "UTF-8");
+        configs.put("logging.class", "net.apisp.quick.log.ConsoleLog");
         configs.put("logging.level", Levels.INFO);
         configs.put("server", "net.apisp.quick.server.DefaultQuickServer");
         configs.put("server.port", 8908);

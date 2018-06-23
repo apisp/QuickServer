@@ -3,89 +3,55 @@ package net.apisp.quick.log;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import net.apisp.quick.util.Strings;
+
 public class ConsoleLog implements Log {
     private String level;
     private String name;
+
+    public ConsoleLog() {
+    }
 
     public ConsoleLog(String level, String name) {
         this.level = level;
         this.name = name;
     }
 
-    private String before() {
-        return new SimpleDateFormat("MM-dd HH:mm:ss").format(new Date()) + " %6s [%10s] %-42s <|  ";
+    private String before(String level) {
+        return String.format(new SimpleDateFormat("MM-dd HH:mm:ss").format(new Date()) + " %6s [%11s] %-41s <| ", level,
+                Thread.currentThread().getName(), name);
     }
 
     @Override
     public void show(String log, Object... args) {
-        byte add = 3;
-        Object[] params = new Object[args.length + add];
-        params[0] = "SHOW";
-        params[1] = Thread.currentThread().getName();
-        params[2] = name;
-        for (int i = 0; i < args.length; i++) {
-            params[i + add] = args[i];
-        }
-        System.out.printf(before() + log + "\n", params);
+        System.out.println(before("SHOW") + Strings.format(log, args));
     }
 
     @Override
     public void error(String log, Object... args) {
         if (isErrorEnabled()) {
-            byte add = 3;
-            Object[] params = new Object[args.length + add];
-            params[0] = Levels.ERROR;
-            params[1] = Thread.currentThread().getName();
-            params[2] = name;
-            for (int i = 0; i < args.length; i++) {
-                params[i + add] = args[i];
-            }
-            System.err.printf(before() + log + "\n", params);
+            System.err.println(before(Levels.ERROR) + Strings.format(log, args));
         }
     }
 
     @Override
     public void warn(String log, Object... args) {
         if (isWarnEnabled()) {
-            byte add = 3;
-            Object[] params = new Object[args.length + add];
-            params[0] = Levels.WARN;
-            params[1] = Thread.currentThread().getName();
-            params[2] = name;
-            for (int i = 0; i < args.length; i++) {
-                params[i + add] = args[i];
-            }
-            System.err.printf(before() + log + "\n", params);
+            System.err.println(before(Levels.WARN) + Strings.format(log, args));
         }
     }
 
     @Override
     public void info(String log, Object... args) {
         if (isInfoEnabled()) {
-            byte add = 3;
-            Object[] params = new Object[args.length + add];
-            params[0] = Levels.INFO;
-            params[1] = Thread.currentThread().getName();
-            params[2] = name;
-            for (int i = 0; i < args.length; i++) {
-                params[i + add] = args[i];
-            }
-            System.out.printf(before() + log + "\n", params);
+            System.out.println(before(Levels.INFO) + Strings.format(log, args));
         }
     }
 
     @Override
     public void debug(String log, Object... args) {
         if (isDebugEnable()) {
-            byte add = 3;
-            Object[] params = new Object[args.length + add];
-            params[0] = Levels.DEBUG;
-            params[1] = Thread.currentThread().getName();
-            params[2] = name;
-            for (int i = 0; i < args.length; i++) {
-                params[i + add] = args[i];
-            }
-            System.out.printf(before() + log + "\n", params);
+            System.out.println(before(Levels.DEBUG) + Strings.format(log, args));
         }
     }
 
@@ -147,15 +113,7 @@ public class ConsoleLog implements Log {
     @Override
     public void log(String level, String log, Object... args) {
         if (this.level.equals(level)) {
-            byte add = 3;
-            Object[] params = new Object[args.length + add];
-            params[0] = level;
-            params[1] = Thread.currentThread().getName();
-            params[2] = name;
-            for (int i = 0; i < args.length; i++) {
-                params[i + add] = args[i];
-            }
-            System.out.printf(before() + log + "\n", params);
+            System.out.println(before(level) + Strings.format(log, args));
         }
     }
 
@@ -164,6 +122,21 @@ public class ConsoleLog implements Log {
         if (this.level.equals(level)) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
+    @Override
+    public Log normalize() {
+        return this;
     }
 
 }

@@ -66,7 +66,7 @@ public class ResponseExecutor {
         responseData.get(rD);
         responseData = null;
         out.write(rD);
-        LOG.info("%s %s - %d", httpRequestInfo.method(), httpRequestInfo.uri(), respInfo.getStatus().getCode());
+        LOG.info("{} {} - {}", httpRequestInfo.method(), httpRequestInfo.uri(), respInfo.getStatus().getCode());
     }
 
 }

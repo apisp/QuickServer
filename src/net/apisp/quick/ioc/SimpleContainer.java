@@ -48,13 +48,13 @@ public class SimpleContainer implements Container {
     @Override
     public void accept(Object obj) {
         this.cache.put(obj.getClass().getName(), obj);
-        LOG.info("Cached object %s", obj.getClass().getName());
+        LOG.info("Cached object {}", obj.getClass().getName());
     }
 
     @Override
     public void accept(String name, Object obj) {
         this.cache.put(name, obj);
-        LOG.info("Cached object %s", name);
+        LOG.info("Cached object {}({})", name, obj.getClass().getName());
     }
 
     @Override

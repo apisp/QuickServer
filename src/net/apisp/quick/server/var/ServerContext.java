@@ -105,7 +105,6 @@ public class ServerContext implements WebContext, QuickContext {
 
     @ReflectionCall("net.apisp.quick.server.MappingResolver.prepare()")
     private void setCrossDomain(Boolean crossDomain) {
-        System.out.println("used.");
         this.crossDomain = crossDomain;
     }
 
@@ -185,8 +184,8 @@ public class ServerContext implements WebContext, QuickContext {
 
     @Override
     public void mapping(String key, RequestExecutorInfo executeInfo) {
-        LOG.info("Mapping %s : %s", key, executeInfo.getMethod().toGenericString());
-        if (key.indexOf('{') > key.indexOf('}')) {
+        LOG.info("Mapping {} : {}", key, executeInfo.getMethod().toGenericString());
+        if (key.indexOf('{') < key.indexOf('}')) {
             String[] md_uri = key.split(" ");
             String httpMethod = md_uri[0];
             String uri = md_uri[1];

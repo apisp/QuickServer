@@ -139,7 +139,7 @@ public class Quick implements Bootable<ServerContext> {
         if (Objects.nonNull(serverClass)) {
             try {
                 quickServer = serverClass.newInstance();
-                LOG.info("The server %s hit.", serverClass);
+                LOG.info("The server {} hit.", serverClass);
             } catch (InstantiationException | IllegalAccessException e) {
                 LOG.warn("Who extends QuickServer need the non-args' constructor. Default server instance hit.");
                 quickServer = new DefaultQuickServer();

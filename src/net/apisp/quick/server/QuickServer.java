@@ -81,13 +81,13 @@ class QuickServerThread extends Thread {
             runner.run(serverContext);
         } catch (BindException e) {
             Quicks.invoke(serverContext, "setNormative", false);
-            LOG.error("The port %d already inuse.", serverContext.port());
+            LOG.error("The port {} already inuse.", serverContext.port());
         } catch (IOException e) {
             Quicks.invoke(serverContext, "setNormative", false);
             LOG.error("Server start error, IO Exception occered.");
         } catch (Exception e) {
             Quicks.invoke(serverContext, "setNormative", false);
-            LOG.error("Server start error, Unkonwn Exception occered. %s", e);
+            LOG.error("Server start error, Unkonwn Exception occered. {}", e);
             e.printStackTrace();
         }
     }
@@ -97,7 +97,7 @@ class QuickServerThread extends Thread {
         try {
             Thread.sleep(100);
             if (serverContext.isNormative()) {
-                LOG.show("Started Quick API Server on port (%s)", serverContext.port());
+                LOG.show("Started Quick API Server on port ({})", serverContext.port());
                 runner.run(serverContext);
             }
         } catch (InterruptedException e) {

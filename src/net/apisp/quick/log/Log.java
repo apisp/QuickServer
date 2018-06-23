@@ -41,4 +41,9 @@ public interface Log {
 
     boolean isDebugEnable();
 
+    void setName(String name);
+
+    void setLevel(String level);
+
+    Log normalize();
 }

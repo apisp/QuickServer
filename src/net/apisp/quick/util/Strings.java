@@ -23,9 +23,10 @@ import java.util.Set;
  * @date 2018-06-23 16:38:46
  */
 public abstract class Strings {
-    
+
     /**
      * #{null} 或者 "" 返回真
+     * 
      * @param string
      * @return
      */
@@ -35,6 +36,7 @@ public abstract class Strings {
 
     /**
      * 集合元素的字符串以半角 ", " 隔开组合成一个字符串返回
+     * 
      * @param objs
      * @return
      */
@@ -47,5 +49,28 @@ public abstract class Strings {
             sb.append(obj.toString()).append(", ");
         }
         return sb.toString();
+    }
+
+    /**
+     * 按 {} 和 给定参数 格式化字符串
+     * 
+     * @param pattern
+     * @param args
+     * @return
+     */
+    public static String format(String pattern, Object... args) {
+        StringBuilder finalStr = new StringBuilder();
+        int index = 0;
+        for (int i = 0; i < pattern.length(); i++) {
+            char c = pattern.charAt(i);
+            if (c == '{' && pattern.charAt(++i) == '}') {
+                finalStr.append(args[index++].toString());
+                continue;
+            } else if (c == '{') {
+                i--;
+            }
+            finalStr.append(c);
+        }
+        return finalStr.toString();
     }
 }
