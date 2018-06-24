@@ -159,8 +159,6 @@ public class MappingResolver {
                     mappingKey = httpMethod + " " + uri.trim();
 
                     RequestExecutorInfo info = new RequestExecutorInfo(method, controller);
-                    info.addHeader("Content-Type", (responseType != null ? responseType.value() : ContentTypes.JSON)
-                            + "; charset=" + serverContext.charset());
                     if (view != null) {
                         StringBuilder dir = new StringBuilder(view.value());
                         while (true) {
@@ -176,6 +174,10 @@ public class MappingResolver {
                         info.setViewDirectory(dir.toString());
                         info.addHeader("Content-Type", ContentTypes.HTML + "; charset=" + serverContext.charset());
                     }
+                    
+                    // 设置指定的响应类型
+                    info.addHeader("Content-Type", (responseType != null ? responseType.value() : ContentTypes.JSON)
+                            + "; charset=" + serverContext.charset());
 
                     // 跨域设置
                     if (!serverContext.isCrossDomain() && (shouldSetCrossDomain || crossDomain != null)) {

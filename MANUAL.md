@@ -31,7 +31,7 @@ public class Demo {
         Quick.boot(Demo.class, args); // 这里可以指定Boot类，默认是main函数所在类
     }
 
-    @Get("/{name}/{version}")
+    @Get("/{name}")
     public Acknowledge hello(@Variable("name") String name, @Variable("version") String version,
             HttpRequest req, HttpResponse resp, BodyBinary body, WebContext ctx) {
         Acknowledge acknowledge = new Acknowledge();
@@ -53,8 +53,17 @@ public class Demo {
 ```
 
 ## 二、具体章节
-![QuickServer Arch](https://raw.githubusercontent.com/apisp/QuickServer/master/images/quick-server-arch.png)
+![QuickServer Arch](https://raw.githubusercontent.com/apisp/resources/master/quick-server-arch.png)
 ### 1.核心
 撰写中...
 ### 2.IOC
-撰写中...
+#### 注解介绍
+`Singleton` 作用在类上。系统启动时自动实例化并缓存到单例容器。需要有默认构造函数，被标注的类可以使用 `@Autowired` 注解
+
+`Controller` 作用在类上。系统启动时自动实例化并缓存到单例容器，并且记录其中的映射关系，和`启动类` 标识的注解  `@Scanning` 功能有重合。需要有默认构造函数，被标注的类可以使用 `@Autowired`注解。
+
+`@Factory` 作用在类上。系统启动时，扫描所有此注解的类，实例化并依次执行 `@Accept` 注解标注的函数，函数返回值作为单例对象缓存到单例容器，被标注 `@Accept`的方法可以使用其他缓存了的单例对象，由函数参数注入即可。需要有默认构造函数。
+
+`@Accept` 作用在方法上。被标注函数的返回值可以缓存到单例容器。
+
+`@Autowired` 作用在类属性上。自动注入单例容器里的对象。默认按类型注入。
