@@ -5,10 +5,12 @@
 2. `@CrossDomain`允许某个API跨域使用，可以作用在方法、控制器类、启动类。
 3. `@Scanning`指定所有的控制器类。只能作用在启动类。
 4. `@ResponseType`指定响应数据类型。只能作用在方法。
+5. `@View` 视图方式响应。只能作用于方法。
 
 #### 2.关于Mapping方法
-1. 参数按需动态注入。你可以添加的参数类型有：`HttpRequest` `HttpResponse` `WebContext` `BodyBinary`。 你也可以用注解标注其他的参数，`@Variable`标注的参数会被注入请求路径相应的变量。
+1. 参数按需动态注入。你可以添加的参数类型有：`HttpRequest` `HttpResponse` `WebContext` `BodyBinary`，还有任何其它缓存在上下文容器中的对象。 你也可以用注解来标注方法中的某些参数。如，`@Variable`标注的参数会被注入请求路径相应的变量。
 2. 返回值即是响应内容。你可以用`@ResponseType`指定响应内容的类型，默认是`application/json`。返回值类型可以是void，这时你需要在参数`HttpResponse`中指定响应的数据。
+3. `@View`标注的方法，会响应一个视图，返回值作为文件名，`@View` 注解值作为类路径下视图的根文件夹。
 
 #### 3.示例
 ```java
@@ -57,6 +59,7 @@ public class Demo {
 ### 1.核心
 ##### 一些特性
 接口`net.apisp.quick.core.ContextPreparation`作用是在系统缓存所有需要缓存的对象后，执行的一个自定义准备工作。你可以自己实现一些准备工作，系统会自动扫描并执行。
+
 撰写中...
 ### 2.IOC
 ##### 注解介绍
