@@ -79,7 +79,7 @@ public class SocketAutonomy implements SoftCloseable {
                         DefaultQuickServer.responseExecutor.submit((args1) -> {
                             ByteBuffer buffer = (ByteBuffer) args1[0];
                             FileData reqData = (FileData) args1[1];
-                            HttpRequestInfo reqInfo = RequestResolver.resolve(buffer).setReqData(reqData);
+                            HttpRequestInfo reqInfo = RequestResolver.resolve(buffer).setReqData(reqData).setInetSocketAddress(sock.getInetAddress());
                             try {
                                 OutputStream out = sock.getOutputStream();
                                 ResponseExecutor.execute(reqInfo).response(out);

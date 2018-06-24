@@ -15,6 +15,7 @@
  */
 package net.apisp.quick.server;
 
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -52,6 +53,7 @@ public class RequestResolver {
         private byte[] body;
         private int bodyOffset;
         private boolean normative = true;
+        private InetAddress address;
 
         @Nullable
         private DataPersist reqData;
@@ -70,6 +72,11 @@ public class RequestResolver {
 
         public HttpRequestInfo setReqData(DataPersist reqData) {
             this.reqData = reqData;
+            return this;
+        }
+        
+        public HttpRequestInfo setInetSocketAddress(InetAddress address) {
+            this.address = address;
             return this;
         }
 
@@ -230,6 +237,11 @@ public class RequestResolver {
                 httpCookies[i++] = new HttpCookie(entry.getKey(), entry.getValue());
             }
             return httpCookies;
+        }
+
+        @Override
+        public String ip() {
+            return address.getHostAddress();
         }
     }
 

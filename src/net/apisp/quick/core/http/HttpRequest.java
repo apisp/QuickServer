@@ -39,4 +39,6 @@ public interface HttpRequest {
     BodyBinary body();
 
     boolean normative();
+    
+    String ip();
 }
