@@ -28,7 +28,6 @@ import java.util.regex.Pattern;
 
 import net.apisp.quick.annotation.ReflectionCall;
 import net.apisp.quick.config.Configuration;
-import net.apisp.quick.core.WebContext;
 import net.apisp.quick.core.annotation.ResponseType;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.ioc.Container;
@@ -46,7 +45,7 @@ import net.apisp.quick.util.Safes;
  * @author UJUED
  * @date 2018-06-08 09:05:07
  */
-public class ServerContext implements WebContext, QuickContext {
+public class ServerContext implements QuickContext {
     private static final Log LOG = LogFactory.getLog(ServerContext.class);
     private static ServerContext instance;
     private Map<String, RequestExecutorInfo> mappings = new HashMap<>();
@@ -258,5 +257,25 @@ public class ServerContext implements WebContext, QuickContext {
     @Override
     public Set<String> objects() {
         return this.container.objects();
+    }
+
+    @Override
+    public <T> T singleton(Class<T> type, boolean safe) {
+        return this.container.singleton(type, safe);
+    }
+
+    @Override
+    public Object singleton(String name, boolean safe) {
+        return this.container.singleton(name, safe);
+    }
+
+    @Override
+    public void accept(String name, ObjectCreaterUnit unit) {
+        this.container.accept(name, unit);
+    }
+
+    @Override
+    public ThreadLocal<?> safeSingleton(String name) {
+        return this.container.safeSingleton(name);
     }
 }

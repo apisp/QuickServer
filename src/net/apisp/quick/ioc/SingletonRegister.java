@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.apisp.quick.core.Cacheable;
+import net.apisp.quick.ioc.Container.ObjectCreaterUnit;
 import net.apisp.quick.ioc.annotation.Accept;
 import net.apisp.quick.ioc.annotation.Autowired;
 import net.apisp.quick.log.Log;
@@ -112,6 +113,26 @@ public class SingletonRegister implements Cacheable<Container> {
                             continue nextMethod;
                         }
                     }
+                    if (acceptInfo.safe()) {
+                        String name = methods[j].getReturnType().getName();
+                        if (acceptInfo.value().length() > 0) {
+                            name = acceptInfo.value();
+                        }
+                        ObjectCreaterUnit unit = ObjectCreaterUnit.create().setObjectCreater((args) -> {
+                            Method m = (Method) args[0];
+                            Object exe = args[1];
+                            Object[] pars = (Object[]) args[2];
+                            try {
+                                Object acceptable = m.invoke(exe, pars);
+                                return acceptable;
+                            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                                e.printStackTrace();
+                            }
+                            return null;
+                        }).setArgs(new Object[] { methods[j], obj, params });
+                        container.accept(name, unit);
+                        continue nextMethod;
+                    }
                     try {
                         Object acceptable = methods[j].invoke(obj, params);
                         if (acceptable != null) {
@@ -158,6 +179,28 @@ public class SingletonRegister implements Cacheable<Container> {
                     continue nextAcceptable;
                 }
             }
+
+            if (acceptInfo.safe()) {
+                String name = lazyAcceptList.get(i).method.getReturnType().getName();
+                if (acceptInfo.value().length() > 0) {
+                    name = acceptInfo.value();
+                }
+                ObjectCreaterUnit unit = ObjectCreaterUnit.create().setObjectCreater((args) -> {
+                    Method m = (Method) args[0];
+                    Object exe = args[1];
+                    Object[] pars = (Object[]) args[2];
+                    try {
+                        Object acceptable = m.invoke(exe, pars);
+                        return acceptable;
+                    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }).setArgs(new Object[] { lazyAcceptList.get(i).method, obj, params });
+                container.accept(name, unit);
+                continue nextAcceptable;
+            }
+
             try {
                 Object acceptable = lazyAcceptList.get(i).method.invoke(obj, params);
                 if (acceptable != null) {

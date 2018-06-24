@@ -17,7 +17,10 @@ package net.apisp.quick.ioc;
 
 import java.lang.reflect.Field;
 
+import net.apisp.quick.ioc.Container.SafeObject;
 import net.apisp.quick.ioc.annotation.Autowired;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
 
 /**
  * IOC自动注入工具
@@ -26,15 +29,37 @@ import net.apisp.quick.ioc.annotation.Autowired;
  * @date 2018-06-22 11:42:45
  */
 public abstract class Injections {
+
+    private static final Log LOG = LogFactory.getLog(Injections.class);
+
     public static Object inject(Object obj, Container container) {
         Field[] fields = obj.getClass().getDeclaredFields();
+        Autowired autowired = null;
         for (int j = 0; j < fields.length; j++) { // 遍历字段
-            if (fields[j].getAnnotation(Autowired.class) != null) {
+            if ((autowired = fields[j].getAnnotation(Autowired.class)) != null) {
                 fields[j].setAccessible(true);
+                if (!autowired.safeType().equals(Void.class) && fields[j].getType().equals(SafeObject.class)) {
+                    String name = autowired.safeType().getName();
+                    SafeObject<?> safe = new SafeObject<>(name, container.safeSingleton(name));
+                    try {
+                        fields[j].set(obj, safe);
+                    } catch (IllegalArgumentException | IllegalAccessException e) {
+                        LOG.warn("Field {} of {} failed set.", fields[j].getType().getName(), obj.getClass().getName());
+                    }
+                    continue;
+                }
                 try {
-                    fields[j].set(obj, container.singleton(fields[j].getType()));
+                    String name = autowired.value();
+                    if (name.length() == 0) {
+                        name = fields[j].getType().getName();
+                    }
+                    Object v = container.singleton(name);
+                    if (v == null) {
+                        v = container.singleton(name, true);
+                    }
+                    fields[j].set(obj, v);
                 } catch (IllegalArgumentException | IllegalAccessException e) {
-                    e.printStackTrace();
+                    LOG.warn("Field {} of {} failed set.", fields[j].getType().getName(), obj.getClass().getName());
                 }
             }
         }

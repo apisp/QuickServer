@@ -80,7 +80,7 @@ public class Quick implements Bootable<ServerContext> {
     }
 
     private void prepareServer() {
-        // 单例缓存
+        // Context单例缓存
         SimpleClassScanner classScanner = SimpleClassScanner.create(userBin, Quicks.packageName(bootClass.getName()));
         Class<?>[] factories = classScanner.getByAnnotation(Factory.class);
         Class<?>[] singletons = classScanner.getByAnnotation(Singleton.class);
@@ -94,11 +94,24 @@ public class Quick implements Bootable<ServerContext> {
         SimpleClassScanner supportClassScanner = SimpleClassScanner.create(uri, "net.apisp.quick.support");
         singletonRegister.factories(supportClassScanner.getByAnnotation(Factory.class)).cache(serverContext);
 
+        // Context做最后的准备
+        Class<?>[] preparations = classScanner.getByInterface(ContextPreparation.class);
+        for (int i = 0; i < preparations.length; i++) {
+            try {
+                ContextPreparation preparation = (ContextPreparation) preparations[i].newInstance();
+                preparation.prepare(serverContext);
+                LOG.info("{} preapared.", preparations[i].getName());
+            } catch (InstantiationException | IllegalAccessException e) {
+                LOG.warn("{} is not suitable.", preparations[i]);
+            }
+        }
+
         // 解决URI的映射关系
         Class<?>[] controllerClss = classScanner.getByAnnotation(Controller.class);
         Class<?>[] supportControllerClss = supportClassScanner.getByAnnotation(Controller.class);
         MappingResolver.prepare(bootClass, serverContext).addControllerClasses(controllerClss)
                 .addControllerClasses(supportControllerClss).resolve();
+
     }
 
     /**

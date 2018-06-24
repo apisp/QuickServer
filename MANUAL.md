@@ -55,6 +55,8 @@ public class Demo {
 ## 二、具体章节
 ![QuickServer Arch](https://raw.githubusercontent.com/apisp/resources/master/quick-server-arch.png)
 ### 1.核心
+##### 一些特性
+接口`net.apisp.quick.core.ContextPreparation`作用是在系统缓存所有需要缓存的对象后，执行的一个自定义准备工作。你可以自己实现一些准备工作，系统会自动扫描并执行。
 撰写中...
 ### 2.IOC
 ##### 注解介绍

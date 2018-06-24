@@ -15,11 +15,10 @@
  */
 package net.apisp.quick.annotation;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
-
 import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
@@ -27,8 +26,8 @@ import java.lang.annotation.Target;
  * @date 2018-06-12 21:32:18
  */
 @Documented
-@Retention(SOURCE)
-@Target(FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.FIELD, ElementType.METHOD })
 public @interface Nullable {
 
 }

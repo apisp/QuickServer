@@ -23,7 +23,6 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-
 /**
  * @author UJUED
  * @date 2018-06-15 01:12:58
@@ -32,5 +31,7 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target({ FIELD, METHOD })
 public @interface Autowired {
+    String value() default "";
 
+    Class<?> safeType() default Void.class;
 }

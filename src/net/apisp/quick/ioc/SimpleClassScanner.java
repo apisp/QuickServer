@@ -113,7 +113,22 @@ public class SimpleClassScanner implements ClassScanner {
 
     @Override
     public Class<?>[] getByInterface(Class<?> ifce) {
-        return null;
+        List<Class<?>> clses = new ArrayList<>();
+        Iterator<Class<?>> clsIter = classes.iterator();
+        if (!ifce.isInterface()) {
+            return null;
+        }
+        while (clsIter.hasNext()) {
+            Class<?> class1 = (Class<?>) clsIter.next();
+            if (ifce.isAssignableFrom(class1)) {
+                clses.add(class1);
+            }
+        }
+        Class<?>[] clss = new Class<?>[clses.size()];
+        for (int i = 0; i < clss.length; i++) {
+            clss[i] = clses.get(i);
+        }
+        return clss;
     }
 
     @Override

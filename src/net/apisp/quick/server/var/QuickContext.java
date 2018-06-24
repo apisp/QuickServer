@@ -18,6 +18,7 @@ package net.apisp.quick.server.var;
 import java.nio.file.Path;
 import java.util.Map;
 
+import net.apisp.quick.core.WebContext;
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 
@@ -25,7 +26,7 @@ import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
  * @author UJUED
  * @date 2018-06-15 00:53:51
  */
-public interface QuickContext {
+public interface QuickContext extends WebContext {
     Path tmpDirPath(String... more);
 
     int port();

@@ -27,17 +27,17 @@ import net.apisp.quick.log.LogFactory;
  * @date 2018-06-15 00:29:50
  */
 public class SimpleContainer implements Container {
-
     private static Log LOG = LogFactory.getLog(SimpleContainer.class);
     private Map<String, Object> cache = new HashMap<>();
+    private Map<String, ObjectCreaterUnit> safeObjectCreaters = new HashMap<>();
+    private Map<String, ThreadLocal<Object>> safeCache = new HashMap<>();
 
     public SimpleContainer() {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> T singleton(Class<T> type) {
-        return (T) cache.get(type.getName());
+        return singleton(type, false);
     }
 
     @Override
@@ -60,5 +60,42 @@ public class SimpleContainer implements Container {
     @Override
     public Set<String> objects() {
         return this.cache.keySet();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T singleton(Class<T> type, boolean safe) {
+        return (T) singleton(type.getName(), safe);
+    }
+
+    @Override
+    public Object singleton(String name, boolean safe) {
+        if (safe) {
+            ThreadLocal<Object> obj = this.safeCache.get(name);
+            if (obj == null) {
+                return null;
+            }
+            if (obj.get() != null) {
+                return obj.get();
+            } else {
+                ObjectCreaterUnit unit = this.safeObjectCreaters.get(name);
+                obj.set(unit.getObjectCreater().create(unit.getArgs()));
+                return obj.get();
+            }
+        } else {
+            return cache.get(name);
+        }
+    }
+
+    @Override
+    public void accept(String name, ObjectCreaterUnit unit) {
+        this.safeObjectCreaters.put(name, unit);
+        this.safeCache.put(name, new ThreadLocal<>());
+        LOG.info("Safe cached object {}", name);
+    }
+
+    @Override
+    public ThreadLocal<?> safeSingleton(String name) {
+        return this.safeCache.get(name);
     }
 }

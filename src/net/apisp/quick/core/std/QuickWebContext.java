@@ -57,4 +57,24 @@ public class QuickWebContext implements WebContext {
         return serverContext.objects();
     }
 
+    @Override
+    public <T> T singleton(Class<T> type, boolean safe) {
+        return this.serverContext.singleton(type, safe);
+    }
+
+    @Override
+    public Object singleton(String name, boolean safe) {
+        return this.serverContext.singleton(name, safe);
+    }
+
+    @Override
+    public void accept(String name, ObjectCreaterUnit creater) {
+        this.serverContext.accept(name, creater);
+    }
+
+    @Override
+    public ThreadLocal<?> safeSingleton(String name) {
+        return this.serverContext.safeSingleton(name);
+    }
+
 }
