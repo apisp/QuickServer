@@ -2,13 +2,14 @@
 
 * 需要用Java快速提供API，快来试试QuickServer框架吧
 * 熟练使用QuickServer，对于到Spring相关产品的使用迁移有不可描述的便利
-* 无任何第三方依赖，只有一个112KB左右的Jar包，满足你快速提供API
+* 无任何第三方依赖，只有一个176KB左右的Jar包(内含org.json三方包)，满足你快速提供API
 
 `IOC` `MVC` `RESTful` `零配置`
 
 ## 最佳用途
 工作之余自己想实现点小创意？`SpringBoot ?` NO! 你可能需要你个极简的`Java方案`， 就是`Quick Server`。QuickServer已经实现了一个简单的WebServer，可为快速提供API做好准备。当然还有更多的实现，一切只为让你轻松实现小创意。
-以 `Ajax` + `QuickServer API` ，开始吧！嗯？你还有什么好的创意？ 你如果心潮澎湃，也可以加入我们，一起来开发 `Quick Server`
+
+现在以 `Ajax` + `QuickServer API` ，开始吧！嗯？你还有什么好的创意？ 你如果心潮澎湃，也可以加入我们，一起来开发 `Quick Server`
 
 ## 下面几个简单步骤开始你的奇妙之旅：
 
