@@ -15,6 +15,7 @@
  */
 package net.apisp.quick.util;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -112,5 +113,35 @@ public abstract class Strings {
             content = content.replace(matcher.group(), Optional.ofNullable(vars.get(key)).orElse("").toString());
         }
         return content;
+    }
+
+    /**
+     * 尝试用指定的编码获取字符串的字节数组，系统编码会代替不支持的编码
+     * 
+     * @param content
+     * @param charset
+     * @return
+     */
+    public static byte[] safeGetBytes(String content, String charset) {
+        try {
+            return content.getBytes(charset);
+        } catch (UnsupportedEncodingException e) {
+            return content.getBytes();
+        }
+    }
+
+    /**
+     * 尝试用指定的编码集编码字节数组，系统编码会代替不支持的编码
+     * 
+     * @param bin
+     * @param charset
+     * @return
+     */
+    public static String toString(byte[] bin, String charset) {
+        try {
+            return new String(bin, charset);
+        } catch (UnsupportedEncodingException e) {
+            return new String(bin);
+        }
     }
 }

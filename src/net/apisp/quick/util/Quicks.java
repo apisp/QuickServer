@@ -24,6 +24,9 @@ import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -84,5 +87,30 @@ public abstract class Quicks {
             }
         }
         return Paths.get(uri);
+    }
+    
+    /**
+     * 将${value}转换为${model}的类型
+     * 
+     * @param model
+     * @param value
+     * @return
+     */
+    public static Object transform(Object model, Object value) {
+        if (model instanceof Integer) {
+            return Integer.valueOf(value.toString());
+        } else if (model instanceof String) {
+            return value.toString();
+        } else if (model instanceof Double) {
+            return Double.valueOf(value.toString());
+        } else if (model instanceof Boolean) {
+            return Boolean.valueOf(value.toString());
+        } else if (model instanceof Date) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            try {
+                return sdf.parse(value.toString());
+            } catch (ParseException e) {}
+        }
+        return value;
     }
 }

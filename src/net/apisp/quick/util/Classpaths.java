@@ -21,6 +21,29 @@ import java.net.URL;
 import java.nio.file.Path;
 
 public class Classpaths {
+
+    /**
+     * 尝试从类路径加载类，若没有则返回 null
+     * 
+     * @param classname
+     * @param clazz
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Class<T> safeLoadClass(String classname, Class<T> clazz) {
+        Class<T> rClass = null;
+        try {
+            rClass = (Class<T>) Classpaths.class.getClassLoader().loadClass(classname);
+        } catch (ClassNotFoundException e) {
+            try {
+                rClass = (Class<T>) ClassLoader.getSystemClassLoader().loadClass(classname);
+            } catch (ClassNotFoundException e1) {
+                return null;
+            }
+        }
+        return rClass;
+    }
+
     public static boolean existFile(String filename) {
         if (filename.charAt(0) == '/') {
             filename = filename.substring(1);

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import net.apisp.quick.config.Configuration;
+import org.json.JSONObject;
+
 import net.apisp.quick.core.BodyBinary;
 import net.apisp.quick.core.WebContext;
 import net.apisp.quick.core.annotation.RequestBody;
@@ -49,6 +50,7 @@ import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.template.T;
 import net.apisp.quick.util.Classpaths;
 import net.apisp.quick.util.JSONs;
+import net.apisp.quick.util.Strings;
 
 /**
  * 请求处理器。控制器逻辑处理
@@ -138,6 +140,13 @@ public class RequestProcessor {
                     if (request.body() == null) {
                         break toTypeInject;
                     }
+                    if (request.body().length() > 1024 * 2) {
+                        continue nextParam;
+                    }
+                    if (JSONObject.class.isAssignableFrom(type)) { // JSONObject类型
+                        byte[] bin = request.body().data(0, (int) request.body().length());
+                        params[i] = new JSONObject(Strings.toString(bin, serverContext.charset()));
+                    }
                     continue nextParam; // 开始下一个参数注入
                 } else if (annos[j] instanceof Variable) {
                     Variable pv = (Variable) annos[j];
@@ -147,63 +156,52 @@ public class RequestProcessor {
             }
 
             // 类型注入 ///////////////////////////////////////////////////
-            if (Integer.class.equals(type) || int.class.equals(type)) {
-                params[i] = 0;
-            } else if (HttpRequest.class.equals(type)) {
+            if (JSONObject.class.isAssignableFrom(type)) {
+                byte[] bin = request.body().data(0, (int) request.body().length());
+                params[i] = new JSONObject(Strings.toString(bin, serverContext.charset()));
+            } else if (HttpRequest.class.isAssignableFrom(type)) {
                 params[i] = request;
-            } else if (HttpResponse.class.equals(type)) {
+            } else if (HttpResponse.class.isAssignableFrom(type)) {
                 params[i] = responseInfo;
-            } else if (WebContext.class.equals(type)) {
-                if (serverContext != null) {
-                    params[i] = new QuickWebContext(serverContext);
-                } else {
-                    params[i] = null;
-                }
-            } else if (BodyBinary.class.equals(type)) {
+            } else if (WebContext.class.isAssignableFrom(type)) {
+                params[i] = new QuickWebContext(serverContext);
+            } else if (BodyBinary.class.isAssignableFrom(type)) {
                 params[i] = request.body();
-            } else if (Map.class.equals(type)) {
+            } else if (Map.class.isAssignableFrom(type)) {
                 params[i] = model;
+            } else if (Integer.class.equals(type) || int.class.equals(type)) {
+                params[i] = 0;
             } else {
                 params[i] = serverContext.singleton(type);
             }
-
         }
 
-        
-
         try {
-            Object result = method.invoke(executeInfo.getObject(), params);
-            
+            Object controller = executeInfo.getObject();
+            Object result = method.invoke(controller, params);
+
             // 逻辑方法执行完毕，关闭请求文件
             if (request.getReqData() != null) {
                 request.getReqData().close();
             }
             // 注入逻辑方法里改动的Headers
             responseInfo.ensureHeaders(executeInfo.getRespHeaders());
-            
-            if (method.getReturnType().equals(byte[].class)) {
-                responseInfo.body = (byte[]) result;
-            } else if (result == null) {
+            if (result == null) {
                 // 已经设置好body
+                LOG.debug("{}.{}(..) return type is null.", controller.getClass().getName(), method.getName());
+            } else if (JSONObject.class.isAssignableFrom(method.getReturnType())) {
+                responseInfo.body = Strings.safeGetBytes(result.toString(), serverContext.charset());
+            } else if (method.getReturnType().equals(byte[].class)) {
+                responseInfo.body = (byte[]) result;
             } else if (executeInfo.getViewDirectory() != null && result instanceof String) {
-                responseInfo.body = serverContext.singleton(T.class).setVariables(model)
-                        .render2bin(Classpaths.get(executeInfo.getViewDirectory() + (String) result));
+                T tp = serverContext.singleton(T.class).setVariables(model);
+                responseInfo.body = tp.render2bin(Classpaths.get(executeInfo.getViewDirectory() + (String) result));
             } else {
                 String resp = JSONs.convert(result);
                 if (resp == null) {
                     resp = result.toString();
                 }
-                try {
-                    responseInfo.body = resp.getBytes(serverContext.charset());
-                } catch (UnsupportedEncodingException e) {
-                    // 配置了不支持的编码集，更改系统设置为UTF-8
-                    Configuration.applySystemArgs("charset=UTF-8");
-                    try {
-                        responseInfo.body = resp.getBytes("UTF-8");
-                    } catch (UnsupportedEncodingException e1) {
-                        // ??? UTF-8 在任何时候都不可能不被支持的。
-                    }
-                }
+                responseInfo.body = Strings.safeGetBytes(resp, serverContext.charset());
             }
         } catch (InvocationTargetException e) {
             // 逻辑异常 ///////////////////////////////////////////////////
@@ -248,8 +246,8 @@ public class RequestProcessor {
         void ensureHeaders(Map<String, String> headers) {
             this.headers.putAll(headers);
             if (this.headers.get("Content-Type") == null) {
-                this.header("Content-Type", ContentTypes.JSON + ";charset=" + ServerContext.tryGet() == null ? "UTF-8"
-                        : ServerContext.tryGet().charset());
+                String charset = ServerContext.tryGet() == null ? "UTF-8" : ServerContext.tryGet().charset();
+                this.header("Content-Type", ContentTypes.JSON + ";charset=" + charset);
             }
         }
 

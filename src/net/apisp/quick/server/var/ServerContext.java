@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 import net.apisp.quick.thread.TaskExecutor;
-import net.apisp.quick.util.Safes;
+import net.apisp.quick.util.Classpaths;
 
 /**
  * Server上下文
@@ -63,7 +63,7 @@ public class ServerContext implements QuickContext {
 
     private ServerContext() {
         port = (int) Configuration.get("server.port");
-        serverClass = Safes.loadClass(Configuration.get("server").toString(), QuickServer.class);
+        serverClass = Classpaths.safeLoadClass(Configuration.get("server").toString(), QuickServer.class);
 
         executor = TaskExecutor.create((int) Configuration.get("server.threads"));
         defaultRespHeaders.put("Connection", "keep-alive");
