@@ -84,7 +84,7 @@ public class SocketAutonomy implements SoftCloseable {
                                 OutputStream out = sock.getOutputStream();
                                 ResponseExecutor.execute(reqInfo).response(out);
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                LOG.debug("Socket closed, failed get output stream.");
                             }
                         }, ByteBuffer.wrap(first), FileData.find(reqDataFile));
                         sa.recentTime = System.currentTimeMillis();

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class DefaultQuickServer extends QuickServer {
      * @date 2018-06-12 18:18:49
      */
     static class QuickServerMonitor extends Thread {
-        public static final int SOCKET_MAX_FREE_TIME = 1000 * 6;
+        public static final int SOCKET_MAX_FREE_TIME = 1000 * 60;
         private List<SocketAutonomy> keepList;
 
         public QuickServerMonitor(List<SocketAutonomy> keepList) {
@@ -87,15 +87,15 @@ public class DefaultQuickServer extends QuickServer {
                 while (!this.isInterrupted()) {
                     for (Iterator<SocketAutonomy> iter = keepList.iterator(); iter.hasNext();) {
                         SocketAutonomy sa = iter.next();
-                        LOG.debug("%s free time is %ds", sa, sa.freeTime() / 1000);
+                        LOG.debug("{} free time is {}s", sa, sa.freeTime() / 1000);
                         if (sa.freeTime() > SOCKET_MAX_FREE_TIME) {
                             sa.interrupt();
                             sa.close();
                             iter.remove();
-                            LOG.debug("%s is timeout. Closed.", sa);
+                            LOG.debug("{} is timeout. Closed.", sa);
                         }
                     }
-                    Thread.sleep(1000 * 6);
+                    Thread.sleep(1000 * 20);
                 }
             } catch (InterruptedException e) {
             }

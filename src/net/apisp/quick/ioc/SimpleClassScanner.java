@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -74,20 +75,20 @@ public class SimpleClassScanner implements ClassScanner {
     }
 
     public static SimpleClassScanner create(URI uri, String packageName) {
-        Path path = null;
+        SimpleClassScanner classScanner = new SimpleClassScanner();
         if (uri.getScheme().equals("jar")) {
             try {
                 FileSystem zipfs = FileSystems.newFileSystem(uri, new HashMap<>());
-                path = zipfs.getPath("/");
+                classScanner.rootPath = zipfs.getPath("/");
+            } catch (FileSystemAlreadyExistsException e) {
+                classScanner.rootPath = Paths.get(uri);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
-            path = Paths.get(uri);
+            classScanner.rootPath = Paths.get(uri);
         }
-        SimpleClassScanner classScanner = new SimpleClassScanner();
-        classScanner.rootPath = path;
-        classScanner.collect(path.resolve(packageName.replace('.', '/')));
+        classScanner.collect(classScanner.rootPath.resolve(packageName.replace('.', '/')));
         return classScanner;
     }
 

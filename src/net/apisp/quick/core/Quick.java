@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,10 +75,14 @@ public class Quick implements Bootable<ServerContext> {
         }
         this.bootClass = bootClass;
         this.bootArgs = bootArgs;
+    }
+
+    private void initServer() {
+        Configuration.applySystemArgs(bootArgs);
         this.serverContext = ServerContext.init();
         this.server = Quick.newServer(serverContext.serverClass());
     }
-
+    
     private void prepareServer() {
         // Context单例缓存
         SimpleClassScanner classScanner = SimpleClassScanner.create(userBin, Quicks.packageName(bootClass.getName()));
@@ -90,7 +94,7 @@ public class Quick implements Bootable<ServerContext> {
         // QuickServer support
         String supportPackage = "/net/apisp/quick/support/";
         String url = this.getClass().getResource(supportPackage).toString();
-        URI uri = URI.create(url.substring(0, url.length() - supportPackage.length()));
+        URI uri = URI.create(url.substring(0, url.length() - supportPackage.length() + 1));
         SimpleClassScanner supportClassScanner = SimpleClassScanner.create(uri, "net.apisp.quick.support");
         singletonRegister.factories(supportClassScanner.getByAnnotation(Factory.class)).cache(serverContext);
 
@@ -124,7 +128,7 @@ public class Quick implements Bootable<ServerContext> {
 
     @Override
     public ServerContext boot() {
-        Configuration.applySystemArgs(bootArgs);
+        initServer();
         prepareServer();
         startServer();
         return serverContext;

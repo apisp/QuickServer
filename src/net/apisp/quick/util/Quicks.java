@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -70,20 +71,18 @@ public abstract class Quicks {
      * @return
      */
     public static Path tactfulPath(URI uri) {
-        Path path = null;
         if (uri.getScheme().equals("jar")) {
             int index = uri.toString().indexOf('!') + 1;
-            URI rootUri = URI.create(uri.toString().substring(0, index));
+            URI rootUri = URI.create(uri.toString().substring(0, index + 1));
             String filePath = uri.toString().substring(index, uri.toString().length());
             try {
                 FileSystem zipfs = FileSystems.newFileSystem(rootUri, new HashMap<>());
-                path = zipfs.getPath(filePath);
+                return zipfs.getPath(filePath);
+            } catch (FileSystemAlreadyExistsException e) {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else {
-            path = Paths.get(uri);
         }
-        return path;
+        return Paths.get(uri);
     }
 }
