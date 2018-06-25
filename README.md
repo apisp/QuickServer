@@ -68,5 +68,6 @@ server.tmp.dir=${user.dir}
 
 ## 你还可以
 * [翻阅开发手册](MANUAL.md)  
+* [看看官方Demo](https://gitee.com/ujued/DemoBasedQuickServer)
 * [访问 APISP.NET](https://apisp.net)
 * [加入 开发者的狂欢 QQ群](https://jq.qq.com/?_wv=1027&k=5ZVMI8a)

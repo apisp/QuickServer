@@ -17,14 +17,13 @@ package net.apisp.quick.support;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
+
+import org.json.JSONObject;
 
 import net.apisp.quick.core.WebContext;
 import net.apisp.quick.core.annotation.CrossDomain;
 import net.apisp.quick.core.annotation.Get;
-import net.apisp.quick.core.annotation.ResponseType;
-import net.apisp.quick.core.http.ContentTypes;
-import net.apisp.quick.core.http.HttpResponse;
+import net.apisp.quick.core.annotation.View;
 import net.apisp.quick.ioc.annotation.Controller;
 import net.apisp.quick.util.Quicks;
 import net.apisp.quick.util.Strings;
@@ -38,14 +37,22 @@ import net.apisp.quick.util.Strings;
 public class QuickSystemController {
 
     @Get("/_quick.html")
-    @ResponseType(ContentTypes.HTML)
-    public void html_index(HttpResponse resp) throws IOException, URISyntaxException {
-        resp.body(Files.readAllBytes(
-                Quicks.tactfulPath(this.getClass().getResource("/net/apisp/quick/support/html/index.html").toURI())));
+    @View("/net/apisp/quick/support/html")
+    public String index() throws IOException, URISyntaxException {
+        return "index.html";
     }
 
     @Get("/_quick/info")
-    public String version(WebContext ctx) {
-        return String.format("{\"version\": \"%s\", \"singletons:\": \"%s\"}", "1.6", Strings.valueOf(ctx.objects()));
+    public JSONObject info(WebContext ctx) {
+        JSONObject info = new JSONObject();
+        info.put("version", Quicks.version());
+        JSONObject cache = new JSONObject();
+        cache.put("singletons", Strings.valueOf(ctx.objects())).put("size", ctx.objects().size());
+        info.put("cache", cache);
+        long allSeconds = (System.currentTimeMillis() - (Long) ctx.singleton("quickServer.startTime")) / 1000;
+        int hours = (int) (allSeconds / 3600);
+        short seconds = (short) (allSeconds % 3600);
+        info.put("running_time", Strings.template("{}hours and {}seconds", hours, seconds));
+        return info;
     }
 }

@@ -88,7 +88,7 @@ public abstract class Quicks {
         }
         return Paths.get(uri);
     }
-    
+
     /**
      * 将${value}转换为${model}的类型
      * 
@@ -109,8 +109,23 @@ public abstract class Quicks {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             try {
                 return sdf.parse(value.toString());
-            } catch (ParseException e) {}
+            } catch (ParseException e) {
+            }
         }
         return value;
+    }
+
+    /**
+     * 获取Quick Server 版本号
+     * @return
+     */
+    public static String version() {
+        String url = Quicks.class.getResource("").toString();
+        int i = -1;
+        if ((i = url.indexOf('!')) != -1) {
+            String name = url.substring(0, i);
+            return name.substring(name.lastIndexOf('-') + 1, name.lastIndexOf('.'));
+        }
+        return "unkonwn";
     }
 }

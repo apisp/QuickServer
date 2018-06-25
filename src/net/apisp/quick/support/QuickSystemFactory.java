@@ -78,4 +78,9 @@ public class QuickSystemFactory {
         }
         return "500 Internal Server Error";
     }
+    
+    @Accept("quickServer.startTime")
+    public long systemStartTime() {
+        return System.currentTimeMillis();
+    }
 }
