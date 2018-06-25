@@ -35,7 +35,7 @@ public class DefaultQuickServer extends QuickServer {
     private static boolean shouldRunning = true;
     private static int processors = Runtime.getRuntime().availableProcessors();
     public static final TaskExecutor socketAutonomyExecutor = TaskExecutor.create("socket", processors * 3 * 20);
-    public static final TaskExecutor responseExecutor = TaskExecutor.create("response", processors * 3);
+    public static final TaskExecutor responseExecutor = TaskExecutor.create("response", processors * 3 + 1);
 
     private List<SocketAutonomy> keepList = new ArrayList<>(100);
 

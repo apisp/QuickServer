@@ -126,6 +126,9 @@ public abstract class Quicks {
         int i = -1;
         if ((i = url.indexOf('!')) != -1) {
             String name = url.substring(0, i);
+            if (name.indexOf('-') == -1) {
+                return "unkonwn";
+            }
             return name.substring(name.lastIndexOf('-') + 1, name.lastIndexOf('.'));
         }
         return "unkonwn";
