@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.core.http;
+package net.apisp.quick.annotation;
 
-import net.apisp.quick.core.BodyBinary;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+@Documented
+@Retention(RUNTIME)
+@Target(METHOD)
 /**
- * HTTP请求
- *
- * @author UJUED
- * @date 2018-6-8 11:37:45
+ * 被标注的方法使用时需要有值说明的环境
+ * 
+ * @author Ujued
+ * @date 2018-06-25 21:42:19
  */
-public interface HttpRequest {
-    String method();
-
-    String uri();
-
-    String version();
-
-    String header(String key);
-
-    HttpCookie cookie(String key);
-
-    HttpCookie[] cookies();
-
-    BodyBinary body();
-
-    boolean normative();
-    
-    String ip();
-    
-    String params();
+public @interface DependOn {
+    String value();
 }

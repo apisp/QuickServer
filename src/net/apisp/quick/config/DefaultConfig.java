@@ -18,6 +18,8 @@ public class DefaultConfig extends Configuration {
         configs.put("server.port", 8908);
         configs.put("server.threads", 4 * 6);
         configs.put("server.tmp.dir", System.getProperty("user.dir"));
+        configs.put("support.access.key", "1234560");
+        configs.put("support.access.open", true);
     }
 
     @Override

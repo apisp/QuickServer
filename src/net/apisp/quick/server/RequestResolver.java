@@ -47,6 +47,7 @@ public class RequestResolver {
     public static class HttpRequestInfo implements HttpRequest {
         private String method;
         private String uri;
+        private String params;
         private String version;
         private Map<String, String> headers = new HashMap<>();
         private Map<String, String> cookies = new HashMap<>();
@@ -74,7 +75,7 @@ public class RequestResolver {
             this.reqData = reqData;
             return this;
         }
-        
+
         public HttpRequestInfo setInetSocketAddress(InetAddress address) {
             this.address = address;
             return this;
@@ -144,6 +145,11 @@ public class RequestResolver {
             ByteBuffer reqLineBuffer = lineBuffer(requestBuffer);
             this.method = getWord(reqLineBuffer, (byte) 32);
             this.uri = getWord(reqLineBuffer, (byte) 32);
+            int index = -1;
+            if ((index = this.uri.indexOf('?')) != -1) {
+                this.params = this.uri.substring(index + 1);
+                this.uri = this.uri.substring(0, index);
+            }
             this.version = getWord(reqLineBuffer, (byte) 32);
 
             // 请求头
@@ -242,6 +248,11 @@ public class RequestResolver {
         @Override
         public String ip() {
             return address.getHostAddress();
+        }
+
+        @Override
+        public String params() {
+            return this.params;
         }
     }
 

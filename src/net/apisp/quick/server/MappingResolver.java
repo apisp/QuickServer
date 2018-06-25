@@ -17,6 +17,7 @@ package net.apisp.quick.server;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
@@ -120,6 +121,9 @@ public class MappingResolver {
             Method[] methods = clazz.getDeclaredMethods();
             for (int i = 0; i < methods.length; i++) {
                 method = methods[i];
+                if (!Modifier.isPublic(method.getModifiers())) {
+                    continue; // 抛弃非共有方法
+                }
                 getMapping = method.getAnnotation(Get.class);
                 postMaping = method.getAnnotation(Post.class);
                 putMapping = method.getAnnotation(Put.class);
@@ -162,7 +166,7 @@ public class MappingResolver {
 
                     // 默认响应类型
                     info.addHeader("Content-Type", ContentTypes.JSON + "; charset=" + serverContext.charset());
-                    
+
                     // 视图方式响应
                     if (view != null) {
                         StringBuilder dir = new StringBuilder(view.value());

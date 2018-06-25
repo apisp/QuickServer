@@ -17,13 +17,17 @@ package net.apisp.quick.support;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Base64;
 
 import org.json.JSONObject;
 
 import net.apisp.quick.core.WebContext;
 import net.apisp.quick.core.annotation.CrossDomain;
 import net.apisp.quick.core.annotation.Get;
+import net.apisp.quick.core.annotation.Post;
 import net.apisp.quick.core.annotation.View;
+import net.apisp.quick.core.http.HttpRequest;
+import net.apisp.quick.core.http.HttpResponse;
 import net.apisp.quick.ioc.annotation.Controller;
 import net.apisp.quick.util.Quicks;
 import net.apisp.quick.util.Strings;
@@ -38,12 +42,38 @@ public class QuickSystemController {
 
     @Get("/_quick.html")
     @View("/net/apisp/quick/support/html")
-    public String index() throws IOException, URISyntaxException {
+    public String index(HttpRequest req, HttpResponse resp) throws IOException, URISyntaxException {
+        if (!SupportUtils.checkPermission(req)) {
+            return "auth.html";
+        }
+        return "index.html";
+    }
+
+    @Post("/_quick.html")
+    @View("/net/apisp/quick/support/html")
+    public String login(HttpRequest req, WebContext ctx, HttpResponse resp) {
+        String authKey = new String(req.body().data(0, (int) req.body().length()));
+        int i = -1;
+        if ((i = authKey.indexOf('=')) != -1) {
+            authKey = authKey.substring(i + 1);
+            if (!ctx.setting("support.access.key").equals(authKey)) {
+                return "auth.html";
+            }
+            resp.cookie("support_access",
+                    Base64.getEncoder().encodeToString(Strings.safeGetBytes(authKey, ctx.charset())));
+        } else {
+            return "auth.html";
+        }
         return "index.html";
     }
 
     @Get("/_quick/info")
-    public JSONObject info(WebContext ctx) {
+    public JSONObject info(WebContext ctx, HttpRequest req, HttpResponse resp) {
+        if (!SupportUtils.checkPermission(req)) {
+            resp.header("Content-Type", "text/plain;charset=utf-8");
+            resp.body("non permission.".getBytes());
+            return null;
+        }
         JSONObject info = new JSONObject();
         info.put("version", Quicks.version());
         JSONObject cache = new JSONObject();
@@ -54,5 +84,15 @@ public class QuickSystemController {
         short seconds = (short) (allSeconds % 3600);
         info.put("running_time", Strings.template("{}hours and {}seconds", hours, seconds));
         return info;
+    }
+
+    @Get("/_quick/prepare_ctx")
+    public JSONObject prepareContext(HttpRequest req, HttpResponse resp) {
+        if (!SupportUtils.checkPermission(req)) {
+            resp.header("Content-Type", "text/plain;charset=utf-8");
+            resp.body("non permission.".getBytes());
+            return null;
+        }
+        return new JSONObject();
     }
 }

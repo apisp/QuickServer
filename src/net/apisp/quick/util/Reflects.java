@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.core.http;
-
-import net.apisp.quick.core.BodyBinary;
+package net.apisp.quick.util;
 
 /**
- * HTTP请求
- *
- * @author UJUED
- * @date 2018-6-8 11:37:45
+ * 反射工具集合
+ * 
+ * @author Ujued
+ * @date 2018-06-25 18:28:21
  */
-public interface HttpRequest {
-    String method();
+public abstract class Reflects {
 
-    String uri();
-
-    String version();
-
-    String header(String key);
-
-    HttpCookie cookie(String key);
-
-    HttpCookie[] cookies();
-
-    BodyBinary body();
-
-    boolean normative();
-    
-    String ip();
-    
-    String params();
 }

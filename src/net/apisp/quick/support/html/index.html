@@ -1,31 +1,72 @@
 <!doctype html>
 <html>
 <head>
-<title>Quick Server</title>
-<style type="text/css">
-*{padding: 0; margin: 0;}
-body{font-family: Consolas, 'Microsoft YaHei';font-size: 14px;border: none;}
-h1 {font-weight: normal; font-size:24px;margin: 10px;color: #345546;text-align: center;}
-#info {padding: 10px;color: green;}
-</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.1/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/vue/2.5.17-beta.0/vue.min.js"></script>
+    <script src="https://cdn.staticfile.org/axios/0.18.0/axios.min.js"></script>
+    <title>Quick Server Support</title>
 </head>
 <body>
-<h1>欢迎使用 Quick Server ！</h1>
-<div id="info"></div>
-<script type="text/javascript">
-var req = new XMLHttpRequest()
-req.open('GET', '/_quick/info', true)
-req.onreadystatechange = function() {
-    if (req.readyState == 4) {  
-        if(req.status == 200){ 
-            var info = document.getElementById('info')
-            info.innerHTML = req.response;
-        } else{
-            alert('net error.')
+    <nav class="navbar navbar-light bg-light">
+      <span class="navbar-brand mb-0 h1">Quick Server 控制台</span>
+    </nav>
+    <br />
+    <div id="app" class="container">
+        <div class="jumbotron">
+            <div class="row">
+                <code class="col-sm-2">cacheSize</code>
+                <code class="col-sm-6">cacheSingletons</code>
+                <code class="col-sm-3">running_time</code>
+                <code class="col-sm-1">version</code>
+            </div>
+            <div class="row">
+                <div class="col-sm-2">{{ info.cache.size }}</div>
+                <div class="col-sm-6">{{ info.cache.singletons }}</div>
+                <div class="col-sm-3">{{ info.running_time }}</div>
+                <div class="col-sm-1">{{ info.version }}</div>
+            </div>
+            <hr class="my-4">
+            <button class="btn btn-primary" @click="prepareContext">ReprepareContext</button>
+            <button class="btn btn-primary" @click="loadController">ReloadController</button>
+        </div>
+        <div>{{ apisp_info }}</div>
+    </div>
+    <script type="text/javascript">
+        var app = new Vue({
+          el: '#app',
+          data: {
+            info: {
+              cache:{
+                size: 0,
+                singletons: 'loading...'
+              },
+              running_time: 'loading...',
+              version: 'loading...'
+            },
+            apisp_info: ''
+          },
+          created(){
+          var vapp = this
+          axios.get('/_quick/info')
+              .then(function (response) {
+                vapp.info = response.data
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
+            
+          },
+        methods: {
+            prepareContext: function(){
+            
+            },
+            loadController: function(){
+                
+            }
         }
-    }
-}
-req.send()
-</script>
+        })
+    </script>
 </body>
 </html>
