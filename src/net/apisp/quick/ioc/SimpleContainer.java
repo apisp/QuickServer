@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import net.apisp.quick.config.Configuration;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 
@@ -97,5 +98,10 @@ public class SimpleContainer implements Container {
     @Override
     public ThreadLocal<?> safeSingleton(String name) {
         return this.safeCache.get(name);
+    }
+
+    @Override
+    public Object setting(String key) {
+        return Configuration.get(key);
     }
 }

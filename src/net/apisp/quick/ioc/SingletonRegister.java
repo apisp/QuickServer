@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,18 @@
  */
 package net.apisp.quick.ioc;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import net.apisp.quick.core.Cacheable;
+import net.apisp.quick.ioc.Container.Injections;
 import net.apisp.quick.ioc.Container.ObjectCreaterUnit;
 import net.apisp.quick.ioc.annotation.Accept;
-import net.apisp.quick.ioc.annotation.Autowired;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
+import net.apisp.quick.util.Strings;
 
 /**
  * @author UJUED
@@ -34,9 +34,9 @@ import net.apisp.quick.log.LogFactory;
  */
 public class SingletonRegister implements Cacheable<Container> {
     private static final Log LOG = LogFactory.getLog(SingletonRegister.class);
+    private Object lock = new Object();
     private Class<?>[] classes;
     private Class<?>[] factories;
-    private Object lock = "";
 
     public SingletonRegister() {
 
@@ -54,17 +54,8 @@ public class SingletonRegister implements Cacheable<Container> {
 
     @Override
     public Container cache(Container container) {
-        Thread byFacs = new Thread() {
-            @Override
-            public void run() {
-                createSingletonsByFactories(container);
-            }
-        };
-        Thread byClss = new Thread() {
-            public void run() {
-                createSingletonsByClasses(container);
-            }
-        };
+        Thread byFacs = new Thread(() -> createSingletonsByFactories(container));
+        Thread byClss = new Thread(() -> createSingletonsByClasses(container));
         byFacs.setName("cache-0");
         byClss.setName("cache-1");
         byFacs.start();
@@ -91,13 +82,19 @@ public class SingletonRegister implements Cacheable<Container> {
         }
     }
 
+    /**
+     * 从指定的Factories中缓存对象
+     * 
+     * @param container
+     */
     private void createSingletonsByFactories(Container container) {
-        List<AcceptableInfo> lazyAcceptList = new ArrayList<>();
+        List<AcceptableInfo> acceptList = new ArrayList<>();
         Object obj = null;
         Accept acceptInfo = null;
         for (int i = 0; i < factories.length; i++) {
             try {
                 obj = factories[i].newInstance();
+                Injections.inject(obj, container);
             } catch (InstantiationException | IllegalAccessException e) {
                 continue;
             }
@@ -109,7 +106,7 @@ public class SingletonRegister implements Cacheable<Container> {
                     for (int k = 0; k < paramTypes.length; k++) {
                         params[k] = container.singleton(paramTypes[k]);
                         if (params[k] == null) {
-                            lazyAcceptList.add(new AcceptableInfo(methods[j], obj, paramTypes, acceptInfo));
+                            acceptList.add(new AcceptableInfo(methods[j], obj, paramTypes, acceptInfo));
                             continue nextMethod;
                         }
                     }
@@ -143,45 +140,34 @@ public class SingletonRegister implements Cacheable<Container> {
                             }
                         }
                     } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                        e.printStackTrace();
+                        LOG.warn("Class {} not cached. Cause: {}", obj.getClass().getName(), e.getMessage());
                     }
                 }
             }
         }
         // lazyAccept
         long startTime = System.currentTimeMillis();
-        nextAcceptable: for (int i = 0; i < lazyAcceptList.size(); i++) {
-            if (lazyAcceptList.size() > 1000 && System.currentTimeMillis()
-                    - startTime < (Runtime.getRuntime().availableProcessors() >= 2 ? 10 : 20)) {
-                try {
-                    LOG.debug("Waiting for thread cache-1");
-                    synchronized (lock) {
-                        lock.wait(200);
-                    }
-                    LOG.debug("lalal, %d, %s", i, lazyAcceptList.get(i).method);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else if (lazyAcceptList.size() > 10000 && System.currentTimeMillis()
-                    - startTime < (Runtime.getRuntime().availableProcessors() >= 2 ? 110 : 220)) {
-                LOG.error("Factory 构建对象过程中出现了循环引用！");
+        nextAcceptable: for (int i = 0; i < acceptList.size(); i++) {
+            try {
+                resolveDependence(acceptList.size(), startTime);
+            } catch (InterruptedException e) {
                 break;
             }
-            Class<?>[] paramTypes = lazyAcceptList.get(i).paramTypes;
+            Class<?>[] paramTypes = acceptList.get(i).paramTypes;
             Object[] params = new Object[paramTypes.length];
-            obj = lazyAcceptList.get(i).object;
-            acceptInfo = lazyAcceptList.get(i).acceptInfo;
+            obj = acceptList.get(i).object;
+            acceptInfo = acceptList.get(i).acceptInfo;
 
             for (int k = 0; k < paramTypes.length; k++) {
                 params[k] = container.singleton(paramTypes[k]);
                 if (params[k] == null) {
-                    lazyAcceptList.add(lazyAcceptList.get(i));
+                    acceptList.add(acceptList.get(i));
                     continue nextAcceptable;
                 }
             }
 
             if (acceptInfo.safe()) {
-                String name = lazyAcceptList.get(i).method.getReturnType().getName();
+                String name = acceptList.get(i).method.getReturnType().getName();
                 if (acceptInfo.value().length() > 0) {
                     name = acceptInfo.value();
                 }
@@ -196,27 +182,71 @@ public class SingletonRegister implements Cacheable<Container> {
                         e.printStackTrace();
                     }
                     return null;
-                }).setArgs(new Object[] { lazyAcceptList.get(i).method, obj, params });
+                }).setArgs(new Object[] { acceptList.get(i).method, obj, params });
                 container.accept(name, unit);
                 continue nextAcceptable;
             }
 
             try {
-                Object acceptable = lazyAcceptList.get(i).method.invoke(obj, params);
+                Object acceptable = acceptList.get(i).method.invoke(obj, params);
                 if (acceptable != null) {
                     if (acceptInfo.value().length() > 0) {
                         container.accept(acceptInfo.value(), acceptable);
                     } else {
-                        container.accept(lazyAcceptList.get(i).method.getReturnType().getName(), acceptable);
+                        container.accept(acceptList.get(i).method.getReturnType().getName(), acceptable);
                     }
                 }
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                e.printStackTrace();
+                String m = Strings.template("{}.{}(..)", factories[i].getName(), acceptList.get(i).method.getName());
+                LOG.warn("Object Creater {} error, losed. Cause: {}", m, e.getMessage());
             }
         }
+        // 此缓存线程到此结束，通知其他缓存线程开始
         synchronized (lock) {
             lock.notifyAll();
         }
+    }
+
+    /**
+     * 根据根据时间和列表大小等因素解决缓存依赖
+     * 
+     * @param size
+     * @param startTime
+     * @throws InterruptedException
+     */
+    private void resolveDependence(int size, long startTime) throws InterruptedException {
+        if (assertShouldWaiting(size, 1000, startTime)) {
+            try {
+                LOG.debug("Waiting for other cache thread.");
+                synchronized (lock) {
+                    lock.wait(200);
+                }
+            } catch (InterruptedException e) {
+            }
+        }
+        if (assertShouldWaiting(size, 10000, startTime)) {
+            LOG.error("构建缓存对象过程中出现了循环引用！终止缓存器！");
+            throw new InterruptedException();
+        }
+    }
+
+    /**
+     * 根据时间和列表大小等因素确定是否需要等待其他缓存线程
+     * 
+     * @param currentSize
+     * @param targetSize
+     * @param startTime
+     * @return
+     */
+    private boolean assertShouldWaiting(int currentSize, int targetSize, long startTime) {
+        short it1 = 10;
+        short it2 = 20;
+        if (currentSize > targetSize) {
+        } else if (currentSize > targetSize) {
+            it1 = 110;
+            it2 = 210;
+        }
+        return System.currentTimeMillis() - startTime < (Runtime.getRuntime().availableProcessors() >= 2 ? it1 : it2);
     }
 
     private void createSingletonsByClasses(Container container) {
@@ -224,59 +254,28 @@ public class SingletonRegister implements Cacheable<Container> {
         for (int i = 0; i < classes.length; i++) {
             classList.add(classes[i]);
         }
-        boolean canInject = true;
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < classList.size(); i++) {
-            if (classList.size() > 1000 && System.currentTimeMillis()
-                    - startTime < (Runtime.getRuntime().availableProcessors() >= 2 ? 10 : 20)) {
-                try {
-                    LOG.debug("Waiting for thread cache-1");
-                    synchronized (lock) {
-                        lock.wait(200);
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else if (classList.size() > 10000 && System.currentTimeMillis()
-                    - startTime < (Runtime.getRuntime().availableProcessors() >= 2 ? 110 : 220)) {
-                LOG.error("构建对象过程中出现了循环引用！");
+            try {
+                resolveDependence(classList.size(), startTime);
+            } catch (InterruptedException e) {
                 break;
             }
             if (container.singleton(classList.get(i)) != null) {
-                continue;
+                continue; // 已有该类单例，跳过，继续下一个
             }
-            Field[] fields = classList.get(i).getDeclaredFields();
-            for (int j = 0; j < fields.length; j++) { // 遍历字段
-                if (fields[j].getAnnotation(Autowired.class) != null) {
-                    canInject = false;
-                    if (container.singleton(fields[j].getType()) != null) {
-                        canInject = true;
-                    }
-                }
-            }
-            if (canInject) {
-                Object obj = null;
+            if (Injections.suitableFor(classList.get(i), container)) {
                 try {
-                    obj = classList.get(i).newInstance();
+                    Object obj = classList.get(i).newInstance();
+                    container.accept(Injections.inject(obj, container));
                 } catch (InstantiationException | IllegalAccessException e) {
-                    e.printStackTrace();
+                    LOG.warn("Class {} is not suitable to cache, losed.", classList.get(i).getName());
                 }
-                for (int j = 0; j < fields.length; j++) { // 遍历字段
-                    if (fields[j].getAnnotation(Autowired.class) != null) {
-                        fields[j].setAccessible(true);
-                        try {
-                            fields[j].set(obj, container.singleton(fields[j].getType()));
-                        } catch (IllegalArgumentException | IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                container.accept(obj);
-            } else {
+            } else { // 稍后缓存
                 classList.add(classList.get(i));
             }
-            canInject = true;
         }
+        // 此缓存线程到此结束，通知其他缓存线程开始
         synchronized (lock) {
             lock.notifyAll();
         }

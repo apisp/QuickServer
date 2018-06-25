@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,14 @@
  */
 package net.apisp.quick.ioc;
 
+import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.Set;
 
 import net.apisp.quick.annotation.Nullable;
+import net.apisp.quick.ioc.annotation.Autowired;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.var.ServerContext;
 
 /**
@@ -25,23 +30,25 @@ import net.apisp.quick.server.var.ServerContext;
  * @date 2018-06-15 00:29:29
  */
 public interface Container {
+    void accept(Object obj);
+
+    void accept(String name, Object obj);
+
+    void accept(String name, ObjectCreaterUnit creater);
+
+    Set<String> objects();
+
+    Object setting(String key);
+
     <T> T singleton(Class<T> type);
 
-    Object singleton(String name);
-
     <T> T singleton(Class<T> type, boolean safe);
+
+    Object singleton(String name);
 
     Object singleton(String name, boolean safe);
 
     ThreadLocal<?> safeSingleton(String name);
-
-    void accept(Object obj);
-
-    void accept(String name, ObjectCreaterUnit creater);
-
-    void accept(String name, Object obj);
-
-    Set<String> objects();
 
     public static class ObjectCreaterUnit {
         public static interface ObjectCreater {
@@ -101,6 +108,69 @@ public interface Container {
                 r = threadLocal.get();
             }
             return r;
+        }
+    }
+
+    /**
+     * IOC自动注入工具
+     * 
+     * @author Ujued
+     * @date 2018-06-22 11:42:45
+     */
+    public static abstract class Injections {
+        private static final Log LOG = LogFactory.getLog(Injections.class);
+
+        public static boolean suitableFor(Class<?> target, Container container) {
+            Field[] fields = target.getDeclaredFields();
+            Autowired autowired;
+            for (int j = 0; j < fields.length; j++) { // 遍历字段
+                if ((autowired = fields[j].getAnnotation(Autowired.class)) != null) {
+                    String name = autowired.value().length() > 0 ? autowired.value() : fields[j].getType().getName();
+                    if (container.singleton(name) != null || container.safeSingleton(name) != null) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public static Object inject(Object obj, Container container) {
+            Field[] fields = obj.getClass().getDeclaredFields();
+            Autowired autowired = null;
+            for (int j = 0; j < fields.length; j++) { // 遍历字段
+                if ((autowired = fields[j].getAnnotation(Autowired.class)) != null) {
+                    fields[j].setAccessible(true);
+                    if (!autowired.safeType().equals(Void.class) && fields[j].getType().equals(SafeObject.class)) {
+                        String name = autowired.safeType().getName();
+                        SafeObject<?> safe = new SafeObject<>(name, container.safeSingleton(name));
+                        try {
+                            fields[j].set(obj, safe);
+                        } catch (IllegalArgumentException | IllegalAccessException e) {
+                            LOG.warn("Field {} of {} failed set.", fields[j].getType().getName(),
+                                    obj.getClass().getName());
+                        }
+                        continue;
+                    }
+                    try {
+                        String name = autowired.value();
+                        if (name.length() == 0) {
+                            name = fields[j].getType().getName();
+                        }
+                        Object v = container.singleton(name);
+                        if (Objects.isNull(v)) {
+                            if ((v = container.singleton(name, true)) == null) {
+                                v = container.setting(name);
+                            }
+                        }
+                        fields[j].set(obj, v);
+                    } catch (IllegalArgumentException | IllegalAccessException e) {
+                        LOG.warn("Field {} of {} failed set.", fields[j].getType().getName(), obj.getClass().getName());
+                    }
+                }
+            }
+            return obj;
         }
     }
 }

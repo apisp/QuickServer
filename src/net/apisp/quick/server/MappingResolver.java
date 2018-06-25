@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018, Ujued and APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import net.apisp.quick.core.annotation.Scanning;
 import net.apisp.quick.core.annotation.View;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpMethods;
-import net.apisp.quick.ioc.Injections;
+import net.apisp.quick.ioc.Container.Injections;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;

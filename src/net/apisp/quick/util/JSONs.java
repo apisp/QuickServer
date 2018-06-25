@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,9 +95,7 @@ public class JSONs {
                 List<?> l = listPairs.get(i).getValue();
                 for (int j = 0; j < l.size(); j++) {
                     Class<?> pojoClass = l.get(j).getClass();
-                    if (pojoClass.equals(Integer.class) || pojoClass.equals(int.class) || pojoClass.equals(Double.class)
-                            || pojoClass.equals(Double.class) || pojoClass.equals(double.class)
-                            || pojoClass.equals(Short.class) || pojoClass.equals(short.class)) {
+                    if (Number.class.isAssignableFrom(pojoClass) || pojoClass.isPrimitive()) {
                         jsonBuilder.append(l.get(j));
                     } else if (pojoClass.equals(String.class) || pojoClass.equals(Date.class)) {
                         jsonBuilder.append('"').append(l.get(j)).append('"');
@@ -126,9 +124,7 @@ public class JSONs {
     private static final JSON parse(Object pojo) {
         JSON jsonStr = new JSON();
         Class<?> pojoClass = pojo.getClass();
-        if (pojoClass.equals(Integer.class) || pojoClass.equals(int.class) || pojoClass.equals(Double.class)
-                || pojoClass.equals(Double.class) || pojoClass.equals(double.class) || pojoClass.equals(Short.class)
-                || pojoClass.equals(short.class)) {
+        if (Number.class.isAssignableFrom(pojoClass) || pojoClass.isPrimitive()) {
         } else if (pojoClass.equals(String.class) || pojoClass.equals(Date.class)) {
             return null;
         } else if (pojoClass.equals(List.class) || List.class.isAssignableFrom(pojoClass)) {
@@ -139,11 +135,7 @@ public class JSONs {
         Field[] fields = pojoClass.getDeclaredFields();
         for (int i = 0; i < fields.length; i++) {
             fields[i].setAccessible(true);
-            if (fields[i].getType().equals(Integer.class) || fields[i].getType().equals(int.class)
-                    || fields[i].getType().equals(Double.class) || fields[i].getType().equals(Double.class)
-                    || fields[i].getType().equals(double.class) || fields[i].getType().equals(Short.class)
-                    || fields[i].getType().equals(short.class) || fields[i].getType().equals(Boolean.class)
-                    || fields[i].getType().equals(boolean.class)) {
+            if (fields[i].getType().isPrimitive() || Number.class.isAssignableFrom(fields[i].getType())) {
                 try {
                     jsonStr.put(fields[i].getName(), fields[i].get(pojo));
                 } catch (IllegalArgumentException | IllegalAccessException e) {
