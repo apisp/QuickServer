@@ -15,8 +15,9 @@
 
 #### 1.新建Java源码文件Demo.java (基于默认配置正常运行，需要用UTF-8编码该文件)
 ```java
-import net.apisp.quick.annotation.Get;
+import org.json.JSONObject;
 import net.apisp.quick.core.Quick;
+import net.apisp.quick.core.annotation.Get;
 
 public class Demo {
     public static void main(String[] args) {
@@ -24,8 +25,8 @@ public class Demo {
     }
 
     @Get("/")
-    public String hello() {
-        return "Hello World";
+    public JSONObject hello() {
+        return new JSONObject().put("message", "Hello World");
     }
 }
 ```
