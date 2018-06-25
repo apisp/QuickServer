@@ -16,11 +16,16 @@
 package net.apisp.quick.support;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.json.JSONObject;
 
+import net.apisp.quick.core.ContextEnhancer;
 import net.apisp.quick.core.WebContext;
 import net.apisp.quick.core.annotation.CrossDomain;
 import net.apisp.quick.core.annotation.Get;
@@ -28,7 +33,14 @@ import net.apisp.quick.core.annotation.Post;
 import net.apisp.quick.core.annotation.View;
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.core.http.HttpResponse;
+import net.apisp.quick.ioc.ClassScanner;
+import net.apisp.quick.ioc.SimpleClassScanner;
+import net.apisp.quick.ioc.annotation.Autowired;
 import net.apisp.quick.ioc.annotation.Controller;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
+import net.apisp.quick.server.MappingResolver;
+import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.util.Quicks;
 import net.apisp.quick.util.Strings;
 
@@ -39,6 +51,16 @@ import net.apisp.quick.util.Strings;
 @Controller
 @CrossDomain
 public class QuickSystemController {
+    private static final Log LOG = LogFactory.getLog(QuickSystemController.class);
+
+    @Autowired
+    private ServerContext serverContext;
+
+    @Autowired("quickServer.bootClass")
+    private Class<?> bootClass;
+
+    @Autowired("user.classpath.uri")
+    private URI classpathURI;
 
     @Get("/_quick.html")
     @View("/net/apisp/quick/support/html")
@@ -70,9 +92,7 @@ public class QuickSystemController {
     @Get("/_quick/info")
     public JSONObject info(WebContext ctx, HttpRequest req, HttpResponse resp) {
         if (!SupportUtils.checkPermission(req)) {
-            resp.header("Content-Type", "text/plain;charset=utf-8");
-            resp.body("non permission.".getBytes());
-            return null;
+            return new JSONObject().put("permission", "denied");
         }
         JSONObject info = new JSONObject();
         info.put("version", Quicks.version());
@@ -86,13 +106,34 @@ public class QuickSystemController {
         return info;
     }
 
-    @Get("/_quick/prepare_ctx")
+    @Get("/_quick/enhance_ctx")
     public JSONObject prepareContext(HttpRequest req, HttpResponse resp) {
         if (!SupportUtils.checkPermission(req)) {
-            resp.header("Content-Type", "text/plain;charset=utf-8");
-            resp.body("non permission.".getBytes());
-            return null;
+            return new JSONObject().put("permission", "denied");
         }
-        return new JSONObject();
+        Set<String> pset = new HashSet<>();
+        ClassScanner classScanner = SimpleClassScanner.create(classpathURI, Quicks.packageName(bootClass));
+        Class<? extends ContextEnhancer>[] preparations = classScanner.getByInterface(ContextEnhancer.class);
+        for (int i = 0; i < preparations.length; i++) {
+            try {
+                ContextEnhancer preparation = (ContextEnhancer) preparations[i].newInstance();
+                preparation.enhance(serverContext);
+                pset.add(preparations[i].getName());
+            } catch (InstantiationException | IllegalAccessException e) {
+                LOG.warn("{} is not suitable.", preparations[i]);
+            }
+        }
+        return new JSONObject().put("preparations", Strings.valueOf(pset));
+    }
+
+    @Get("/_quick/load_controller")
+    public JSONObject loadController(HttpRequest req, HttpResponse resp) {
+        if (!SupportUtils.checkPermission(req)) {
+            return new JSONObject().put("permission", "denied");
+        }
+        ClassScanner classScanner = SimpleClassScanner.create(classpathURI, Quicks.packageName(bootClass));
+        Class<?>[] controllers = classScanner.getByAnnotation(Controller.class);
+        serverContext.singleton(MappingResolver.class).addControllerClasses(controllers).resolve();
+        return new JSONObject().put("new_controllers", Arrays.toString(controllers));
     }
 }

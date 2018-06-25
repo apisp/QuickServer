@@ -78,6 +78,7 @@ public class ServerContext implements QuickContext {
         if (instance == null) {
             try {
                 instance = new ServerContext();
+                instance.accept(instance);
             } catch (Throwable e) {
             }
         }

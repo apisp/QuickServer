@@ -80,12 +80,14 @@ public class Quick implements Bootable<ServerContext> {
     private void initServer() {
         Configuration.applySystemArgs(bootArgs);
         this.serverContext = ServerContext.init();
+        this.serverContext.accept("quickServer.bootClass", bootClass);
         this.server = Quick.newServer(serverContext.serverClass());
     }
-    
+
     private void prepareServer() {
         // Context单例缓存
-        SimpleClassScanner classScanner = SimpleClassScanner.create(userBin, Quicks.packageName(bootClass.getName()));
+        SimpleClassScanner classScanner = SimpleClassScanner.create(userBin, Quicks.packageName(bootClass));
+        serverContext.accept("user.classpath.uri", userBin);
         Class<?>[] factories = classScanner.getByAnnotation(Factory.class);
         Class<?>[] singletons = classScanner.getByAnnotation(Singleton.class);
         SingletonRegister singletonRegister = new SingletonRegister();
@@ -99,11 +101,11 @@ public class Quick implements Bootable<ServerContext> {
         singletonRegister.factories(supportClassScanner.getByAnnotation(Factory.class)).cache(serverContext);
 
         // Context做最后的准备
-        Class<?>[] preparations = classScanner.getByInterface(ContextPreparation.class);
+        Class<?>[] preparations = classScanner.getByInterface(ContextEnhancer.class);
         for (int i = 0; i < preparations.length; i++) {
             try {
-                ContextPreparation preparation = (ContextPreparation) preparations[i].newInstance();
-                preparation.prepare(serverContext);
+                ContextEnhancer preparation = (ContextEnhancer) preparations[i].newInstance();
+                preparation.enhance(serverContext);
                 LOG.info("{} preapared.", preparations[i].getName());
             } catch (InstantiationException | IllegalAccessException e) {
                 LOG.warn("{} is not suitable.", preparations[i]);
@@ -113,9 +115,9 @@ public class Quick implements Bootable<ServerContext> {
         // 解决URI的映射关系
         Class<?>[] controllerClss = classScanner.getByAnnotation(Controller.class);
         Class<?>[] supportControllerClss = supportClassScanner.getByAnnotation(Controller.class);
-        MappingResolver.prepare(bootClass, serverContext).addControllerClasses(controllerClss)
-                .addControllerClasses(supportControllerClss).resolve();
-
+        MappingResolver resolver = MappingResolver.prepare(bootClass, serverContext);
+        serverContext.accept(resolver);
+        resolver.addControllerClasses(controllerClss).addControllerClasses(supportControllerClss).resolve();
     }
 
     /**

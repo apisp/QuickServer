@@ -28,6 +28,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * 实验性质的工具
@@ -36,11 +37,11 @@ import java.util.HashMap;
  * @date 2018-06-22 18:18:58
  */
 public abstract class Quicks {
-    public static String packageName(String className) {
-        if (className.indexOf('.') == -1) {
+    public static String packageName(Class<?> bootClass) {
+        if (Objects.isNull(bootClass) || bootClass.getName().indexOf('.') == -1) {
             return "";
         }
-        return className.substring(0, className.lastIndexOf('.'));
+        return bootClass.getName().substring(0, bootClass.getName().lastIndexOf('.'));
     }
 
     /**
@@ -117,6 +118,7 @@ public abstract class Quicks {
 
     /**
      * 获取Quick Server 版本号
+     * 
      * @return
      */
     public static String version() {

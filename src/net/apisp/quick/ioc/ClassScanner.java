@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,5 +27,5 @@ public interface ClassScanner {
 
     Class<?>[] getByAnnotation(Class<? extends Annotation> anno);
 
-    Class<?>[] getByInterface(Class<?> ifce);
+    <T> Class<T>[] getByInterface(Class<T> ifce);
 }

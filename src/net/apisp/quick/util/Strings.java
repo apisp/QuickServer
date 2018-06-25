@@ -82,7 +82,7 @@ public abstract class Strings {
             char c = pattern.charAt(i);
             if (c == '{' && pattern.charAt(++i) == '}') {
                 if (index < args.length) {
-                    finalStr.append(args[index++].toString());
+                    finalStr.append(Optional.ofNullable(args[index++]).orElse("null").toString());
                 } else {
                     finalStr.append("{}");
                 }

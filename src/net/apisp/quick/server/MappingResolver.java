@@ -77,6 +77,9 @@ public class MappingResolver {
     }
 
     public MappingResolver addControllerClasses(Class<?>[] classes) {
+        if (Objects.isNull(classes)) {
+            return this;
+        }
         for (int i = 0; i < classes.length; i++) {
             this.controllerClasses.add(classes[i]);
         }
@@ -106,8 +109,7 @@ public class MappingResolver {
             // 创建单例控制器对象，并缓存到WebContext
             try {
                 controller = clazz.newInstance();
-                Injections.inject(controller, serverContext); // 单例对象自动注入Controller
-                serverContext.accept(controller);
+                Injections.inject(controller, serverContext); // 单例对象自动注入到Controller
             } catch (InstantiationException | IllegalAccessException e1) {
                 LOG.error("控制器类需要无参数构造！");
             }
@@ -198,7 +200,12 @@ public class MappingResolver {
                     serverContext.mapping(mappingKey, info);
                 }
             }
+
+            // Mapping 完成，缓存Controller实例
+            serverContext.accept(controller);
         }
+        // 指定的Controller类Mapping完毕，清空
+        controllerClasses.clear();
     }
 
     /**
@@ -215,5 +222,4 @@ public class MappingResolver {
         }
         return instance;
     }
-
 }

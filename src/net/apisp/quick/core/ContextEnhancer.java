@@ -21,6 +21,6 @@ import net.apisp.quick.server.var.QuickContext;
  * @author Ujued
  * @date 2018-06-24 17:49:52
  */
-public interface ContextPreparation {
-    void prepare(QuickContext context);
+public interface ContextEnhancer {
+    void enhance(QuickContext context);
 }

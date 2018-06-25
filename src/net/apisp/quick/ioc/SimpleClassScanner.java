@@ -113,14 +113,15 @@ public class SimpleClassScanner implements ClassScanner {
     }
 
     @Override
-    public Class<?>[] getByInterface(Class<?> ifce) {
+    @SuppressWarnings("unchecked")
+    public <T> Class<T>[] getByInterface(Class<T> ifce) {
         List<Class<?>> clses = new ArrayList<>();
         Iterator<Class<?>> clsIter = classes.iterator();
         if (!ifce.isInterface()) {
             return null;
         }
         while (clsIter.hasNext()) {
-            Class<?> class1 = (Class<?>) clsIter.next();
+            Class<?> class1 = clsIter.next();
             if (ifce.isAssignableFrom(class1)) {
                 clses.add(class1);
             }
@@ -129,7 +130,7 @@ public class SimpleClassScanner implements ClassScanner {
         for (int i = 0; i < clss.length; i++) {
             clss[i] = clses.get(i);
         }
-        return clss;
+        return (Class<T>[]) clss;
     }
 
     @Override

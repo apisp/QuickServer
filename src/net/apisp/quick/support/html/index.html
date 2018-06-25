@@ -23,13 +23,13 @@
             </div>
             <div class="row">
                 <div class="col-sm-2">{{ info.cache.size }}</div>
-                <div class="col-sm-6">{{ info.cache.singletons }}</div>
+                <div class="col-sm-6" v-html="info.cache.singletons"></div>
                 <div class="col-sm-3">{{ info.running_time }}</div>
                 <div class="col-sm-1">{{ info.version }}</div>
             </div>
             <hr class="my-4">
-            <button class="btn btn-primary" @click="prepareContext">ReprepareContext</button>
-            <button class="btn btn-primary" @click="loadController">ReloadController</button>
+            <button class="btn btn-primary" @click="enhanceContext">EnhanceContext</button>
+            <button class="btn btn-primary" @click="loadController">LoadController</button>
         </div>
         <div>{{ apisp_info }}</div>
     </div>
@@ -52,18 +52,36 @@
           axios.get('/_quick/info')
               .then(function (response) {
                 vapp.info = response.data
+                arr = vapp.info.cache.singletons.split(', ')
+                vapp.info.cache.singletons = ''
+                for(i in arr){
+                    vapp.info.cache.singletons += (arr[i] + '<br />')
+                }
               })
               .catch(function (error) {
                 console.log(error);
-              });
-            
+              })
           },
         methods: {
-            prepareContext: function(){
-            
+            enhanceContext: function(){
+              axios.get('/_quick/enhance_ctx')
+              .then(function (response) {
+                alert("OK")
+                window.location.href = '/_quick.html'
+              })
+              .catch(function (error) {
+                console.log(error);
+              })
             },
             loadController: function(){
-                
+                axios.get('/_quick/load_controller')
+              .then(function (response) {
+                alert("OK")
+                window.location.href = '/_quick.html'
+              })
+              .catch(function (error) {
+                console.log(error);
+              })
             }
         }
         })
