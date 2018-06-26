@@ -17,7 +17,7 @@ package net.apisp.quick.core.std;
 
 import java.util.Set;
 
-import net.apisp.quick.core.WebContext;
+import net.apisp.quick.core.http.WebContext;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.thread.TaskExecutor;
 

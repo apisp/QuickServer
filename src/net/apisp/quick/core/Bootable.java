@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,17 @@
 package net.apisp.quick.core;
 
 /**
+ * 所有可启动的对象都要实现的接口
+ * 
  * @author UJUED
  * @date 2018-06-11 18:00:31
  */
 public interface Bootable<T> {
+    
+    /**
+     * 启动，并返回一个相关对象
+     * 
+     * @return
+     */
     T boot();
 }

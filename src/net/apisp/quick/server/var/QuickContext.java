@@ -18,7 +18,7 @@ package net.apisp.quick.server.var;
 import java.nio.file.Path;
 import java.util.Map;
 
-import net.apisp.quick.core.WebContext;
+import net.apisp.quick.core.http.WebContext;
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 

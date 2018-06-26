@@ -21,6 +21,12 @@ public class DemoAPI {
     @Autowired("charset") // 从上下文读取配置并注入
     private String charset;
 
+    @Get("/") @View
+    public String index(Map<String, Object> model){
+        model.put("title", "Index");
+        return "index.html";
+    }
+
     @Post("/data")
     public JSONObject getData(JSONObject body) {
         return body;
@@ -52,7 +58,7 @@ public class DemoAPI {
 
 ### 1.核心
 ##### 一些特性
-接口`net.apisp.quick.core.ContextPreparation`作用是在系统缓存所有需要缓存的对象后，执行的一个自定义准备工作。你可以自己实现一些准备工作，系统会自动扫描并执行。
+接口`net.apisp.quick.core.ContextEnhcancer`作用是在系统缓存所有需要缓存的对象后，执行的一个自定义准备工作。你可以自己实现一些准备工作，系统会自动扫描并执行。
 
 撰写中...
 ### 2.IOC
@@ -67,10 +73,12 @@ public class DemoAPI {
 
 `@Autowired` 作用在类属性上。自动注入单例容器里的对象。默认按类型注入。
 
+框架先缓存  `@Factory` 指定的工厂生产的对象，再缓存`@Singleton`指定的类单例对象。注意不要有循环依赖。
+
 撰写中...
 ### 3.内建支持控制台
 ![QuickServer Buildin Support](https://raw.githubusercontent.com/apisp/resources/master/support.png)
 `图片 - 2`
 
-框架有内置的支持页面，它会有些框架的说明、注意事项，以及相关资讯。请访问 `/_quick.html`，查看详情。
-`QuickServer` 跑起来后，可以动态添加补丁而不用停止服务。你可以编写`net.apisp.quick.ContextEnhancer`实现类，或者是新增的`Controller`类，编译为`.class`后放入  `QuickServer`应用的类路径下，进入`内置支持控制台`打补丁。
+框架有内置的支持页面，它会有些框架的说明、注意事项，以及相关资讯。请访问 `http://127.0.0.1:8908/_quick.html`，查看详情。
+`QuickServer` 跑起来后，可以动态添加补丁而不用停止服务。你可以编写`net.apisp.quick.core.ContextEnhcancer`实现类，或者是新增的`Controller`类，编译为`.class`后放入  `QuickServer`应用的类路径下，进入`内置支持控制台`打补丁。

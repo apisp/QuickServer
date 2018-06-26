@@ -26,13 +26,13 @@ import java.util.Set;
 import org.json.JSONObject;
 
 import net.apisp.quick.core.ContextEnhancer;
-import net.apisp.quick.core.WebContext;
 import net.apisp.quick.core.annotation.CrossDomain;
 import net.apisp.quick.core.annotation.Get;
 import net.apisp.quick.core.annotation.Post;
 import net.apisp.quick.core.annotation.View;
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.core.http.HttpResponse;
+import net.apisp.quick.core.http.WebContext;
 import net.apisp.quick.ioc.ClassScanner;
 import net.apisp.quick.ioc.Container.Injections;
 import net.apisp.quick.ioc.SimpleClassScanner;

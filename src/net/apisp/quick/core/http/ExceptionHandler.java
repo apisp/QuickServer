@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.core;
-
-import net.apisp.quick.ioc.Container;
-import net.apisp.quick.thread.TaskExecutor;
+package net.apisp.quick.core.http;
 
 /**
- * WEB上下文
+ * 控制器统一异常处理接口
  * 
- * @author UJUED
- * @date 2018-06-10 11:10:22
+ * @author Ujued
+ * @date 2018-06-26 17:35:20
  */
-public interface WebContext extends Container {
-    TaskExecutor executor();
-
-    String charset();
+public interface ExceptionHandler {
+    
+    /**
+     * 某次请求上下文下异常处理
+     * 
+     * @param req 请求对象
+     * @param resp 响应对象
+     * @param e  发生的异常
+     */
+    void handle(HttpRequest req, HttpResponse resp, Throwable e);
 }

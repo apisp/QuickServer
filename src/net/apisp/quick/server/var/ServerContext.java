@@ -28,9 +28,9 @@ import java.util.regex.Pattern;
 
 import net.apisp.quick.annotation.ReflectionCall;
 import net.apisp.quick.config.Configuration;
-import net.apisp.quick.core.ExceptionHandler;
 import net.apisp.quick.core.annotation.ResponseType;
 import net.apisp.quick.core.http.ContentTypes;
+import net.apisp.quick.core.http.ExceptionHandler;
 import net.apisp.quick.ioc.Container;
 import net.apisp.quick.ioc.SimpleContainer;
 import net.apisp.quick.log.Log;

@@ -16,9 +16,18 @@
 package net.apisp.quick.core;
 
 /**
+ * 所有可以缓存的对象都要继承这个接口
+ * 
  * @author UJUED
  * @date 2018-06-13 14:21:18
  */
 public interface Cacheable<T> {
+    
+    /**
+     * 开始缓存到给定容器，并返回该容器
+     * 
+     * @param obj 缓存容器
+     * @return 缓存容器
+     */
     T cache(T obj);
 }

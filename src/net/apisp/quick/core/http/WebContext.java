@@ -13,15 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.core;
+package net.apisp.quick.core.http;
 
-import net.apisp.quick.core.http.HttpRequest;
-import net.apisp.quick.core.http.HttpResponse;
+import net.apisp.quick.ioc.Container;
+import net.apisp.quick.thread.TaskExecutor;
 
 /**
- * @author Ujued
- * @date 2018-06-26 17:35:20
+ * WEB上下文
+ * 
+ * @author UJUED
+ * @date 2018-06-10 11:10:22
  */
-public interface ExceptionHandler {
-    void handle(HttpRequest req, HttpResponse resp, Throwable e);
+public interface WebContext extends Container {
+    
+    /**
+     * 线程池。“提交现场能访问到的参数”可以随着任务一起提交
+     * 
+     * @return 线程池
+     */
+    TaskExecutor executor();
+
+    /**
+     * 编码集
+     * 
+     * @return 编码集
+     */
+    String charset();
 }

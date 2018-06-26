@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,24 @@ package net.apisp.quick.core.http;
 /**
  * HTTP响应接口
  * 
- * @author UJUED
+ * @author Ujued
  * @date 2018-06-09 23:37:32
  */
 public interface HttpResponse {
+    
+    /**
+     * 设置一项响应头
+     * 
+     * @param key
+     * @param value
+     */
     void header(String key, String value);
 
+    /**
+     * 要求客户端存储一个Cookie
+     * 
+     * @param cookie
+     */
     void cookie(HttpCookie cookie);
 
     /**
@@ -34,5 +46,10 @@ public interface HttpResponse {
      */
     void cookie(String key, String content);
 
+    /**
+     * 设置响应数据
+     * 
+     * @param body
+     */
     void body(byte[] body);
 }
