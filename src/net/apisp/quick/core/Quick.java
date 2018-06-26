@@ -97,8 +97,11 @@ public class Quick implements Bootable<ServerContext> {
         String supportPackage = "/net/apisp/quick/support/";
         String url = this.getClass().getResource(supportPackage).toString();
         URI uri = URI.create(url.substring(0, url.length() - supportPackage.length() + 1));
+        boolean shouldScanningSupport = !uri.toString().equals(userBin.toString());
         SimpleClassScanner supportClassScanner = SimpleClassScanner.create(uri, "net.apisp.quick.support");
-        singletonRegister.factories(supportClassScanner.getByAnnotation(Factory.class)).cache(serverContext);
+        if (shouldScanningSupport) {
+            singletonRegister.factories(supportClassScanner.getByAnnotation(Factory.class)).cache(serverContext);
+        }
 
         // Context做最后的准备
         Class<?>[] preparations = classScanner.getByInterface(ContextEnhancer.class);
@@ -113,11 +116,15 @@ public class Quick implements Bootable<ServerContext> {
         }
 
         // 解决URI的映射关系
-        Class<?>[] controllerClss = classScanner.getByAnnotation(Controller.class);
-        Class<?>[] supportControllerClss = supportClassScanner.getByAnnotation(Controller.class);
         MappingResolver resolver = MappingResolver.prepare(bootClass, serverContext);
         serverContext.accept(resolver);
-        resolver.addControllerClasses(controllerClss).addControllerClasses(supportControllerClss).resolve();
+        Class<?>[] controllerClss = classScanner.getByAnnotation(Controller.class);
+        resolver.addControllerClasses(controllerClss);
+        if (shouldScanningSupport) {
+            Class<?>[] supportControllerClss = supportClassScanner.getByAnnotation(Controller.class);
+            resolver.addControllerClasses(supportControllerClss);
+        }
+        resolver.resolve();
     }
 
     /**
