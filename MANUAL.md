@@ -76,3 +76,4 @@ public class Demo {
 撰写中...
 ### 3.内建支持
 框架有内置的支持页面，它会有些框架的说明、注意事项，以及相关资讯。请访问 `/_quick.html`，查看详情。
+`QuickServer` 跑起来后，可以动态添加补丁而不用停止服务。你可以编写`net.apisp.quick.ContextEnhancer`实现类，或者是新增的`Controller`类，编译为`.class`后放入  `QuickServer`应用的类路径下，进入`内置支持控制台`打补丁。
