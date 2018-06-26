@@ -111,7 +111,7 @@ public class FactoryResolver {
                             }
                         }
                     } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                        LOG.warn("Class {} not cached. Cause: {}", obj.getClass().getName(), e.getMessage());
+                        LOG.warn("Class {} not cached. Cause: {}", obj.getClass().getName(), e.getCause().getMessage());
                     }
                 }
             }

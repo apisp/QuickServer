@@ -43,8 +43,7 @@ public class QuickExceptionHandler implements ExceptionHandler {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         String userAgent = req.header("User-Agent");
         if (userAgent != null && userAgent.contains("Mozilla")) {
-            Optional<String> body = Optional
-                    .ofNullable((String) serverContext.singleton(String.valueOf(status.getCode() + ".html")));
+            Optional<String> body = Optional.ofNullable((String) serverContext.singleton("500.html"));
             resp.body(Strings.safeGetBytes(body.orElse(String.valueOf(status.getCode())), serverContext.charset()));
         } else {
             resp.body((status.getCode() + " " + status.getDesc()).getBytes());
