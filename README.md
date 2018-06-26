@@ -2,7 +2,7 @@
 
 * 需要用Java快速提供API，快来试试QuickServer框架吧
 * 熟练使用QuickServer，对于到Spring相关产品的使用迁移有不可描述的便利
-* 无任何第三方依赖，只有一个176KB左右的Jar包(内含org.json三方包)，满足你快速提供API
+* 无任何第三方依赖，只有一个不到200KB的Jar包(内含org.json三方包)，满足你快速提供API
 
 `IOC` `MVC` `RESTful` `零配置`
 
