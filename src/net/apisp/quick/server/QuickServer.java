@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.thread.Task;
 import net.apisp.quick.thread.TaskUnit;
-import net.apisp.quick.util.Quicks;
+import net.apisp.quick.util.Reflects;
 
 /**
  * QuickServer规范
@@ -80,13 +80,13 @@ class QuickServerThread extends Thread {
         try {
             runner.run(serverContext);
         } catch (BindException e) {
-            Quicks.invoke(serverContext, "setNormative", false);
+            Reflects.invoke(serverContext, "setNormative", false);
             LOG.error("The port {} already inuse.", serverContext.port());
         } catch (IOException e) {
-            Quicks.invoke(serverContext, "setNormative", false);
+            Reflects.invoke(serverContext, "setNormative", false);
             LOG.error("Server start error, IO Exception occered.");
         } catch (Exception e) {
-            Quicks.invoke(serverContext, "setNormative", false);
+            Reflects.invoke(serverContext, "setNormative", false);
             LOG.error("Server start error, Unkonwn Exception occered. {}", e);
             e.printStackTrace();
         }

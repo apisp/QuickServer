@@ -36,6 +36,10 @@ public interface Container {
 
     void accept(String name, ObjectCreaterUnit creater);
 
+    boolean contains(Class<?> type);
+
+    boolean contains(String name);
+
     Set<String> objects();
 
     Object setting(String key);

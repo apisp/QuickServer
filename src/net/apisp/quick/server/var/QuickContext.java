@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,6 @@ import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
  * @date 2018-06-15 00:53:51
  */
 public interface QuickContext extends WebContext {
-    Path tmpDirPath(String... more);
-
-    int port();
-
-    Class<QuickServer> serverClass();
-
-    Map<String, String> responseHeaders();
-
     RequestExecutorInfo hit(String method, String uri);
 
     boolean isNormative();
@@ -42,4 +34,13 @@ public interface QuickContext extends WebContext {
     void mapping(String key, RequestExecutorInfo executeInfo);
 
     void mapping(String key, Class<?> controllerClass, String methodName, Class<?>... paramTypes);
+
+    int port();
+
+    Map<String, String> responseHeaders();
+
+    Class<QuickServer> serverClass();
+
+    Path tmpDirPath(String... more);
+
 }

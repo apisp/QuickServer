@@ -15,7 +15,6 @@
  */
 package net.apisp.quick.server;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
@@ -38,7 +37,7 @@ import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 import net.apisp.quick.server.var.ServerContext;
-import net.apisp.quick.util.Quicks;
+import net.apisp.quick.util.Reflects;
 
 /**
  * 映射决策
@@ -57,21 +56,18 @@ public class MappingResolver {
     }
 
     private void prepare() {
-        Annotation[] annos = bootClass.getAnnotations();
-        for (int i = 0; i < annos.length; i++) {
-            if (annos[i] instanceof Scanning) {
-                Class<?>[] cls = ((Scanning) annos[i]).value();
-                for (int j = 0; j < cls.length; j++) {
-                    controllerClasses.add(cls[j]);
-                }
-                continue;
-            } else if (annos[i] instanceof CrossDomain) {
-                serverContext.responseHeaders().put("Access-Control-Allow-Origin", "*");
-                serverContext.responseHeaders().put("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD");
-                serverContext.responseHeaders().put("Access-Control-Allow-Headers", "x-requested-with");
-                Quicks.invoke(serverContext, "setCrossDomain", true);
-                continue;
+        Scanning scanning = bootClass.getAnnotation(Scanning.class);
+        CrossDomain crossDomain = bootClass.getAnnotation(CrossDomain.class);
+        if (Objects.nonNull(scanning)) {
+            for (Class<?> cls : scanning.value()) {
+                controllerClasses.add(cls);
             }
+        }
+        if (Objects.nonNull(crossDomain)) {
+            serverContext.responseHeaders().put("Access-Control-Allow-Origin", "*");
+            serverContext.responseHeaders().put("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD");
+            serverContext.responseHeaders().put("Access-Control-Allow-Headers", "x-requested-with");
+            Reflects.invoke(serverContext, "setCrossDomain", true);
         }
         controllerClasses.add(bootClass);
     }
@@ -90,27 +86,18 @@ public class MappingResolver {
      * 开始映射到ServerContext
      */
     public void resolve() {
-        Class<?> clazz;
-        Method method;
-        Get getMapping = null;
-        Post postMaping = null;
-        Put putMapping = null;
-        Delete deleteMapping = null;
-
-        ResponseType responseType = null;
-        View view = null;
-        CrossDomain crossDomain = null;
-
-        String mappingKey = null;
         Object controller = null;
         Iterator<Class<?>> controllerIter = controllerClasses.iterator();
         while (controllerIter.hasNext()) {
-            clazz = (Class<?>) controllerIter.next();
-            // 创建单例控制器对象，并缓存到WebContext
+            Class<?> clazz = (Class<?>) controllerIter.next();
+            // 未缓存的控制器对象，创建并缓存
+            if (serverContext.contains(clazz)) {
+                continue;
+            }
             try {
-                controller = clazz.newInstance();
-                Injections.inject(controller, serverContext); // 单例对象自动注入到Controller
-            } catch (InstantiationException | IllegalAccessException e1) {
+                // 单例对象自动注入到Controller
+                controller = Injections.inject(clazz.newInstance(), serverContext);
+            } catch (InstantiationException | IllegalAccessException e) {
                 LOG.error("控制器类需要无参数构造！");
             }
 
@@ -122,18 +109,19 @@ public class MappingResolver {
 
             Method[] methods = clazz.getDeclaredMethods();
             for (int i = 0; i < methods.length; i++) {
-                method = methods[i];
+                Method method = methods[i];
                 if (!Modifier.isPublic(method.getModifiers())) {
                     continue; // 抛弃非共有方法
                 }
-                getMapping = method.getAnnotation(Get.class);
-                postMaping = method.getAnnotation(Post.class);
-                putMapping = method.getAnnotation(Put.class);
-                deleteMapping = method.getAnnotation(Delete.class);
+                Get getMapping = method.getAnnotation(Get.class);
+                Post postMaping = method.getAnnotation(Post.class);
+                Put putMapping = method.getAnnotation(Put.class);
+                Delete deleteMapping = method.getAnnotation(Delete.class);
 
-                responseType = method.getAnnotation(ResponseType.class);
-                view = method.getAnnotation(View.class);
+                ResponseType responseType = method.getAnnotation(ResponseType.class);
+                View view = method.getAnnotation(View.class);
 
+                CrossDomain crossDomain = null;
                 // 上下文设置了跨域，就不需要检查
                 if (!serverContext.isCrossDomain()) {
                     crossDomain = method.getAnnotation(CrossDomain.class);
@@ -162,7 +150,7 @@ public class MappingResolver {
                         uri = getMapping.value();
                         break;
                     }
-                    mappingKey = httpMethod + " " + uri.trim();
+                    String mappingKey = httpMethod + " " + uri.trim();
 
                     RequestExecutorInfo info = new RequestExecutorInfo(method, controller);
 

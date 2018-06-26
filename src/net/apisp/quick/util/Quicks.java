@@ -16,8 +16,6 @@
 package net.apisp.quick.util;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemAlreadyExistsException;
@@ -42,30 +40,6 @@ public abstract class Quicks {
             return "";
         }
         return bootClass.getName().substring(0, bootClass.getName().lastIndexOf('.'));
-    }
-
-    /**
-     * 反射执行某对象函数
-     * 
-     * @param obj
-     * @param methodName
-     * @param args
-     */
-    public static void invoke(Object obj, String methodName, Object... args) {
-        Class<?> cls = obj.getClass();
-        Class<?>[] parameterTypes = new Class<?>[args.length];
-        for (int i = 0; i < args.length; i++) {
-            parameterTypes[i] = args[i].getClass();
-        }
-        try {
-            Method m = cls.getDeclaredMethod(methodName, parameterTypes);
-            m.setAccessible(true);
-            m.invoke(obj, args);
-        } catch (NoSuchMethodException | SecurityException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
     }
 
     /**

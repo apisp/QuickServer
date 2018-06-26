@@ -17,6 +17,7 @@ package net.apisp.quick.ioc;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import net.apisp.quick.config.Configuration;
@@ -103,5 +104,15 @@ public class SimpleContainer implements Container {
     @Override
     public Object setting(String key) {
         return Configuration.get(key);
+    }
+
+    @Override
+    public boolean contains(Class<?> type) {
+        return Objects.nonNull(this.singleton(type));
+    }
+
+    @Override
+    public boolean contains(String name) {
+        return Objects.nonNull(this.singleton(name));
     }
 }

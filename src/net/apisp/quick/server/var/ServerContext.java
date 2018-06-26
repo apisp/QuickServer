@@ -279,4 +279,14 @@ public class ServerContext implements QuickContext {
     public ThreadLocal<?> safeSingleton(String name) {
         return this.container.safeSingleton(name);
     }
+
+    @Override
+    public boolean contains(Class<?> type) {
+        return this.container.contains(type);
+    }
+
+    @Override
+    public boolean contains(String name) {
+        return this.container.contains(name);
+    }
 }

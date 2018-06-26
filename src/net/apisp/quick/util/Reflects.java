@@ -15,6 +15,9 @@
  */
 package net.apisp.quick.util;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 /**
  * 反射工具集合
  * 
@@ -22,5 +25,27 @@ package net.apisp.quick.util;
  * @date 2018-06-25 18:28:21
  */
 public abstract class Reflects {
-
+    /**
+     * 反射执行某对象函数
+     * 
+     * @param obj
+     * @param methodName
+     * @param args
+     */
+    public static void invoke(Object obj, String methodName, Object... args) {
+        Class<?> cls = obj.getClass();
+        Class<?>[] parameterTypes = new Class<?>[args.length];
+        for (int i = 0; i < args.length; i++) {
+            parameterTypes[i] = args[i].getClass();
+        }
+        try {
+            Method m = cls.getDeclaredMethod(methodName, parameterTypes);
+            m.setAccessible(true);
+            m.invoke(obj, args);
+        } catch (NoSuchMethodException | SecurityException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
 }
