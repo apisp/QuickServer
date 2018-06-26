@@ -14,42 +14,34 @@
 
 #### 3.示例
 ```java
-public class Acknowledge {
-    String name;
-    String allCookies;
-    String sessionid;
-    String requestBody;
-    Boolean assertTrue;
-    Integer serverPort;
-    
-    // ... 省略getters、setters
-}
-```
+@Controller
+@CrossDomain // 此类所提供的API均支持跨域
+public class DemoAPI {
 
-```java
-@CrossDomain // 允许本应用提供的API跨域使用
-public class Demo {
-    public static void main(String[] args) {
-        Quick.boot(Demo.class, args); // 这里可以指定Boot类，默认是main函数所在类
+    @Autowired("charset") // 从上下文读取配置并注入
+    private String charset;
+
+    @Post("/data")
+    public JSONObject getData(JSONObject body) {
+        return body;
     }
 
-    @Get("/{name}")
-    public Acknowledge hello(@Variable("name") String name, HttpRequest req, HttpResponse resp, 
-        BodyBinary body, WebContext ctx) {
-        Acknowledge acknowledge = new Acknowledge();
-        acknowledge.allCookies = req.header("Cookie");
-        acknowledge.sessionid = req.cookie("sessionid") == null ? "" : req.cookie("sessionid").value();
-        acknowledge.requestBody = req.body().toString();
-        acknowledge.assertTrue = req.body() == body;
-        acknowledge.serverPort = (Integer) ctx.setting("server.port");
-        acknowledge.name = name;
-
-        if (req.cookie("sessionid") == null) {
-            resp.cookie("sessionid", IDs.uuid());
+    @Get("/application/{name}")
+    public JSONObject application(@Variable("name") String name, WebContext ctx, HttpRequest req, HttpResponse resp,
+            BodyBinary body) {
+        JSONObject obj = new JSONObject();
+        obj.put("cookie", req.header("Cookie"));
+        HttpCookie session = req.cookie("sessionid");
+        if (Objects.isNull(session)) {
+            resp.cookie("sessionid", Strings.uuid());
+        } else {
+            obj.put("sessionid", session.value());
         }
-        resp.header("My-Header", "some checkcode");
-
-        return acknowledge; // 响应内容
+        obj.put("assertTrue", req.body() == body);
+        obj.put("server.port", ctx.setting("server.port"));
+        obj.put("server.charset", charset);
+        obj.put("name", name);
+        return obj;
     }
 }
 ```
@@ -74,6 +66,6 @@ public class Demo {
 `@Autowired` 作用在类属性上。自动注入单例容器里的对象。默认按类型注入。
 
 撰写中...
-### 3.内建支持
+### 3.内建支持控制台
 框架有内置的支持页面，它会有些框架的说明、注意事项，以及相关资讯。请访问 `/_quick.html`，查看详情。
 `QuickServer` 跑起来后，可以动态添加补丁而不用停止服务。你可以编写`net.apisp.quick.ContextEnhancer`实现类，或者是新增的`Controller`类，编译为`.class`后放入  `QuickServer`应用的类路径下，进入`内置支持控制台`打补丁。
