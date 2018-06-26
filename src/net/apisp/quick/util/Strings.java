@@ -26,11 +26,15 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
+
 /**
  * @author Ujued
  * @date 2018-06-23 16:38:46
  */
 public abstract class Strings {
+    private static final Log LOG = LogFactory.getLog(Strings.class);
 
     /**
      * #{null} 或者 "" 返回真
@@ -76,6 +80,7 @@ public abstract class Strings {
      * @return
      */
     public static String template(String pattern, Object... args) {
+        pattern = Optional.ofNullable(pattern).orElse("null");
         StringBuilder finalStr = new StringBuilder();
         int index = 0;
         for (int i = 0; i < pattern.length(); i++) {
@@ -123,6 +128,10 @@ public abstract class Strings {
      * @return
      */
     public static byte[] safeGetBytes(String content, String charset) {
+        if (Objects.isNull(content) || Objects.isNull(charset)) {
+            LOG.warn("SafeGetbytes: content or charset is null.");
+            return new byte[0];
+        }
         try {
             return content.getBytes(charset);
         } catch (UnsupportedEncodingException e) {

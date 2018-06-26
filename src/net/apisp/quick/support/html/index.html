@@ -1,90 +1,97 @@
 <!doctype html>
 <html>
+
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.1/css/bootstrap.min.css">
-    <script src="https://cdn.staticfile.org/vue/2.5.17-beta.0/vue.min.js"></script>
-    <script src="https://cdn.staticfile.org/axios/0.18.0/axios.min.js"></script>
-    <title>Quick Server Support</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.1/css/bootstrap.min.css">
+  <script src="https://cdn.staticfile.org/vue/2.5.17-beta.0/vue.min.js"></script>
+  <script src="https://cdn.staticfile.org/axios/0.18.0/axios.min.js"></script>
+  <title>Quick Server 控制台</title>
 </head>
+
 <body>
-    <nav class="navbar navbar-light bg-light">
-      <span class="navbar-brand mb-0 h1">Quick Server 控制台</span>
-    </nav>
-    <br />
-    <div id="app" class="container">
-        <div class="jumbotron">
-            <div class="row">
-                <code class="col-sm-2">cacheSize</code>
-                <code class="col-sm-6">cacheSingletons</code>
-                <code class="col-sm-3">running_time</code>
-                <code class="col-sm-1">version</code>
-            </div>
-            <div class="row">
-                <div class="col-sm-2">{{ info.cache.size }}</div>
-                <div class="col-sm-6" v-html="info.cache.singletons"></div>
-                <div class="col-sm-3">{{ info.running_time }}</div>
-                <div class="col-sm-1">{{ info.version }}</div>
-            </div>
-            <hr class="my-4">
-            <button class="btn btn-primary" @click="enhanceContext">EnhanceContext</button>
-            <button class="btn btn-primary" @click="loadController">LoadController</button>
-        </div>
-        <div>{{ apisp_info }}</div>
+  <nav class="navbar navbar-light bg-light">
+    <span class="navbar-brand mb-0 h1">Quick Server 控制台</span>
+  </nav>
+  <br />
+  <div id="app" class="container">
+    <div class="jumbotron">
+      <div class="row">
+        <code class="col-sm-2">cacheSize</code>
+        <code class="col-sm-6">cacheSingletons</code>
+        <code class="col-sm-3">running_time</code>
+        <code class="col-sm-1">version</code>
+      </div>
+      <div class="row">
+        <div class="col-sm-2">{{ info.cache.size }}</div>
+        <div class="col-sm-6" v-html="info.cache.singletons"></div>
+        <div class="col-sm-3">{{ info.running_time }}</div>
+        <div class="col-sm-1">{{ info.version }}</div>
+      </div>
+      <hr class="my-4">
+      <button class="btn btn-primary" @click="enhanceContext">{{context_btn}}</button>
+      <button class="btn btn-primary" @click="loadController">{{controller_btn}}</button>
     </div>
-    <script type="text/javascript">
-        var app = new Vue({
-          el: '#app',
-          data: {
-            info: {
-              cache:{
-                size: 0,
-                singletons: 'loading...'
-              },
-              running_time: 'loading...',
-              version: 'loading...'
-            },
-            apisp_info: ''
+    <div>{{ apisp_info }}</div>
+  </div>
+  <script type="text/javascript">
+    var app = new Vue({
+      el: '#app',
+      data: {
+        info: {
+          cache: {
+            size: 0,
+            singletons: 'loading...'
           },
-          created(){
-          var vapp = this
-          axios.get('/_quick/info')
-              .then(function (response) {
-                vapp.info = response.data
-                arr = vapp.info.cache.singletons.split(', ')
-                vapp.info.cache.singletons = ''
-                for(i in arr){
-                    vapp.info.cache.singletons += (arr[i] + '<br />')
-                }
-              })
-              .catch(function (error) {
-                console.log(error);
-              })
-          },
-        methods: {
-            enhanceContext: function(){
-              axios.get('/_quick/enhance_ctx')
-              .then(function (response) {
-                alert("OK")
-                window.location.href = '/_quick.html'
-              })
-              .catch(function (error) {
-                console.log(error);
-              })
-            },
-            loadController: function(){
-                axios.get('/_quick/load_controller')
-              .then(function (response) {
-                alert("OK")
-                window.location.href = '/_quick.html'
-              })
-              .catch(function (error) {
-                console.log(error);
-              })
+          running_time: 'loading...',
+          version: 'loading...'
+        },
+        apisp_info: '',
+        context_btn: 'EnhanceContext',
+        controller_btn: 'LoadController'
+      },
+      created() {
+        var vapp = this
+        axios.get('/_quick/info')
+          .then(function (response) {
+            vapp.info = response.data
+            arr = vapp.info.cache.singletons.split(', ')
+            vapp.info.cache.singletons = ''
+            for (i in arr) {
+              vapp.info.cache.singletons += (arr[i] + '<br />')
             }
+          })
+          .catch(function (error) {
+            console.log(error);
+          })
+      },
+      methods: {
+        enhanceContext: function () {
+          this.context_btn = 'Enhancing...'
+          axios.get('/_quick/enhance_ctx')
+            .then(function (response) {
+              alert("OK")
+              window.location.href = '/_quick.html'
+            })
+            .catch(function (error) {
+              console.log(error);
+            })
+        },
+        loadController: function () {
+          this.controller_btn = 'Loading...'
+          axios.get('/_quick/load_controller')
+            .then(function (response) {
+              alert("OK")
+              window.location.href = '/_quick.html'
+            })
+            .catch(function (error) {
+              console.log(error);
+            })
         }
-        })
-    </script>
+      }
+    })
+  </script>
 </body>
+
 </html>

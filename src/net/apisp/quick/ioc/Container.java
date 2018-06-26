@@ -59,21 +59,16 @@ public interface Container {
             Object create(Object... args);
         }
 
-        private ObjectCreaterUnit() {
-        }
+        private ObjectCreater creater;
+        private Object[] args;
 
-        public static ObjectCreaterUnit create() {
-            return new ObjectCreaterUnit();
-        }
-
-        public ObjectCreaterUnit setObjectCreater(ObjectCreater creater) {
+        private ObjectCreaterUnit(ObjectCreater creater, Object... args) {
             this.creater = creater;
-            return this;
+            this.args = args;
         }
 
-        public ObjectCreaterUnit setArgs(Object[] args) {
-            this.args = args;
-            return this;
+        public static ObjectCreaterUnit create(ObjectCreater creater, Object... args) {
+            return new ObjectCreaterUnit(creater, args);
         }
 
         public ObjectCreater getObjectCreater() {
@@ -84,8 +79,6 @@ public interface Container {
             return this.args;
         }
 
-        private ObjectCreater creater;
-        private Object[] args;
     }
 
     public static class SafeObject<T> {
@@ -129,7 +122,11 @@ public interface Container {
             Autowired autowired;
             for (int j = 0; j < fields.length; j++) { // 遍历字段
                 if ((autowired = fields[j].getAnnotation(Autowired.class)) != null) {
-                    String name = autowired.value().length() > 0 ? autowired.value() : fields[j].getType().getName();
+                    String name = autowired.value();
+                    Class<?> safeCls = autowired.safeType();
+                    if (name.length() == 0) { // 优先使用注解value值
+                        name = safeCls.equals(Void.class) ? fields[j].getName() : safeCls.getName();
+                    }
                     if (container.singleton(name) != null || container.safeSingleton(name) != null) {
                         return true;
                     } else {
@@ -140,7 +137,7 @@ public interface Container {
             return false;
         }
 
-        public static Object inject(Object obj, Container container) {
+        public static <T> T inject(T obj, Container container) {
             Field[] fields = obj.getClass().getDeclaredFields();
             Autowired autowired = null;
             for (int j = 0; j < fields.length; j++) { // 遍历字段
@@ -168,7 +165,11 @@ public interface Container {
                                 v = container.setting(name);
                             }
                         }
-                        fields[j].set(obj, v);
+                        try {
+                            fields[j].set(obj, v);
+                        } catch (IllegalArgumentException e) {
+                            fields[j].set(obj, v.toString());
+                        }
                     } catch (IllegalArgumentException | IllegalAccessException e) {
                         LOG.warn("Field {} of {} failed set.", fields[j].getType().getName(), obj.getClass().getName());
                     }

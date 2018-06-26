@@ -51,6 +51,7 @@ C:\Users\xxx>javaw -Dfile.encoding=UTF-8 -cp .;quick-server-1.4.jar Demo
 默认配置是 `@ujued` 的偏好设置，你可以在 `classpath` 提供一份优先配置 `quick.properties` ， 下面是默认配置的镜像：
 ```
 charset=UTF-8
+controller.exception.handler=net.apisp.quick.core.std.QuickExceptionHandler
 logging.class=net.apisp.quick.log.ConsoleLog
 logging.level=INFO
 server=net.apisp.quick.server.DefaultQuickServer

@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 
 import net.apisp.quick.annotation.ReflectionCall;
 import net.apisp.quick.config.Configuration;
+import net.apisp.quick.core.ExceptionHandler;
 import net.apisp.quick.core.annotation.ResponseType;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.ioc.Container;
@@ -64,9 +65,17 @@ public class ServerContext implements QuickContext {
     private ServerContext() {
         port = (int) Configuration.get("server.port");
         serverClass = Classpaths.safeLoadClass(Configuration.get("server").toString(), QuickServer.class);
-
         executor = TaskExecutor.create((int) Configuration.get("server.threads"));
         defaultRespHeaders.put("Connection", "keep-alive");
+
+        // 缓存指定的控制器统一异常处理器
+        String cehName = (String) Configuration.get("controller.exception.handler");
+        Class<? extends ExceptionHandler> h = Classpaths.safeLoadClass(cehName, ExceptionHandler.class);
+        try {
+            this.accept(ExceptionHandler.class.getName(), Injections.inject(h.newInstance(), this.container));
+        } catch (InstantiationException | IllegalAccessException e) {
+            LOG.warn("Not suitable ExceptionHandler class {} .", h.getName());
+        }
     }
 
     /**

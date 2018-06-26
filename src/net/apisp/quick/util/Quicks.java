@@ -28,6 +28,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Objects;
 
+import org.json.JSONObject;
+
 /**
  * 实验性质的工具
  * 
@@ -106,5 +108,61 @@ public abstract class Quicks {
             return name.substring(name.lastIndexOf('-') + 1, name.lastIndexOf('.'));
         }
         return "unkonwn";
+    }
+
+    /**
+     * 统一消息
+     * 
+     * @param status
+     *            状态码
+     * @param message
+     *            消息
+     * @param data
+     *            业务数据
+     * @param ext
+     *            附加对象
+     * @return
+     */
+    public static JSONObject message(int status, String message, JSONObject data, Object ext) {
+        JSONObject root = new JSONObject();
+        root.put("status", status);
+        root.put("message", message);
+        root.put("ext", ext);
+        root.put("data", data);
+        return root;
+    }
+
+    /**
+     * 智能转换字符串为其他合适类型
+     * 
+     * @param obj
+     * @return
+     */
+    public static Object intelliConvert(String obj) {
+
+        if (obj.equals("true")) {
+            return Boolean.TRUE;
+        }
+        if (obj.equals("false")) {
+            return Boolean.FALSE;
+        }
+        try {
+            return Integer.valueOf(obj);
+        } catch (NumberFormatException e) {
+        }
+        try {
+            return Double.valueOf(obj);
+        } catch (NumberFormatException e) {
+        }
+        try {
+            return Long.valueOf(obj);
+        } catch (NumberFormatException e) {
+        }
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            return sdf.parse(obj.toString());
+        } catch (ParseException e) {
+        }
+        return obj;
     }
 }

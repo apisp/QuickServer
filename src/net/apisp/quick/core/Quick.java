@@ -21,6 +21,8 @@ import java.util.Objects;
 import net.apisp.quick.config.Configuration;
 import net.apisp.quick.ioc.SimpleClassScanner;
 import net.apisp.quick.ioc.SingletonRegister;
+import net.apisp.quick.ioc.Container.Injections;
+import net.apisp.quick.ioc.FactoryResolver;
 import net.apisp.quick.ioc.annotation.Controller;
 import net.apisp.quick.ioc.annotation.Factory;
 import net.apisp.quick.ioc.annotation.Singleton;
@@ -85,13 +87,10 @@ public class Quick implements Bootable<ServerContext> {
     }
 
     private void prepareServer() {
-        // Context单例缓存
+        // 扫描Factories并缓存制造的对象
         SimpleClassScanner classScanner = SimpleClassScanner.create(userBin, Quicks.packageName(bootClass));
         serverContext.accept("user.classpath.uri", userBin);
-        Class<?>[] factories = classScanner.getByAnnotation(Factory.class);
-        Class<?>[] singletons = classScanner.getByAnnotation(Singleton.class);
-        SingletonRegister singletonRegister = new SingletonRegister();
-        singletonRegister.classes(singletons).factories(factories).cache(serverContext);
+        FactoryResolver.prepare(classScanner.getByAnnotation(Factory.class), serverContext).resolve();
 
         // QuickServer support
         String supportPackage = "/net/apisp/quick/support/";
@@ -100,20 +99,25 @@ public class Quick implements Bootable<ServerContext> {
         boolean shouldScanningSupport = !uri.toString().equals(userBin.toString());
         SimpleClassScanner supportClassScanner = SimpleClassScanner.create(uri, "net.apisp.quick.support");
         if (shouldScanningSupport) {
-            singletonRegister.factories(supportClassScanner.getByAnnotation(Factory.class)).cache(serverContext);
+            FactoryResolver.prepare(supportClassScanner.getByAnnotation(Factory.class), serverContext).resolve();
+            SingletonRegister.prepare(supportClassScanner.getByAnnotation(Singleton.class), serverContext).register();
         }
 
-        // Context做最后的准备
+        // 增强Context
         Class<?>[] preparations = classScanner.getByInterface(ContextEnhancer.class);
         for (int i = 0; i < preparations.length; i++) {
             try {
                 ContextEnhancer preparation = (ContextEnhancer) preparations[i].newInstance();
+                Injections.inject(preparation, serverContext);
                 preparation.enhance(serverContext);
                 LOG.info("{} preapared.", preparations[i].getName());
             } catch (InstantiationException | IllegalAccessException e) {
                 LOG.warn("{} is not suitable.", preparations[i]);
             }
         }
+
+        // 扫描标注了Singleton注解的单例并缓存
+        SingletonRegister.prepare(classScanner.getByAnnotation(Singleton.class), serverContext).register();
 
         // 解决URI的映射关系
         MappingResolver resolver = MappingResolver.prepare(bootClass, serverContext);

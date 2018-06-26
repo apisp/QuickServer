@@ -34,6 +34,7 @@ import net.apisp.quick.core.annotation.View;
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.core.http.HttpResponse;
 import net.apisp.quick.ioc.ClassScanner;
+import net.apisp.quick.ioc.Container.Injections;
 import net.apisp.quick.ioc.SimpleClassScanner;
 import net.apisp.quick.ioc.annotation.Autowired;
 import net.apisp.quick.ioc.annotation.Controller;
@@ -117,6 +118,7 @@ public class QuickSystemController {
         for (int i = 0; i < preparations.length; i++) {
             try {
                 ContextEnhancer preparation = (ContextEnhancer) preparations[i].newInstance();
+                Injections.inject(preparation, serverContext);
                 preparation.enhance(serverContext);
                 pset.add(preparations[i].getName());
             } catch (InstantiationException | IllegalAccessException e) {

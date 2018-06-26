@@ -33,7 +33,9 @@ import java.util.Optional;
 
 import org.json.JSONObject;
 
+import net.apisp.quick.annotation.ReflectionCall;
 import net.apisp.quick.core.BodyBinary;
+import net.apisp.quick.core.ExceptionHandler;
 import net.apisp.quick.core.WebContext;
 import net.apisp.quick.core.annotation.RequestBody;
 import net.apisp.quick.core.annotation.Variable;
@@ -78,13 +80,9 @@ public class RequestProcessor {
     private void responseInfoApplyStatus(ResponseInfo responseInfo, HttpStatus status) {
         String userAgent = httpRequest.header("User-Agent");
         if (userAgent != null && userAgent.contains("Mozilla")) {
-            try {
-                Optional<String> body = Optional
-                        .ofNullable((String) serverContext.singleton(String.valueOf(status.getCode() + ".html")));
-                responseInfo.body = body.orElse(String.valueOf(status.getCode())).getBytes(serverContext.charset());
-            } catch (UnsupportedEncodingException e) {
-                responseInfo.body = ((String) serverContext.singleton(status.getDesc())).getBytes();
-            }
+            String sc = String.valueOf(status.getCode());
+            Optional<String> body = Optional.ofNullable((String) serverContext.singleton(sc + ".html"));
+            responseInfo.body = Strings.safeGetBytes(body.orElse(sc), serverContext.charset());
         } else {
             responseInfo.body = (status.getCode() + " " + status.getDesc()).getBytes();
         }
@@ -204,10 +202,9 @@ public class RequestProcessor {
                 responseInfo.body = Strings.safeGetBytes(resp, serverContext.charset());
             }
         } catch (InvocationTargetException e) {
-            // 逻辑异常 ///////////////////////////////////////////////////
-            // 500 Internal Server Error
-            responseInfoApplyStatus(responseInfo, HttpStatus.INTERNAL_SERVER_ERROR);
-            e.getCause().printStackTrace(); // 打印错误栈信息
+            // 逻辑异常，这里进行统一异常处理 ////////////////////////////////////////
+            ExceptionHandler handler = serverContext.singleton(ExceptionHandler.class);
+            handler.handle(httpRequest, responseInfo, e.getCause());
         } catch (IllegalAccessException | IllegalArgumentException e) {
             LOG.debug(e);
         } catch (FileNotFoundException e) {
@@ -231,6 +228,11 @@ public class RequestProcessor {
 
         public ResponseInfo(byte[] body) {
             this.body = body;
+        }
+
+        @ReflectionCall("net.apisp.quick.core.std.QuickExceptionHandler.handle(..)")
+        private void setHttpStatus(HttpStatus status) {
+            this.status = status;
         }
 
         /**

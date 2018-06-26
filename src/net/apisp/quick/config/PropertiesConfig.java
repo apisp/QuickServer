@@ -6,9 +6,11 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
+import net.apisp.quick.util.Quicks;
+
 public class PropertiesConfig extends Configuration {
     private Properties properties;
-    
+
     public PropertiesConfig() {
         properties = new Properties();
         try {
@@ -17,10 +19,12 @@ public class PropertiesConfig extends Configuration {
             new IllegalAccessException("未在classpath找到配置文件quick.properties");
         }
     }
+
     @Override
     public Object getValue(String key) {
         return properties.get(key);
     }
+
     @Override
     public Iterator<KeyValuePair> iterator() {
         Iterator<Entry<Object, Object>> configs = properties.entrySet().iterator();
@@ -28,7 +32,7 @@ public class PropertiesConfig extends Configuration {
         Entry<Object, Object> kv = null;
         while (configs.hasNext()) {
             kv = configs.next();
-            kvs.add(new KeyValuePair(kv.getKey(), kv.getValue()));
+            kvs.add(new KeyValuePair(kv.getKey(), Quicks.intelliConvert(kv.getValue().toString())));
         }
         return kvs.iterator();
     }

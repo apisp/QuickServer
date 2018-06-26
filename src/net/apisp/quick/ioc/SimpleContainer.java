@@ -16,6 +16,7 @@
 package net.apisp.quick.ioc;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -61,7 +62,12 @@ public class SimpleContainer implements Container {
 
     @Override
     public Set<String> objects() {
-        return this.cache.keySet();
+        Set<String> set = new HashSet<>();
+        set.addAll(this.cache.keySet());
+        for (String name : this.safeCache.keySet()) {
+            set.add("[thread] " + name);
+        }
+        return set;
     }
 
     @Override
