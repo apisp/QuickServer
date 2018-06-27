@@ -83,7 +83,7 @@ public class QuickSystemController {
                 return "auth.html";
             }
             resp.cookie("support_access",
-                    Base64.getEncoder().encodeToString(Strings.safeGetBytes(authKey, ctx.charset())));
+                    Base64.getEncoder().encodeToString(Strings.bytes(authKey, ctx.charset())));
         } else {
             return "auth.html";
         }

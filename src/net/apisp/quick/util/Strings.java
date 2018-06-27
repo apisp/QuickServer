@@ -127,7 +127,7 @@ public abstract class Strings {
      * @param charset
      * @return
      */
-    public static byte[] safeGetBytes(String content, String charset) {
+    public static byte[] bytes(String content, String charset) {
         if (Objects.isNull(content) || Objects.isNull(charset)) {
             LOG.warn("SafeGetbytes: content or charset is null.");
             return new byte[0];

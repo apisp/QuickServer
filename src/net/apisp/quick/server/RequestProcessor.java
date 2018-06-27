@@ -82,7 +82,7 @@ public class RequestProcessor {
         if (userAgent != null && userAgent.contains("Mozilla")) {
             String sc = String.valueOf(status.getCode());
             Optional<String> body = Optional.ofNullable((String) serverContext.singleton(sc + ".html"));
-            responseInfo.body = Strings.safeGetBytes(body.orElse(sc), serverContext.charset());
+            responseInfo.body = Strings.bytes(body.orElse(sc), serverContext.charset());
         } else {
             responseInfo.body = (status.getCode() + " " + status.getDesc()).getBytes();
         }
@@ -188,7 +188,7 @@ public class RequestProcessor {
                 // 已经设置好body
                 LOG.debug("{}.{}(..) return type is null.", controller.getClass().getName(), method.getName());
             } else if (JSONObject.class.isAssignableFrom(method.getReturnType())) {
-                responseInfo.body = Strings.safeGetBytes(result.toString(), serverContext.charset());
+                responseInfo.body = Strings.bytes(result.toString(), serverContext.charset());
             } else if (method.getReturnType().equals(byte[].class)) {
                 responseInfo.body = (byte[]) result;
             } else if (executeInfo.getViewDirectory() != null && result instanceof String) {
@@ -199,7 +199,7 @@ public class RequestProcessor {
                 if (resp == null) {
                     resp = result.toString();
                 }
-                responseInfo.body = Strings.safeGetBytes(resp, serverContext.charset());
+                responseInfo.body = Strings.bytes(resp, serverContext.charset());
             }
         } catch (InvocationTargetException e) {
             // 逻辑异常，这里进行统一异常处理 ////////////////////////////////////////
