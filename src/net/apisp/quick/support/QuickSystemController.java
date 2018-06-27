@@ -29,7 +29,9 @@ import net.apisp.quick.core.ContextEnhancer;
 import net.apisp.quick.core.annotation.CrossDomain;
 import net.apisp.quick.core.annotation.Get;
 import net.apisp.quick.core.annotation.Post;
+import net.apisp.quick.core.annotation.ResponseType;
 import net.apisp.quick.core.annotation.View;
+import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.core.http.HttpResponse;
 import net.apisp.quick.core.http.WebContext;
@@ -63,6 +65,13 @@ public class QuickSystemController {
     @Autowired("user.classpath.uri")
     private URI classpathURI;
 
+    @Get("/favicon.ico")
+    @View("/net/apisp/quick/support/html")
+    @ResponseType(ContentTypes.ICO)
+    public String favicon() {
+    	return "favicon.ico";
+    }
+    
     @Get("/_quick.html")
     @View("/net/apisp/quick/support/html")
     public String index(HttpRequest req, HttpResponse resp) throws IOException, URISyntaxException {

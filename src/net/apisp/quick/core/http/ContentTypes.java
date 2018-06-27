@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,5 +23,6 @@ public class ContentTypes {
     public static final String XML = "text/xml";
     public static final String JPG = "image/jpeg";
     public static final String PNG = "image/png";
+    public static final String ICO = "image/x-icon";
     public static final String MP4 = "video/mpeg4";
 }
