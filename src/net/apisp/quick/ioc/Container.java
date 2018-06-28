@@ -53,6 +53,10 @@ public interface Container {
     Object singleton(String name, boolean safe);
 
     ThreadLocal<?> safeSingleton(String name);
+    
+    void unload(String name);
+    
+    void unload(Class<?> type);
 
     public static class ObjectCreaterUnit {
         public static interface ObjectCreater {

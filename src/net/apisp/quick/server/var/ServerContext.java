@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.apisp.quick.annotation.ReflectionCall;
+import net.apisp.quick.annotation.Unfulfilled;
 import net.apisp.quick.config.Configuration;
 import net.apisp.quick.core.annotation.ResponseType;
 import net.apisp.quick.core.http.ContentTypes;
@@ -115,6 +116,11 @@ public class ServerContext implements QuickContext {
     @ReflectionCall("net.apisp.quick.server.MappingResolver.prepare()")
     private void setCrossDomain(Boolean crossDomain) {
         this.crossDomain = crossDomain;
+    }
+    
+    @ReflectionCall("")
+    private void unloadSingleton(String name) {
+    	this.container.unload(name);
     }
 
     @Override
@@ -298,4 +304,14 @@ public class ServerContext implements QuickContext {
     public boolean contains(String name) {
         return this.container.contains(name);
     }
+
+    @Unfulfilled
+	@Override
+	public void unload(String name) {
+	}
+
+	@Unfulfilled
+	@Override
+	public void unload(Class<?> type) {
+	}
 }

@@ -17,6 +17,7 @@ package net.apisp.quick.core.std;
 
 import java.util.Set;
 
+import net.apisp.quick.annotation.Unfulfilled;
 import net.apisp.quick.core.http.WebContext;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.thread.TaskExecutor;
@@ -98,5 +99,15 @@ public class QuickWebContext implements WebContext {
     public boolean contains(String name) {
         return this.serverContext.contains(name);
     }
+
+	@Override
+	@Unfulfilled
+	public void unload(String name) {
+	}
+
+	@Override
+	@Unfulfilled
+	public void unload(Class<?> type) {
+	}
 
 }

@@ -27,9 +27,11 @@ import org.json.JSONObject;
 
 import net.apisp.quick.core.ContextEnhancer;
 import net.apisp.quick.core.annotation.CrossDomain;
+import net.apisp.quick.core.annotation.Delete;
 import net.apisp.quick.core.annotation.Get;
 import net.apisp.quick.core.annotation.Post;
 import net.apisp.quick.core.annotation.ResponseType;
+import net.apisp.quick.core.annotation.Variable;
 import net.apisp.quick.core.annotation.View;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpRequest;
@@ -45,6 +47,7 @@ import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.MappingResolver;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.util.Quicks;
+import net.apisp.quick.util.Reflects;
 import net.apisp.quick.util.Strings;
 
 /**
@@ -54,97 +57,104 @@ import net.apisp.quick.util.Strings;
 @Controller
 @CrossDomain
 public class QuickSystemController {
-    private static final Log LOG = LogFactory.getLog(QuickSystemController.class);
+	private static final Log LOG = LogFactory.getLog(QuickSystemController.class);
 
-    @Autowired
-    private ServerContext serverContext;
+	@Autowired
+	private ServerContext serverContext;
 
-    @Autowired("quickServer.bootClass")
-    private Class<?> bootClass;
+	@Autowired("quickServer.bootClass")
+	private Class<?> bootClass;
 
-    @Autowired("user.classpath.uri")
-    private URI classpathURI;
+	@Autowired("user.classpath.uri")
+	private URI classpathURI;
 
-    @Get("/favicon.ico")
-    @View("/net/apisp/quick/support/html")
-    @ResponseType(ContentTypes.ICO)
-    public String favicon() {
-    	return "favicon.ico";
-    }
-    
-    @Get("/_quick.html")
-    @View("/net/apisp/quick/support/html")
-    public String index(HttpRequest req, HttpResponse resp) throws IOException, URISyntaxException {
-        if (!SupportUtils.checkPermission(req)) {
-            return "auth.html";
-        }
-        return "index.html";
-    }
+	@Get("/favicon.ico")
+	@View("/net/apisp/quick/support/html")
+	@ResponseType(ContentTypes.ICO)
+	public String favicon() {
+		return "favicon.ico";
+	}
 
-    @Post("/_quick.html")
-    @View("/net/apisp/quick/support/html")
-    public String login(HttpRequest req, WebContext ctx, HttpResponse resp) {
-        String authKey = new String(req.body().data(0, (int) req.body().length()));
-        int i = -1;
-        if ((i = authKey.indexOf('=')) != -1) {
-            authKey = authKey.substring(i + 1);
-            if (!ctx.setting("support.access.key").equals(authKey)) {
-                return "auth.html";
-            }
-            resp.cookie("support_access",
-                    Base64.getEncoder().encodeToString(Strings.bytes(authKey, ctx.charset())));
-        } else {
-            return "auth.html";
-        }
-        return "index.html";
-    }
+	@Get("/_quick.html")
+	@View("/net/apisp/quick/support/html")
+	public String index(HttpRequest req, HttpResponse resp) throws IOException, URISyntaxException {
+		if (!SupportUtils.checkPermission(req)) {
+			return "auth.html";
+		}
+		return "index.html";
+	}
 
-    @Get("/_quick/info")
-    public JSONObject info(WebContext ctx, HttpRequest req, HttpResponse resp) {
-        if (!SupportUtils.checkPermission(req)) {
-            return new JSONObject().put("permission", "denied");
-        }
-        JSONObject info = new JSONObject();
-        info.put("version", Quicks.version());
-        JSONObject cache = new JSONObject();
-        cache.put("singletons", Strings.valueOf(ctx.objects())).put("size", ctx.objects().size());
-        info.put("cache", cache);
-        long allSeconds = (System.currentTimeMillis() - (Long) ctx.singleton("quickServer.startTime")) / 1000;
-        int hours = (int) (allSeconds / 3600);
-        short seconds = (short) (allSeconds % 3600);
-        info.put("running_time", Strings.template("{}hours and {}seconds", hours, seconds));
-        return info;
-    }
+	@Post("/_quick.html")
+	@View("/net/apisp/quick/support/html")
+	public String login(HttpRequest req, WebContext ctx, HttpResponse resp) {
+		String authKey = new String(req.body().data(0, (int) req.body().length()));
+		int i = -1;
+		if ((i = authKey.indexOf('=')) != -1) {
+			authKey = authKey.substring(i + 1);
+			if (!ctx.setting("support.access.key").equals(authKey)) {
+				return "auth.html";
+			}
+			resp.cookie("support_access", Base64.getEncoder().encodeToString(Strings.bytes(authKey, ctx.charset())));
+		} else {
+			return "auth.html";
+		}
+		return "index.html";
+	}
 
-    @Get("/_quick/enhance_ctx")
-    public JSONObject prepareContext(HttpRequest req, HttpResponse resp) {
-        if (!SupportUtils.checkPermission(req)) {
-            return new JSONObject().put("permission", "denied");
-        }
-        Set<String> pset = new HashSet<>();
-        ClassScanner classScanner = SimpleClassScanner.create(classpathURI, Quicks.packageName(bootClass));
-        Class<? extends ContextEnhancer>[] preparations = classScanner.getByInterface(ContextEnhancer.class);
-        for (int i = 0; i < preparations.length; i++) {
-            try {
-                ContextEnhancer preparation = (ContextEnhancer) preparations[i].newInstance();
-                Injections.inject(preparation, serverContext);
-                preparation.enhance(serverContext);
-                pset.add(preparations[i].getName());
-            } catch (InstantiationException | IllegalAccessException e) {
-                LOG.warn("{} is not suitable.", preparations[i]);
-            }
-        }
-        return new JSONObject().put("preparations", Strings.valueOf(pset));
-    }
+	@Get("/_quick/info")
+	public JSONObject info(WebContext ctx, HttpRequest req, HttpResponse resp) {
+		if (!SupportUtils.checkPermission(req)) {
+			return new JSONObject().put("permission", "denied");
+		}
+		JSONObject info = new JSONObject();
+		info.put("version", Quicks.version());
+		JSONObject cache = new JSONObject();
+		cache.put("singletons", Strings.valueOf(ctx.objects())).put("size", ctx.objects().size());
+		info.put("cache", cache);
+		long allSeconds = (System.currentTimeMillis() - (Long) ctx.singleton("quickServer.startTime")) / 1000;
+		int hours = (int) (allSeconds / 3600);
+		short seconds = (short) (allSeconds % 3600);
+		info.put("running_time", Strings.template("{}hours and {}seconds", hours, seconds));
+		return info;
+	}
 
-    @Get("/_quick/load_controller")
-    public JSONObject loadController(HttpRequest req, HttpResponse resp) {
-        if (!SupportUtils.checkPermission(req)) {
-            return new JSONObject().put("permission", "denied");
-        }
-        ClassScanner classScanner = SimpleClassScanner.create(classpathURI, Quicks.packageName(bootClass));
-        Class<?>[] controllers = classScanner.getByAnnotation(Controller.class);
-        serverContext.singleton(MappingResolver.class).addControllerClasses(controllers).resolve();
-        return new JSONObject().put("new_controllers", Arrays.toString(controllers));
-    }
+	@Get("/_quick/enhance_ctx")
+	public JSONObject prepareContext(HttpRequest req, HttpResponse resp) {
+		if (!SupportUtils.checkPermission(req)) {
+			return new JSONObject().put("permission", "denied");
+		}
+		Set<String> pset = new HashSet<>();
+		ClassScanner classScanner = SimpleClassScanner.create(classpathURI, Quicks.packageName(bootClass));
+		Class<? extends ContextEnhancer>[] preparations = classScanner.getByInterface(ContextEnhancer.class);
+		for (int i = 0; i < preparations.length; i++) {
+			try {
+				ContextEnhancer preparation = (ContextEnhancer) preparations[i].newInstance();
+				Injections.inject(preparation, serverContext);
+				preparation.enhance(serverContext);
+				pset.add(preparations[i].getName());
+			} catch (InstantiationException | IllegalAccessException e) {
+				LOG.warn("{} is not suitable.", preparations[i]);
+			}
+		}
+		return new JSONObject().put("preparations", Strings.valueOf(pset));
+	}
+
+	@Get("/_quick/load_controller")
+	public JSONObject loadController(HttpRequest req, HttpResponse resp) {
+		if (!SupportUtils.checkPermission(req)) {
+			return new JSONObject().put("permission", "denied");
+		}
+		ClassScanner classScanner = SimpleClassScanner.create(classpathURI, Quicks.packageName(bootClass));
+		Class<?>[] controllers = classScanner.getByAnnotation(Controller.class);
+		serverContext.singleton(MappingResolver.class).addControllerClasses(controllers).resolve();
+		return new JSONObject().put("new_controllers", Arrays.toString(controllers));
+	}
+
+	@Delete("/_quick/singleton/{name}")
+	public JSONObject unloadSingleton(@Variable("name") String name) {
+		if (Reflects.invoke(serverContext, "unloadSingleton", name)) {
+			return Quicks.message(200, "ok", null, null);
+		}
+		return Quicks.message(500, "error", null, null);
+	}
 }

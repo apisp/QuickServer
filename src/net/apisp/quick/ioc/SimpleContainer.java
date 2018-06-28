@@ -121,4 +121,16 @@ public class SimpleContainer implements Container {
     public boolean contains(String name) {
         return Objects.nonNull(this.singleton(name));
     }
+
+	@Override
+	public void unload(String name) {
+		this.cache.remove(name);
+		this.safeCache.remove(name);
+		this.safeObjectCreaters.remove(name);
+	}
+
+	@Override
+	public void unload(Class<?> type) {
+		unload(type.getName());
+	}
 }

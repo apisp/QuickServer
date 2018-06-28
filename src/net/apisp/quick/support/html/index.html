@@ -32,6 +32,13 @@
       <hr class="my-4">
       <button class="btn btn-primary" @click="enhanceContext">{{context_btn}}</button>
       <button class="btn btn-primary" @click="loadController">{{controller_btn}}</button>
+      <br /><br />
+      <div class="form-group">
+        <label for="exampleInputEmail1">卸载单例</label>
+        <input type="text" id="exampleInputEmail1" class="form-control" name="singleton_name" v-model="singleton_name" placeholder="请输入Singleton名字" />
+      </div>
+      
+      <button class="btn btn-danger" @click="unloadSingleton">{{unload_btn}}</button>
     </div>
     <div>{{ apisp_info }}</div>
   </div>
@@ -49,7 +56,9 @@
         },
         apisp_info: '',
         context_btn: 'EnhanceContext',
-        controller_btn: 'LoadController'
+        controller_btn: 'LoadController',
+        unload_btn: 'UnloadSingleton',
+        singleton_name: ''
       },
       created() {
         var vapp = this
@@ -88,6 +97,23 @@
             .catch(function (error) {
               console.log(error);
             })
+        },
+        unloadSingleton: function () {
+          if(this.singleton_name.length == 0){
+            alert('nothing to do!')
+            return
+          }
+          this.unload_btn = 'Unloading...'
+          if (confirm('确定删除' + this.singleton_name + '吗？')) {
+            axios.delete('/_quick/singleton/' + this.singleton_name).then(function (response) {
+              alert('OK')
+              window.location.href = '/_quick.html'
+            }).catch(function (error) {
+              console.log(error)
+            })
+          }else{
+            this.unload_btn = 'UnloadSingleton'
+          }
         }
       }
     })
