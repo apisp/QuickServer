@@ -45,7 +45,7 @@ C:\Users\xxx>javaw -Dfile.encoding=UTF-8 -cp .;quick-server-1.4.jar Demo
 ```
 
 ## 它干了什么
-它会根据默认配置监听在 `8908` 端口，并为URI `/` 与函数 `public String Demo.hello(..)` 之间做好了映射。你可以发`HTTP协议`的请求包来使用这个API了。
+它首先会根据默认配置监听在 `8908` 端口，并为URI `/` 与函数 `public String Demo.hello(..)` 之间做好了映射。你可以发`HTTP协议`的请求包来使用这个API了。发送过来的HTTP协议数据，解析完获取请求信息后，在必要时可以按需注入在映射函数中。映射函数也可以随意修改响应的HTTP数据。
 
 ## 小提示
 默认配置是 `@ujued` 的偏好设置，你可以在 `classpath` 提供一份优先配置 `quick.properties` ， 下面是默认配置的镜像：
