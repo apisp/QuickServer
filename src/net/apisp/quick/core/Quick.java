@@ -94,7 +94,7 @@ public class Quick implements Bootable<ServerContext> {
 
 		// QuickServer support
 		String url = this.getClass().getResource(this.getClass().getSimpleName() + ".class").toString();
-		URI uri = URI.create(url.substring(0, url.length() - this.getClass().getName().length()));
+		URI uri = URI.create(url.substring(0, url.length() - this.getClass().getName().length() - 6));
 		boolean shouldScanningSupport = !uri.toString().equals(userBin.toString());
 		SimpleClassScanner supportClassScanner = SimpleClassScanner.create(uri, "net.apisp.quick.support");
 		if (shouldScanningSupport) {
