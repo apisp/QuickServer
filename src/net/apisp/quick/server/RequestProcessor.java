@@ -96,8 +96,7 @@ public class RequestProcessor {
 	/**
 	 * 创建请求处理器
 	 * 
-	 * @param info
-	 *            处理时需要的信息
+	 * @param info 处理时需要的信息
 	 * @return
 	 */
 	public static RequestProcessor create(HttpRequestInfo req) {
@@ -361,6 +360,8 @@ public class RequestProcessor {
 
 		public Object getPathVariable(String key, Class<?> type) {
 			Object obj = pathVariables.get(key);
+			String c = object.getClass().getName();
+			String m = method.getName();
 			if (obj == null) {
 				return null;
 			}
@@ -375,7 +376,7 @@ public class RequestProcessor {
 				try {
 					intVal = Integer.valueOf(obj.toString());
 				} catch (NumberFormatException e) {
-					LOG.warn("PathVariable [%s] can't format to int.", key);
+					LOG.warn("At {}.{}. PathVariable [{}] can't format to int.", c, m, key);
 				}
 				return intVal;
 			} else if (Double.class.equals(type) || double.class.equals(type)) {
@@ -383,7 +384,7 @@ public class RequestProcessor {
 				try {
 					doubleVal = Double.valueOf(obj.toString());
 				} catch (NumberFormatException e) {
-					LOG.warn("PathVariable [%s] can't format to double.", key);
+					LOG.warn("At {}.{}. PathVariable [{}] can't format to double.", c, m, key);
 				}
 				return doubleVal;
 			} else if (Long.class.equals(type) || long.class.equals(type)) {
@@ -391,7 +392,7 @@ public class RequestProcessor {
 				try {
 					longVal = Long.valueOf(obj.toString());
 				} catch (NumberFormatException e) {
-					LOG.warn("PathVariable [%s] can't format to long.", key);
+					LOG.warn("At {}.{}(). PathVariable [{}] can't format to long.", c, m, key);
 				}
 				return longVal;
 			} else if (Date.class.equals(type)) {
@@ -400,7 +401,7 @@ public class RequestProcessor {
 					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 					d = sdf.parse(obj.toString());
 				} catch (ParseException e) {
-					LOG.warn("PathVariable [%s] can't format to date.", key);
+					LOG.warn("At {}.{}. PathVariable [{}] can't format to date.", c, m, key);
 				}
 				return d;
 			} else {

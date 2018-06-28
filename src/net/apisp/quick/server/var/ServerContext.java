@@ -118,7 +118,7 @@ public class ServerContext implements QuickContext {
         this.crossDomain = crossDomain;
     }
     
-    @ReflectionCall("")
+    @ReflectionCall("net.apisp.quick.support.QuickSystemController.unloadSingleton()")
     private void unloadSingleton(String name) {
     	this.container.unload(name);
     }
