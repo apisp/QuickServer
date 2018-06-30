@@ -91,23 +91,23 @@ public class ConsoleLog implements Log {
     @Override
     public boolean isErrorEnabled() {
         return (level.equalsIgnoreCase(Levels.ERROR) || level.equalsIgnoreCase(Levels.WARN)
-                || level.equalsIgnoreCase(Levels.INFO) || level.equalsIgnoreCase(Levels.DEBUG)) ? true : false;
+                || level.equalsIgnoreCase(Levels.INFO) || level.equalsIgnoreCase(Levels.DEBUG));
     }
 
     @Override
     public boolean isWarnEnabled() {
         return (level.equalsIgnoreCase(Levels.WARN) || level.equalsIgnoreCase(Levels.INFO)
-                || level.equalsIgnoreCase(Levels.DEBUG)) ? true : false;
+                || level.equalsIgnoreCase(Levels.DEBUG));
     }
 
     @Override
     public boolean isInfoEnabled() {
-        return (level.equalsIgnoreCase(Levels.INFO) || level.equalsIgnoreCase(Levels.DEBUG)) ? true : false;
+        return (level.equalsIgnoreCase(Levels.INFO) || level.equalsIgnoreCase(Levels.DEBUG));
     }
 
     @Override
     public boolean isDebugEnable() {
-        return (level.equalsIgnoreCase(Levels.DEBUG)) ? true : false;
+        return (level.equalsIgnoreCase(Levels.DEBUG));
     }
 
     @Override

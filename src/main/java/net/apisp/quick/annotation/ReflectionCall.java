@@ -22,13 +22,15 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-@Documented
-@Retention(SOURCE)
-@Target(METHOD)
 /**
+ * 反射调用的方法，一般是private
+ * 
  * @author Ujued
  * @date 2018-06-23 12:30:17
  */
+@Documented
+@Retention(SOURCE)
+@Target(METHOD)
 public @interface ReflectionCall {
     String value();
 }

@@ -23,7 +23,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * 表示未实现的
+ * 表示未实现的方法
  * 
  * @author ujued
  */
