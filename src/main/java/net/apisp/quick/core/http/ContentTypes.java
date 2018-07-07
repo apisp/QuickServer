@@ -15,14 +15,22 @@
  */
 package net.apisp.quick.core.http;
 
+/**
+ * 响应对象类型
+ * 
+ * @author ujued
+ */
 public class ContentTypes {
     public static final String CSS = "text/css";
     public static final String TXT = "text/plain";
+    public static final String XML = "text/xml";
     public static final String HTML = "text/html";
     public static final String JSON = "application/json";
-    public static final String XML = "text/xml";
     public static final String JPG = "image/jpeg";
     public static final String PNG = "image/png";
     public static final String ICO = "image/x-icon";
     public static final String MP4 = "video/mpeg4";
+    public static final String MP3 = "audio/mp3";
+    public static final String APK = "application/vnd.android.package-archive";
+    
 }
