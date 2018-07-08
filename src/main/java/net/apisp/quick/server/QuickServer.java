@@ -34,23 +34,25 @@ import net.apisp.quick.util.Reflects;
  * @date 2018-06-08 10:33:31
  */
 public abstract class QuickServer {
-	private static final Log LOG = LogFactory.getLog(QuickServer.class);
-	protected List<TaskUnit> events = new ArrayList<>();
-	private ServerContext serverContext;
-	private volatile boolean shouldRunning = true;
-
-	/**
+    private static final Log LOG = LogFactory.getLog(QuickServer.class);
+    protected List<TaskUnit> events = new ArrayList<>();
+    private ServerContext serverContext;
+    private volatile boolean shouldRunning = true;
+    
+    /**
      * 启动QucikServer
      * 
      * @see Quick
      */
     public final void start() {
-        TaskUnit unit = null;
+        // 前置事件处理
         for (int i = 0; i < events.size(); i++) {
-            unit = events.get(i);
+            TaskUnit unit = events.get(i);
             unit.getTask().run(unit.getArgs());
         }
+        // 启动QuickServer
         QuickServerThread.boot(serverContext, this);
+        // JVM结束钩子
         Runtime.getRuntime().addShutdownHook(new Thread(()-> {
         	try {
 				this.onShutdown(serverContext);
@@ -66,7 +68,7 @@ public abstract class QuickServer {
 	 * @return
 	 */
 	public final boolean shouldRunning() {
-		return shouldRunning;
+		return this.shouldRunning;
 	}
 
 	/**

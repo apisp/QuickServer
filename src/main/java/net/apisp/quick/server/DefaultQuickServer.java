@@ -34,10 +34,10 @@ import net.apisp.quick.thread.TaskExecutor;
  */
 public class DefaultQuickServer extends QuickServer {
     private static final Log LOG = LogFactory.getLog(DefaultQuickServer.class);
-    private static int processors = Runtime.getRuntime().availableProcessors();
-    public static final int MAX_SOCKET_KEEP_COUNT = processors * 2 * 20; 
+    public static final int MAX_RESPONSE_CONCURRET_COUNT = Runtime.getRuntime().availableProcessors() * 3 + 1;
+    public static final int MAX_SOCKET_KEEP_COUNT = MAX_RESPONSE_CONCURRET_COUNT * 10;
     public static final TaskExecutor SOCKET_AUTONOMY_EXECUTOR = TaskExecutor.create("socket", MAX_SOCKET_KEEP_COUNT);
-    public static final TaskExecutor RESPONSE_EXECUTOR = TaskExecutor.create("response", processors * 3 + 1);
+    public static final TaskExecutor RESPONSE_EXECUTOR = TaskExecutor.create("response", MAX_RESPONSE_CONCURRET_COUNT);
 
     @Override
     public void run(ServerContext serverContext) throws Exception {
@@ -50,10 +50,10 @@ public class DefaultQuickServer extends QuickServer {
         }
         serverSocket.close();
     }
-    
+
     @Override
     protected void onShutdown(ServerContext serverContext) throws Exception {
-    	ServerContext.tryGet().executor().shutdown();
+        ServerContext.tryGet().executor().shutdown();
         DefaultQuickServer.SOCKET_AUTONOMY_EXECUTOR.shutdown();
         DefaultQuickServer.RESPONSE_EXECUTOR.shutdown();
     }
