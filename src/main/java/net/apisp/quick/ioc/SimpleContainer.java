@@ -15,11 +15,11 @@
  */
 package net.apisp.quick.ioc;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.apisp.quick.config.Configuration;
 import net.apisp.quick.log.Log;
@@ -31,9 +31,9 @@ import net.apisp.quick.log.LogFactory;
  */
 public class SimpleContainer implements Container {
     private static Log LOG = LogFactory.getLog(SimpleContainer.class);
-    private Map<String, Object> cache = new HashMap<>();
-    private Map<String, ObjectCreaterUnit> safeObjectCreaters = new HashMap<>();
-    private Map<String, ThreadLocal<Object>> safeCache = new HashMap<>();
+    private Map<String, Object> cache = new ConcurrentHashMap<>();
+    private Map<String, ObjectCreaterUnit> safeObjectCreaters = new ConcurrentHashMap<>();
+    private Map<String, ThreadLocal<Object>> safeCache = new ConcurrentHashMap<>();
 
     public SimpleContainer() {
     }
