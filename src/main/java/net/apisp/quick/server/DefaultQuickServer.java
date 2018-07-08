@@ -17,7 +17,6 @@ package net.apisp.quick.server;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,36 +26,36 @@ import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.thread.TaskExecutor;
 
 /**
- * @author UJUED
+ * 默认的QuickServer实现，支持长连接，理论高并发
+ * 
+ * @author Ujued
  * @date 2018-06-12 15:57:49
+ * @see SocketAutonomy
  */
 public class DefaultQuickServer extends QuickServer {
     private static final Log LOG = LogFactory.getLog(DefaultQuickServer.class);
-    private static boolean shouldRunning = true;
     private static int processors = Runtime.getRuntime().availableProcessors();
-    public static final TaskExecutor socketAutonomyExecutor = TaskExecutor.create("socket", processors * 3 * 20);
-    public static final TaskExecutor responseExecutor = TaskExecutor.create("response", processors * 3 + 1);
-
-    private List<SocketAutonomy> keepList = new ArrayList<>(100);
+    public static final int MAX_SOCKET_KEEP_COUNT = processors * 2 * 20; 
+    public static final TaskExecutor SOCKET_AUTONOMY_EXECUTOR = TaskExecutor.create("socket", MAX_SOCKET_KEEP_COUNT);
+    public static final TaskExecutor RESPONSE_EXECUTOR = TaskExecutor.create("response", processors * 3 + 1);
 
     @Override
     public void run(ServerContext serverContext) throws Exception {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                ServerContext.tryGet().executor().shutdown();
-                DefaultQuickServer.socketAutonomyExecutor.shutdown();
-                DefaultQuickServer.responseExecutor.shutdown();
-            }
-        });
-        QuickServerMonitor.start(keepList);
-        ServerSocket ss = new ServerSocket(serverContext.port());
-        while (shouldRunning) {
-            Socket sock = ss.accept();
+        QuickServerMonitor.start(SocketAutonomy.SOCKET_KEEP_LIST);
+        ServerSocket serverSocket = new ServerSocket(serverContext.port());
+        while (super.shouldRunning()) {
+            Socket sock = serverSocket.accept();
             LOG.debug("New connection come in.");
-            SocketAutonomy.activeAsync(sock, keepList);
+            SocketAutonomy.activeAsync(sock);
         }
-        ss.close();
+        serverSocket.close();
+    }
+    
+    @Override
+    protected void onShutdown(ServerContext serverContext) throws Exception {
+    	ServerContext.tryGet().executor().shutdown();
+        DefaultQuickServer.SOCKET_AUTONOMY_EXECUTOR.shutdown();
+        DefaultQuickServer.RESPONSE_EXECUTOR.shutdown();
     }
 
     /**

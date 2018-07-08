@@ -34,80 +34,156 @@ import net.apisp.quick.util.Reflects;
  * @date 2018-06-08 10:33:31
  */
 public abstract class QuickServer {
-    private ServerContext serverContext;
-    protected List<TaskUnit> events = new ArrayList<>();
+	private static final Log LOG = LogFactory.getLog(QuickServer.class);
+	protected List<TaskUnit> events = new ArrayList<>();
+	private ServerContext serverContext;
+	private volatile boolean shouldRunning = true;
 
+	/**
+     * 启动QucikServer
+     * 
+     * @see Quick
+     */
     public final void start() {
         TaskUnit unit = null;
         for (int i = 0; i < events.size(); i++) {
             unit = events.get(i);
             unit.getTask().run(unit.getArgs());
         }
-        new QuickServerThread(serverContext, (context) -> {
-            run(context);
-        }).startAndDoAfterRunning((context) -> {
-            afterRunning(context);
-        });
+        QuickServerThread.boot(serverContext, this);
+        Runtime.getRuntime().addShutdownHook(new Thread(()-> {
+        	try {
+				this.onShutdown(serverContext);
+			} catch (Exception e) {
+				LOG.warn("关闭应用时清理逻辑出现了问题！");
+			}
+        }));
     }
 
-    public final void setContext(ServerContext serverContext) {
-        this.serverContext = serverContext;
-    }
+	/**
+	 * 是否需要运行，一般总是返回true
+	 * 
+	 * @return
+	 */
+	public final boolean shouldRunning() {
+		return shouldRunning;
+	}
 
-    public final void addEvent(Task event, Object... args) {
-        events.add(new TaskUnit(event, args));
-    }
+	/**
+	 * 停止QuickServer
+	 */
+	public final void stop() {
+		this.shouldRunning = false;
+	}
 
-    public abstract void run(ServerContext serverContext) throws Exception;
+	/**
+	 * 设置Server运行上下文
+	 * 
+	 * @param serverContext
+	 */
+	public final void setContext(ServerContext serverContext) {
+		this.serverContext = serverContext;
+	}
 
-    protected void afterRunning(ServerContext serverContext) throws Exception {
-    }
+	/**
+	 * 添加QuickServer具体运行逻辑执行前的事件
+	 * 
+	 * @param event
+	 * @param args
+	 */
+	public final void addEvent(Task event, Object... args) {
+		events.add(new TaskUnit(event, args));
+	}
+
+	/**
+	 * 具体的Server运行逻辑
+	 * 
+	 * @param serverContext
+	 * @throws Exception
+	 */
+	public abstract void run(ServerContext serverContext) throws Exception;
+
+	/**
+	 * Server运行逻辑执行完毕后，执行这里，子类的可选实现
+	 * 
+	 * @param serverContext
+	 * @throws Exception
+	 */
+	protected void onRunning(ServerContext serverContext) throws Exception {
+	}
+
+	/**
+	 * QuickServer应用关闭时的钩子函数，子类的可选实现
+	 * 
+	 * @param serverContext
+	 * @throws Exception
+	 */
+	protected void onShutdown(ServerContext serverContext) throws Exception {
+	}
 }
 
+/**
+ * QuickServer主线程
+ * 
+ * @author ujued
+ */
 class QuickServerThread extends Thread {
-    private static final Log LOG = LogFactory.getLog(QuickServer.class);
-    private ServerContext serverContext;
-    private QuickServerRunner runner;
+	private static final Log LOG = LogFactory.getLog(QuickServer.class);
+	private ServerContext serverContext;
+	private QuickServerRunner runner;
 
-    public QuickServerThread(ServerContext serverContext, QuickServerRunner runner) {
-        this.serverContext = serverContext;
-        this.runner = runner;
-        this.setName("server");
-    }
+	private QuickServerThread(ServerContext serverContext, QuickServerRunner runner) {
+		this.serverContext = serverContext;
+		this.runner = runner;
+		this.setName("server");
+	}
 
-    @Override
-    public void run() {
-        try {
-            runner.run(serverContext);
-        } catch (BindException e) {
-            Reflects.invoke(serverContext, "setNormative", false);
-            LOG.error("The port {} already inuse.", serverContext.port());
-        } catch (IOException e) {
-            Reflects.invoke(serverContext, "setNormative", false);
-            LOG.error("Server start error, IO Exception occered.");
-        } catch (Exception e) {
-            Reflects.invoke(serverContext, "setNormative", false);
-            LOG.error("Server start error, Unkonwn Exception occered. {}", e);
-            e.printStackTrace();
-        }
-    }
+	public static void boot(ServerContext serverContext, QuickServer quickServer) {
+		new QuickServerThread(serverContext, (context) -> {
+			quickServer.run(context);
+		}).startAndDoAfterRunning((context) -> {
+			quickServer.onRunning(context);
+		});
+	}
 
-    public void startAndDoAfterRunning(QuickServerRunner runner) {
-        this.start();
-        try {
-            Thread.sleep(100);
-            if (serverContext.isNormative()) {
-                LOG.show("Started Quick API Server on port ({})", serverContext.port());
-                runner.run(serverContext);
-            }
-        } catch (InterruptedException e) {
-        } catch (Exception e) {
-            LOG.error("Server start success, but after Exception occered.");
-        }
-    }
+	@Override
+	public void run() {
+		try {
+			runner.run(serverContext);
+		} catch (BindException e) {
+			Reflects.invoke(serverContext, "setNormative", false);
+			LOG.error("The port {} already inuse.", serverContext.port());
+		} catch (IOException e) {
+			Reflects.invoke(serverContext, "setNormative", false);
+			LOG.error("Server start error, IO Exception occered.");
+		} catch (Exception e) {
+			Reflects.invoke(serverContext, "setNormative", false);
+			LOG.error("Server start error, Unkonwn Exception occered. {}", e);
+			e.printStackTrace();
+		}
+	}
+
+	public void startAndDoAfterRunning(QuickServerRunner runner) {
+		this.start();
+		try {
+			Thread.sleep(100);
+			if (serverContext.isNormative()) {
+				LOG.show("Started Quick API Server on port ({})", serverContext.port());
+				runner.run(serverContext);
+			}
+		} catch (InterruptedException e) {
+		} catch (Exception e) {
+			LOG.error("Server start success, but after Exception occered.");
+		}
+	}
 }
 
+/**
+ * QuickServer运行体引用接口
+ * 
+ * @author ujued
+ */
 @FunctionalInterface
 interface QuickServerRunner {
-    void run(ServerContext serverContext) throws Exception;
+	void run(ServerContext serverContext) throws Exception;
 }
