@@ -27,7 +27,7 @@ import net.apisp.quick.thread.TaskExecutor;
 public interface WebContext extends Container {
     
     /**
-     * 线程池。“提交现场能访问到的参数”可以随着任务一起提交
+     * 线程池。“现场能访问到的参数”可以随着任务一起提交
      * 
      * @return 线程池
      */
