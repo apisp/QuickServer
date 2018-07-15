@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -204,7 +205,7 @@ public class ServerContext implements QuickContext {
     }
 
     @Override
-    public void mapping(String key, RequestExecutorInfo executeInfo) {
+    public QuickContext mapping(String key, RequestExecutorInfo executeInfo) {
         LOG.info("Mapping {} : {}", key, executeInfo.getMethod().toGenericString());
         if (key.indexOf('{') < key.indexOf('}')) {
             String[] md_uri = key.split(" ");
@@ -235,13 +236,14 @@ public class ServerContext implements QuickContext {
                 }
             }
             this.regMappings.put(Pattern.compile(regString.toString()), executeInfo);
-            return;
+            return this;
         }
         mappings.put(key, executeInfo);
+        return this;
     }
     
     @Override
-    public void mapping(String key, Function<HttpRequest, Object> executor) {
+    public QuickContext mapping(String key, Function<HttpRequest, Object> executor) {
         RequestExecutorInfo executeInfo = new RequestExecutorInfo();
         try {
             executeInfo.setMethod(FastRouter.class.getDeclaredMethod("route", HttpRequest.class, Function.class));
@@ -249,13 +251,29 @@ public class ServerContext implements QuickContext {
             this.accept(executeInfo.toString(), executor);
         } catch (NoSuchMethodException | SecurityException e) {
             LOG.warn("Losed mapping {}", key);
-            return;
+            return this;
         }
         this.mapping(key, executeInfo);
+        return this;
     }
 
     @Override
-    public void mapping(String key, Class<?> controller, String methodName, Class<?>... paramTypes) {
+    public QuickContext mapping(String key, Supplier<Object> executor) {
+        RequestExecutorInfo executeInfo = new RequestExecutorInfo();
+        try {
+            executeInfo.setMethod(FastRouter.class.getDeclaredMethod("route", HttpRequest.class, Function.class));
+            executeInfo.setObject(this.singleton(FastRouter.class));
+            this.accept(executeInfo.toString(), executor);
+        } catch (NoSuchMethodException | SecurityException e) {
+            LOG.warn("Losed mapping {}", key);
+            return this;
+        }
+        this.mapping(key, executeInfo);
+        return this;
+    }
+    
+    @Override
+    public QuickContext mapping(String key, Class<?> controller, String methodName, Class<?>... paramTypes) {
         try {
             Method method = controller.getDeclaredMethod(methodName, paramTypes);
             ResponseType responseType = null;
@@ -278,6 +296,7 @@ public class ServerContext implements QuickContext {
         } catch (NoSuchMethodException | SecurityException e) {
             LOG.warn(e.getMessage());
         }
+        return this;
     }
 
     @Override

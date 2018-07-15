@@ -15,18 +15,11 @@
 
 #### 1.新建Java源码文件Demo.java (基于默认配置正常运行，需要用UTF-8编码该文件)
 ```java
-import org.json.JSONObject;
 import net.apisp.quick.core.Quick;
-import net.apisp.quick.core.annotation.Get;
 
 public class Demo {
     public static void main(String[] args) {
-        Quick.boot(args);
-    }
-
-    @Get("/")
-    public JSONObject hello() {
-        return new JSONObject().put("message", "Hello World");
+        Quick.boot(args).mapping("GET /", () -> "Hello World");
     }
 }
 ```
@@ -45,7 +38,7 @@ C:\Users\xxx>javaw -Dfile.encoding=UTF-8 -cp .;quick-server-1.4.jar Demo
 ```
 
 ## 它干了什么
-它首先会根据默认配置监听在 `8908` 端口，并为URI `/` 与函数 `public String Demo.hello(..)` 之间做好了映射。你可以发`HTTP协议`的请求包来使用这个API了。发送过来的HTTP协议数据，解析完获取请求信息后，在必要时可以按需注入在映射函数中。映射函数也可以随意修改响应的HTTP数据。
+它首先会根据默认配置监听在 `8908` 端口，并为 `GET` 请求的URI `/` 与 `匿名函数` 之间做好了映射。你可以发 `HTTP协议` 的GET请求包来使用这个API了。你也可以使用函数加注解的方式来处理后台逻辑与URI的映射，发送过来的HTTP协议数据，解析完成后，在必要时就可以按需注入在映射函数中，映射函数也可以方便的修改响应的HTTP数据。
 
 ## 小提示
 默认配置是 `@ujued` 的偏好设置，你可以在 `classpath` 提供一份优先配置 `quick.properties` ， 下面是默认配置的镜像：

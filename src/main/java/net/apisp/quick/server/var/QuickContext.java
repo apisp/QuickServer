@@ -18,6 +18,7 @@ package net.apisp.quick.server.var;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.core.http.WebContext;
@@ -51,7 +52,7 @@ public interface QuickContext extends WebContext {
      * @param key
      * @param executeInfo
      */
-    void mapping(String key, RequestExecutorInfo executeInfo);
+    QuickContext mapping(String key, RequestExecutorInfo executeInfo);
     
     /**
      * 建立映射关系。URI与Function
@@ -59,7 +60,16 @@ public interface QuickContext extends WebContext {
      * @param key
      * @param executor
      */
-    void mapping(String key, Function<HttpRequest, Object> executor);
+    QuickContext mapping(String key, Function<HttpRequest, Object> executor);
+    
+    /**
+     * 建立映射关系。URI与Function
+     * 
+     * @param key
+     * @param executor
+     * @return
+     */
+    QuickContext mapping(String key, Supplier<Object> executor);
 
     /**
      * 建立映射关系。URI与执行信息
@@ -69,7 +79,7 @@ public interface QuickContext extends WebContext {
      * @param methodName
      * @param paramTypes
      */
-    void mapping(String key, Class<?> controllerClass, String methodName, Class<?>... paramTypes);
+    QuickContext mapping(String key, Class<?> controllerClass, String methodName, Class<?>... paramTypes);
 
     /**
      * Server监听的端口
