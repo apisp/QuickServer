@@ -57,11 +57,8 @@ public class DemoAPI {
 public class DemoProgram {
     public static final void main(String[] args) {
         ServerContext ctx = Quick.boot(args);
-        ctx.mapping("/fast-{server}", req -> {
-             JSONObject msg = new JSONObject();
-             msg.put("fast", req.variable("server"));
-            return msg;
-        });
+        // 也可以使用这种方式快速映射一个执行体
+        ctx.mapping("/fast-{server}", req -> new JSONObject().put("fast", req.variable("server")));
     }
 }
 ```
