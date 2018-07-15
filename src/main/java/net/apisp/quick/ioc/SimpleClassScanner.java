@@ -34,47 +34,23 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * @author UJUED
+ * 简单的类扫描器
+ * 
+ * @author Ujued
  * @date 2018-06-15 11:08:11
  */
-public class SimpleClassScanner implements ClassScanner {
+public class SimpleClassScanner extends ClassLoader implements ClassScanner {
     private Set<Class<?>> classes = new HashSet<>();
     private Path rootPath;
 
-    private Set<Class<?>> collect(Path root) {
-        Stream<Path> list = null;
-        try {
-            list = Files.list(root);
-            list.forEach(new Consumer<Path>() {
-                @Override
-                public void accept(Path t) {
-                    if (!t.toString().endsWith(".class")) {
-                        collect(t);
-                        return;
-                    }
-                    String className = getClassNameByPath(t);
-                    try {
-                        classes.add(ClassLoader.getSystemClassLoader().loadClass(className));
-                    } catch (ClassNotFoundException | NoClassDefFoundError e) {
-                    }
-                }
-
-                private String getClassNameByPath(Path t) {
-                    String tmp = t.subpath(rootPath.getNameCount(), t.getNameCount()).toString();
-                    return tmp.substring(0, tmp.length() - 6).replace('\\', '.').replace('/', '.');
-                }
-            });
-
-        } catch (IOException e) {
-        } finally {
-            if (list != null) {
-                list.close();
-            }
-        }
-        return classes;
-    }
-
-    public static SimpleClassScanner create(URI uri, String packageName) {
+    /**
+     * 根据一个根URI和既定包名创建一个类扫描器实例
+     * 
+     * @param uri
+     * @param packageName
+     * @return
+     */
+    public static ClassScanner create(URI uri, String packageName) {
         SimpleClassScanner classScanner = new SimpleClassScanner();
         if (uri.getScheme().equals("jar")) {
             try {
@@ -92,6 +68,9 @@ public class SimpleClassScanner implements ClassScanner {
         return classScanner;
     }
 
+    /**
+     * 获取路径下中标注了此注解的类
+     */
     @Override
     public Class<?>[] getByAnnotation(Class<? extends Annotation> anno) {
         List<Class<?>> clses = new ArrayList<>();
@@ -112,6 +91,9 @@ public class SimpleClassScanner implements ClassScanner {
         return clss;
     }
 
+    /**
+     * 获取路径下实现了此接口的类
+     */
     @Override
     @SuppressWarnings("unchecked")
     public <T> Class<T>[] getByInterface(Class<T> ifce) {
@@ -137,5 +119,61 @@ public class SimpleClassScanner implements ClassScanner {
     public Class<?>[] get(Class<?> cls) {
         return null;
     }
+    
+    /**
+     * 收集路径下的类
+     * 
+     * @param root
+     * @return
+     */
+    private Set<Class<?>> collect(Path root) {
+        Stream<Path> list = null;
+        try {
+            list = Files.list(root);
+            list.forEach(new Consumer<Path>() {
+                @Override
+                public void accept(Path t) {
+                    if (!t.toString().endsWith(".class")) {
+                        collect(t);
+                        return;
+                    }
+                    classes.add(loadClass(t));
+                }
+            });
 
+        } catch (IOException e) {
+        } finally {
+            if (list != null) {
+                list.close();
+            }
+        }
+        return classes;
+    }
+
+    /**
+     * 自定义类加载。无缓存，每次加载最新的类
+     * 
+     * @param path
+     * @return
+     */
+    private Class<?> loadClass(Path path) {
+        byte[] classBin = null;
+        try {
+            classBin = Files.readAllBytes(path);
+        } catch (IOException e) {
+            // impossible
+        }
+        return this.defineClass(getClassNameByPath(path), classBin, 0, classBin.length);
+    }
+    
+    /**
+     * 由PATH解析出类名
+     * 
+     * @param t
+     * @return
+     */
+    private String getClassNameByPath(Path t) {
+        String tmp = t.subpath(rootPath.getNameCount(), t.getNameCount()).toString();
+        return tmp.substring(0, tmp.length() - 6).replace('\\', '.').replace('/', '.');
+    }
 }

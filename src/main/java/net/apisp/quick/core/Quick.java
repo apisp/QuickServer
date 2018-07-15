@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.Objects;
 
 import net.apisp.quick.config.Configuration;
+import net.apisp.quick.ioc.ClassScanner;
 import net.apisp.quick.ioc.Container.Injections;
 import net.apisp.quick.ioc.FactoryResolver;
 import net.apisp.quick.ioc.SimpleClassScanner;
@@ -88,7 +89,7 @@ public class Quick implements Bootable<ServerContext> {
 
     private void prepareServer() {
         // 扫描Factories并缓存制造的对象
-        SimpleClassScanner classScanner = SimpleClassScanner.create(userBin, Quicks.packageName(bootClass));
+        ClassScanner classScanner = SimpleClassScanner.create(userBin, Quicks.packageName(bootClass));
         serverContext.accept("user.classpath.uri", userBin);
         FactoryResolver.prepare(classScanner.getByAnnotation(Factory.class), serverContext).resolve();
 
@@ -96,7 +97,7 @@ public class Quick implements Bootable<ServerContext> {
         String url = this.getClass().getResource(this.getClass().getSimpleName() + ".class").toString();
         URI uri = URI.create(url.substring(0, url.length() - this.getClass().getName().length() - 6));
         boolean shouldScanningSupport = !uri.toString().equals(userBin.toString());
-        SimpleClassScanner supportClassScanner = SimpleClassScanner.create(uri, "net.apisp.quick.support");
+        ClassScanner supportClassScanner = SimpleClassScanner.create(uri, "net.apisp.quick.support");
         if (shouldScanningSupport) {
             FactoryResolver.prepare(supportClassScanner.getByAnnotation(Factory.class), serverContext).resolve();
             SingletonRegister.prepare(supportClassScanner.getByAnnotation(Singleton.class), serverContext).register();
