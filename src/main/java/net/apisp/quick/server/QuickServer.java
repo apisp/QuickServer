@@ -170,7 +170,7 @@ class QuickServerThread extends Thread {
 		try {
 			Thread.sleep(100);
 			if (serverContext.isNormative()) {
-				LOG.show("Started Quick API Server on port ({})", serverContext.port());
+				LOG.show("Started Quick Server on port ({})", serverContext.port());
 				runner.run(serverContext);
 			}
 		} catch (InterruptedException e) {

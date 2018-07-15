@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.json.JSONObject;
 
@@ -66,15 +67,20 @@ public class RequestProcessor {
     private RequestExecutorInfo executeInfo;
     private HttpRequestInfo httpRequest;
 
-    private ServerContext serverContext = ServerContext.tryGet(); {
+    private ServerContext serverContext = ServerContext.tryGet();
+    {
         if (serverContext == null) {
             throw new IllegalStateException("ServerContext get error.");
         }
     }
 
     private RequestProcessor(HttpRequestInfo httpRequest) {
-        this.httpRequest = httpRequest;
+        // 执行信息
         this.executeInfo = serverContext.hit(httpRequest.method(), httpRequest.uri());
+        this.httpRequest = httpRequest;
+        // 请求关联执行信息
+        this.httpRequest.setExecutorInfo(executeInfo);
+        
     }
 
     private void responseInfoApplyStatus(ResponseInfo responseInfo, HttpStatus status) {
@@ -165,6 +171,8 @@ public class RequestProcessor {
                 params[i] = new QuickWebContext(serverContext);
             } else if (BodyBinary.class.isAssignableFrom(type)) {
                 params[i] = request.body();
+            } else if (Function.class.equals(type)) {
+                params[i] = serverContext.singleton(executeInfo.toString());
             } else if (Map.class.isAssignableFrom(type)) {
                 params[i] = model;
             } else if (Integer.class.equals(type) || int.class.equals(type)) {
@@ -209,6 +217,7 @@ public class RequestProcessor {
             }
         } catch (InvocationTargetException e) {
             // 逻辑异常，这里进行统一异常处理 ////////////////////////////////////////
+            LOG.debug(e);
             ExceptionHandler handler = serverContext.singleton(ExceptionHandler.class);
             handler.handle(httpRequest, responseInfo, e.getCause());
         } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -365,13 +374,7 @@ public class RequestProcessor {
             if (obj == null) {
                 return null;
             }
-            if (obj.getClass().equals(type)) { // String
-                try {
-                    return URLDecoder.decode(obj.toString(), ServerContext.tryGet().charset());
-                } catch (UnsupportedEncodingException e) {
-                    return obj;
-                }
-            } else if (Integer.class.equals(type) || int.class.equals(type)) {
+            if (Integer.class.equals(type) || int.class.equals(type)) {
                 int intVal = -1;
                 try {
                     intVal = Integer.valueOf(obj.toString());
@@ -405,7 +408,11 @@ public class RequestProcessor {
                 }
                 return d;
             } else {
-                return obj.toString();
+                try {
+                    return URLDecoder.decode(obj.toString(), ServerContext.tryGet().charset());
+                } catch (UnsupportedEncodingException e) {
+                    return obj;
+                }
             }
         }
 

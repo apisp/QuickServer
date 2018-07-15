@@ -96,5 +96,13 @@ public interface HttpRequest {
      * @return
      */
     String ip();
+
+    /**
+     * 路径变量值
+     * 
+     * @param string
+     * @return
+     */
+    Object variable(String variable);
     
 }

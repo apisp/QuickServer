@@ -17,30 +17,87 @@ package net.apisp.quick.server.var;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.function.Function;
 
+import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.core.http.WebContext;
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 
 /**
- * @author UJUED
+ * @author Ujued
  * @date 2018-06-15 00:53:51
  */
 public interface QuickContext extends WebContext {
+    
+    /**
+     * 由请求方式和URI确定后台执行信息
+     * 
+     * @param method
+     * @param uri
+     * @return
+     */
     RequestExecutorInfo hit(String method, String uri);
 
+    /**
+     * 上下文状态
+     * @return
+     */
     boolean isNormative();
 
+    /**
+     * 建立映射关系。URI与执行信息
+     * 
+     * @param key
+     * @param executeInfo
+     */
     void mapping(String key, RequestExecutorInfo executeInfo);
+    
+    /**
+     * 建立映射关系。URI与Function
+     * 
+     * @param key
+     * @param executor
+     */
+    void mapping(String key, Function<HttpRequest, Object> executor);
 
+    /**
+     * 建立映射关系。URI与执行信息
+     * 
+     * @param key
+     * @param controllerClass
+     * @param methodName
+     * @param paramTypes
+     */
     void mapping(String key, Class<?> controllerClass, String methodName, Class<?>... paramTypes);
 
+    /**
+     * Server监听的端口
+     * 
+     * @return
+     */
     int port();
 
+    /**
+     * 全局定义公共响应头
+     * 
+     * @return
+     */
     Map<String, String> responseHeaders();
 
+    /**
+     * 确定的QuickServer实现类
+     * 
+     * @return
+     */
     Class<QuickServer> serverClass();
 
+    /**
+     * 请求体和响应体等过大时临时文件目录
+     * 
+     * @param more
+     * @return
+     */
     Path tmpDirPath(String... more);
 
 }

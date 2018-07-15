@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,12 +33,14 @@ import net.apisp.quick.config.Configuration;
 import net.apisp.quick.core.annotation.ResponseType;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.ExceptionHandler;
+import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.ioc.Container;
 import net.apisp.quick.ioc.SimpleContainer;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
+import net.apisp.quick.support.lang.FastRouter;
 import net.apisp.quick.thread.TaskExecutor;
 import net.apisp.quick.util.Classpaths;
 
@@ -77,6 +80,9 @@ public class ServerContext implements QuickContext {
         } catch (InstantiationException | IllegalAccessException e) {
             LOG.warn("Not suitable ExceptionHandler class {} .", h.getName());
         }
+        
+        // 缓存快速Mapping支持
+        this.accept(new FastRouter());
     }
 
     /**
@@ -120,7 +126,7 @@ public class ServerContext implements QuickContext {
     
     @ReflectionCall("net.apisp.quick.support.QuickSystemController.unloadSingleton()")
     private void unloadSingleton(String name) {
-    	this.container.unload(name);
+        this.container.unload(name);
     }
 
     @Override
@@ -233,6 +239,20 @@ public class ServerContext implements QuickContext {
         }
         mappings.put(key, executeInfo);
     }
+    
+    @Override
+    public void mapping(String key, Function<HttpRequest, Object> executor) {
+        RequestExecutorInfo executeInfo = new RequestExecutorInfo();
+        try {
+            executeInfo.setMethod(FastRouter.class.getDeclaredMethod("route", HttpRequest.class, Function.class));
+            executeInfo.setObject(this.singleton(FastRouter.class));
+            this.accept(executeInfo.toString(), executor);
+        } catch (NoSuchMethodException | SecurityException e) {
+            LOG.warn("Losed mapping {}", key);
+            return;
+        }
+        this.mapping(key, executeInfo);
+    }
 
     @Override
     public void mapping(String key, Class<?> controller, String methodName, Class<?>... paramTypes) {
@@ -306,12 +326,12 @@ public class ServerContext implements QuickContext {
     }
 
     @Unfulfilled
-	@Override
-	public void unload(String name) {
-	}
+    @Override
+    public void unload(String name) {
+    }
 
-	@Unfulfilled
-	@Override
-	public void unload(Class<?> type) {
-	}
+    @Unfulfilled
+    @Override
+    public void unload(Class<?> type) {
+    }
 }

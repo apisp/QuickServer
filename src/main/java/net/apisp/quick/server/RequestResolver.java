@@ -28,6 +28,7 @@ import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.data.DataPersist;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
+import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 import net.apisp.quick.server.var.FileRequestBody;
 import net.apisp.quick.server.var.MemRequestBody;
 
@@ -55,6 +56,7 @@ public class RequestResolver {
         private int bodyOffset;
         private boolean normative = true;
         private InetAddress address;
+        private RequestExecutorInfo executorInfo;
 
         @Nullable
         private DataPersist reqData;
@@ -254,6 +256,14 @@ public class RequestResolver {
         public String params() {
             return this.params;
         }
-    }
 
+        @Override
+        public Object variable(String variable) {
+            return executorInfo.getPathVariable(variable, Object.class);
+        }
+
+        public void setExecutorInfo(RequestExecutorInfo executorInfo) {
+            this.executorInfo = executorInfo;
+        }
+    }
 }
