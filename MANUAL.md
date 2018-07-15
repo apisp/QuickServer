@@ -13,6 +13,7 @@
 3. `@View`标注的方法，会响应一个视图，返回值作为文件名，`@View` 注解值作为类路径下视图的根文件夹。
 
 #### 3.示例
+示例控制器
 ```java
 @Controller
 @CrossDomain // 此类所提供的API均支持跨域
@@ -51,7 +52,20 @@ public class DemoAPI {
     }
 }
 ```
-
+启动类
+```java
+public class DemoProgram {
+    public static final void main(String[] args) {
+        ServerContext ctx = Quick.boot(args);
+        ctx.mapping("/fast-{server}", req -> {
+             JSONObject msg = new JSONObject();
+             msg.put("fast", req.variable("server"));
+            return msg;
+        });
+    }
+}
+```
+这样以来，后台的4个接口已经写好了。
 ## 二、具体章节
 ![QuickServer Arch](https://raw.githubusercontent.com/apisp/resources/master/quick-server-arch.png)
 `图片 - 1`
