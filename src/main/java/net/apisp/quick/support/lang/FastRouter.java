@@ -24,7 +24,7 @@ import net.apisp.quick.core.http.HttpRequest;
  * 在任何可以获取到ServerContext的地方，都可以用serverContext.mapping(key, function)的形式自定义URI映射。
  * 
  * @author ujued
- * @see 
+ * @see ServerContext
  */
 public class FastRouter {
     public Object route(HttpRequest req, Function<HttpRequest, Object> executor) {
