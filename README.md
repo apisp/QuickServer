@@ -9,7 +9,9 @@
 ## 最佳用途
 工作之余自己想实现点小创意？`SpringBoot ?` NO! 你可能需要你个极简的`Java方案`， 就是`Quick Server`。QuickServer已经实现了一个简单的WebServer，可为快速提供API做好准备。当然还有更多的实现，一切只为让你轻松实现小创意。
 
-现在以 `Ajax` + `QuickServer API` ，开始吧！嗯？你还有什么好的创意？ 你如果心潮澎湃，也可以加入我们，一起来开发 `Quick Server`
+现在以 `Ajax` + `QuickServer API` ，开始吧！当然，他不止这些！
+
+你的内心毫无波澜？加入我们，一起来开发 `Quick Server` 吧！
 
 ## 下面几个简单步骤开始你的奇妙之旅：
 
