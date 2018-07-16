@@ -42,6 +42,7 @@ import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
 import net.apisp.quick.support.lang.FastRouter;
+import net.apisp.quick.support.lang.RunnableWithRequest;
 import net.apisp.quick.thread.TaskExecutor;
 import net.apisp.quick.util.Classpaths;
 
@@ -257,6 +258,35 @@ public class ServerContext implements QuickContext {
         return this;
     }
 
+	@Override
+	public QuickContext mapping(String key, Runnable executor) {
+		RequestExecutorInfo executeInfo = new RequestExecutorInfo();
+        try {
+            executeInfo.setMethod(FastRouter.class.getDeclaredMethod("route", Runnable.class));
+            executeInfo.setObject(this.singleton(FastRouter.class));
+            this.accept(executeInfo.toString(), executor);
+        } catch (NoSuchMethodException | SecurityException e) {
+            LOG.warn("Losed mapping {}", key);
+            return this;
+        }
+        this.mapping(key, executeInfo);
+        return this;
+	}
+	
+	public QuickContext mapping(String key, RunnableWithRequest executor) {
+		RequestExecutorInfo executeInfo = new RequestExecutorInfo();
+        try {
+            executeInfo.setMethod(FastRouter.class.getDeclaredMethod("route", HttpRequest.class, RunnableWithRequest.class));
+            executeInfo.setObject(this.singleton(FastRouter.class));
+            this.accept(executeInfo.toString(), executor);
+        } catch (NoSuchMethodException | SecurityException e) {
+            LOG.warn("Losed mapping {}", key);
+            return this;
+        }
+        this.mapping(key, executeInfo);
+        return this;
+	}
+	
     @Override
     public QuickContext mapping(String key, Supplier<Object> executor) {
         RequestExecutorInfo executeInfo = new RequestExecutorInfo();

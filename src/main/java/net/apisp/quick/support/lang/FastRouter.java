@@ -18,6 +18,7 @@ package net.apisp.quick.support.lang;
 import java.util.function.Function;
 
 import net.apisp.quick.core.http.HttpRequest;
+import net.apisp.quick.server.var.ServerContext;
 
 /**
  * 快速映射。
@@ -29,5 +30,13 @@ import net.apisp.quick.core.http.HttpRequest;
 public class FastRouter {
     public Object route(HttpRequest req, Function<HttpRequest, Object> executor) {
         return executor.apply(req);
+    }
+    
+    public void route(Runnable executor) {
+        executor.run();
+    }
+    
+    public void route(HttpRequest req, RunnableWithRequest executor) {
+        executor.run(req);
     }
 }

@@ -265,5 +265,11 @@ public class RequestResolver {
         public void setExecutorInfo(RequestExecutorInfo executorInfo) {
             this.executorInfo = executorInfo;
         }
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T> T variable(String variable, Class<T> type) {
+			return (T) executorInfo.getPathVariable(variable, type);
+		}
     }
 }

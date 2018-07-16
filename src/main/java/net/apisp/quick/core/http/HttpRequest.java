@@ -105,4 +105,13 @@ public interface HttpRequest {
      */
     Object variable(String variable);
     
+    /**
+     * 路径变量值
+     * 
+     * @param variable
+     * @param type
+     * @return
+     */
+    <T> T variable(String variable, Class<T> type);
+    
 }

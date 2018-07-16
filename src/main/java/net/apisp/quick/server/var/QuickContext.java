@@ -63,6 +63,15 @@ public interface QuickContext extends WebContext {
     QuickContext mapping(String key, Function<HttpRequest, Object> executor);
     
     /**
+     * 建立映射关系。URI与Runnable
+     * 
+     * @param key
+     * @param executor
+     * @return
+     */
+    QuickContext mapping(String key, Runnable executor);
+    
+    /**
      * 建立映射关系。URI与Function
      * 
      * @param key

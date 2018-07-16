@@ -30,6 +30,7 @@ import net.apisp.quick.data.file.FileData;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestResolver.HttpRequestInfo;
+import net.apisp.quick.server.flow.SocketAndOutputStream;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.thread.Task;
 import net.apisp.quick.util.Strings;
@@ -160,7 +161,8 @@ class ReqAndRespResover implements Task {
                                 .setInetSocketAddress(sock.getInetAddress());
                         try {
                             OutputStream out = sock.getOutputStream();
-                            ResponseExecutor.execute(reqInfo).response(out);
+                            SocketAndOutputStream.CURRENT_SO.set(new SocketAndOutputStream(sock, out));
+                            HttpResponseExecutor.execute(reqInfo, out).response();
                         } catch (IOException e) {
                             LOG.debug("Socket closed, failed get output stream.");
                         }
