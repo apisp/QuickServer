@@ -63,17 +63,17 @@ public class DemoProgram {
 }
 ```
 这样以来，后台的4个接口已经写好了。
-QuickServer 对于 `Content-Type: application/stream+json` 方式的响应也作出了支持。
+QuickServer支持 `Content-Type: application/stream+json` 方式的响应。
 ```java
 public class DemoProgram {
     public static final void main(String[] args) {
         Quick.boot(args).mapping("GET /flow/{count}", (req) -> {
-        	FlowResponse flow = FlowResponse.ok();
-        	for (int i = 0; i < req.variable("", Integer.class); i++) {
-        		flow.append("Hello World ".getBytes());
-        		TimeUnit.SECONDS.sleep(2); // 忽略异常
-        	}
-        	flow.over();
+            FlowResponse flow = FlowResponse.ok();
+            for (int i = 0; i < req.variable("", Integer.class) - 1; i++) {
+                flow.append("Hello World ".getBytes());
+                TimeUnit.SECONDS.sleep(2); // 忽略异常
+            }
+            flow.append("last Hello World".getBytes()).over();
         });
     }
 }
