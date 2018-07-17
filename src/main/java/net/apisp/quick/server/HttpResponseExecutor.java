@@ -46,7 +46,7 @@ public class HttpResponseExecutor implements ResponseExecutor {
 	public static ResponseExecutor execute(HttpRequestInfo httpRequestInfo, OutputStream out) {
 		ResponseInfo respInfo = null;
 		try {
-			respInfo = RequestProcessor.create(httpRequestInfo).process(out);
+			respInfo = RequestProcessor.create(httpRequestInfo).process();
 		} catch (FlowException e) {
 			return new FlowResponseExecutor();
 		}

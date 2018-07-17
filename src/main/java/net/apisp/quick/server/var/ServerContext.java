@@ -41,8 +41,8 @@ import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
+import net.apisp.quick.support.lang.ArgRunnable;
 import net.apisp.quick.support.lang.FastRouter;
-import net.apisp.quick.support.lang.RunnableWithRequest;
 import net.apisp.quick.thread.TaskExecutor;
 import net.apisp.quick.util.Classpaths;
 
@@ -88,7 +88,7 @@ public class ServerContext implements QuickContext {
     }
 
     /**
-     * 第一次调用
+     * 初始化一个ServerContext
      * 
      * @return
      */
@@ -104,7 +104,7 @@ public class ServerContext implements QuickContext {
     }
 
     /**
-     * 尝试获取ServerContext， 再脱离QuickServer调用时，返回null值
+     * 尝试获取ServerContext， 在脱离QuickServer环境调用时，返回null值
      * 
      * @return
      */
@@ -242,65 +242,26 @@ public class ServerContext implements QuickContext {
         mappings.put(key, executeInfo);
         return this;
     }
-    
-    @Override
-    public QuickContext mapping(String key, Function<HttpRequest, Object> executor) {
-        RequestExecutorInfo executeInfo = new RequestExecutorInfo();
-        try {
-            executeInfo.setMethod(FastRouter.class.getDeclaredMethod("route", HttpRequest.class, Function.class));
-            executeInfo.setObject(this.singleton(FastRouter.class));
-            this.accept(executeInfo.toString(), executor);
-        } catch (NoSuchMethodException | SecurityException e) {
-            LOG.warn("Losed mapping {}", key);
-            return this;
-        }
-        this.mapping(key, executeInfo);
-        return this;
-    }
+	
+	@Override
+	public QuickContext mapping(String key, Function<HttpRequest, Object> executor) {
+		return mapping0(key, executor);
+	}
+
+	@Override
+	public QuickContext mapping(String key, Supplier<Object> executor) {
+		return mapping0(key, executor);
+	}
 
 	@Override
 	public QuickContext mapping(String key, Runnable executor) {
-		RequestExecutorInfo executeInfo = new RequestExecutorInfo();
-        try {
-            executeInfo.setMethod(FastRouter.class.getDeclaredMethod("route", Runnable.class));
-            executeInfo.setObject(this.singleton(FastRouter.class));
-            this.accept(executeInfo.toString(), executor);
-        } catch (NoSuchMethodException | SecurityException e) {
-            LOG.warn("Losed mapping {}", key);
-            return this;
-        }
-        this.mapping(key, executeInfo);
-        return this;
+		return mapping0(key, executor);
 	}
-	
-	public QuickContext mapping(String key, RunnableWithRequest executor) {
-		RequestExecutorInfo executeInfo = new RequestExecutorInfo();
-        try {
-            executeInfo.setMethod(FastRouter.class.getDeclaredMethod("route", HttpRequest.class, RunnableWithRequest.class));
-            executeInfo.setObject(this.singleton(FastRouter.class));
-            this.accept(executeInfo.toString(), executor);
-        } catch (NoSuchMethodException | SecurityException e) {
-            LOG.warn("Losed mapping {}", key);
-            return this;
-        }
-        this.mapping(key, executeInfo);
-        return this;
+
+	@Override
+	public QuickContext mapping(String key, ArgRunnable<HttpRequest> executor) {
+		return mapping0(key, executor);
 	}
-	
-    @Override
-    public QuickContext mapping(String key, Supplier<Object> executor) {
-        RequestExecutorInfo executeInfo = new RequestExecutorInfo();
-        try {
-            executeInfo.setMethod(FastRouter.class.getDeclaredMethod("route", HttpRequest.class, Function.class));
-            executeInfo.setObject(this.singleton(FastRouter.class));
-            this.accept(executeInfo.toString(), executor);
-        } catch (NoSuchMethodException | SecurityException e) {
-            LOG.warn("Losed mapping {}", key);
-            return this;
-        }
-        this.mapping(key, executeInfo);
-        return this;
-    }
     
     @Override
     public QuickContext mapping(String key, Class<?> controller, String methodName, Class<?>... paramTypes) {
@@ -383,4 +344,25 @@ public class ServerContext implements QuickContext {
     @Override
     public void unload(Class<?> type) {
     }
+    
+    /**
+     * 映射抽象的请求处理器
+     * 
+     * @param key
+     * @param executor
+     * @return
+     */
+    private QuickContext mapping0(String key, Object executor) {
+		RequestExecutorInfo executeInfo = new RequestExecutorInfo();
+        try {
+            executeInfo.setMethod(FastRouter.class.getDeclaredMethod("route", HttpRequest.class, Object.class));
+            executeInfo.setObject(this.singleton(FastRouter.class));
+            this.accept(executeInfo.toString(), executor);
+        } catch (NoSuchMethodException | SecurityException e) {
+            LOG.warn("Losed mapping {}", key);
+            return this;
+        }
+        this.mapping(key, executeInfo);
+        return this;
+	}
 }

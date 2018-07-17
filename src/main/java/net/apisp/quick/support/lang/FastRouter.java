@@ -16,27 +16,33 @@
 package net.apisp.quick.support.lang;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.server.var.ServerContext;
 
 /**
- * 快速映射。
- * 在任何可以获取到ServerContext的地方，都可以用serverContext.mapping(key, function)的形式自定义URI映射。
+ * 快速映射。 在任何可以获取到QuickContext的地方，都可以用quickContext.mapping(key,
+ * executor)的形式自定义URI映射。
  * 
- * @author ujued
+ * @author Ujued
  * @see ServerContext
  */
 public class FastRouter {
-    public Object route(HttpRequest req, Function<HttpRequest, Object> executor) {
-        return executor.apply(req);
-    }
-    
-    public void route(Runnable executor) {
-        executor.run();
-    }
-    
-    public void route(HttpRequest req, RunnableWithRequest executor) {
-        executor.run(req);
-    }
+
+	@SuppressWarnings("unchecked")
+	public Object route(HttpRequest req, Object executor) {
+		Class<?> type = executor.getClass();
+
+		if (Runnable.class.isAssignableFrom(type)) {
+			((Runnable) executor).run();
+		} else if (Supplier.class.isAssignableFrom(type)) {
+			return ((Supplier<Object>) executor).get();
+		} else if (Function.class.isAssignableFrom(type)) {
+			return ((Function<HttpRequest, Object>) executor).apply(req);
+		} else {
+			((ArgRunnable<HttpRequest>) executor).run(req);
+		}
+		return null;
+	}
 }

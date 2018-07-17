@@ -24,6 +24,7 @@ import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.core.http.WebContext;
 import net.apisp.quick.server.QuickServer;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
+import net.apisp.quick.support.lang.ArgRunnable;
 
 /**
  * @author Ujued
@@ -63,23 +64,29 @@ public interface QuickContext extends WebContext {
     QuickContext mapping(String key, Function<HttpRequest, Object> executor);
     
     /**
+     * 建立映射关系。URI与Supplier
+     * 
+     * @param key
+     * @param executor
+     */
+    QuickContext mapping(String key, Supplier<Object> executor);
+
+    /**
      * 建立映射关系。URI与Runnable
      * 
      * @param key
      * @param executor
-     * @return
      */
     QuickContext mapping(String key, Runnable executor);
     
     /**
-     * 建立映射关系。URI与Function
+     * 建立映射关系。URI与ArgRunnable
      * 
      * @param key
      * @param executor
-     * @return
      */
-    QuickContext mapping(String key, Supplier<Object> executor);
-
+    QuickContext mapping(String key, ArgRunnable<HttpRequest> executor);
+    
     /**
      * 建立映射关系。URI与执行信息
      * 

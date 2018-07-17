@@ -16,7 +16,6 @@
 package net.apisp.quick.server;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -32,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import org.json.JSONObject;
 
@@ -53,7 +51,6 @@ import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestResolver.HttpRequestInfo;
 import net.apisp.quick.server.flow.FlowException;
 import net.apisp.quick.server.var.ServerContext;
-import net.apisp.quick.support.lang.RunnableWithRequest;
 import net.apisp.quick.template.T;
 import net.apisp.quick.util.Classpaths;
 import net.apisp.quick.util.JSONs;
@@ -112,7 +109,7 @@ public class RequestProcessor {
 		return processor;
 	}
 
-	public ResponseInfo process(OutputStream out) throws FlowException {
+	public ResponseInfo process() throws FlowException {
 		ResponseInfo responseInfo = new ResponseInfo();
 		// 上下文要求的响应头
 		responseInfo.ensureHeaders(serverContext.responseHeaders());
@@ -173,8 +170,7 @@ public class RequestProcessor {
 				params[i] = new QuickWebContext(serverContext);
 			} else if (BodyBinary.class.isAssignableFrom(type)) {
 				params[i] = request.body();
-			} else if (Function.class.equals(type) || Runnable.class.isAssignableFrom(type)
-					|| RunnableWithRequest.class.isAssignableFrom(type)) {
+			} else if (Object.class.isAssignableFrom(type)) { // 装载请求执行单元
 				params[i] = serverContext.singleton(executeInfo.toString());
 			} else if (Map.class.isAssignableFrom(type)) {
 				params[i] = model;

@@ -32,6 +32,7 @@ import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.DefaultQuickServer;
 import net.apisp.quick.server.MappingResolver;
 import net.apisp.quick.server.QuickServer;
+import net.apisp.quick.server.var.QuickContext;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.thread.Task;
 import net.apisp.quick.util.Quicks;
@@ -42,7 +43,7 @@ import net.apisp.quick.util.Quicks;
  * @author UJUED
  * @date 2018-06-08 10:34:37
  */
-public class Quick implements Bootable<ServerContext> {
+public class Quick implements Bootable<QuickContext> {
     private static final Log LOG = LogFactory.getLog(Quick.class);
     private Class<?> bootClass;
     private QuickServer server;
@@ -140,21 +141,21 @@ public class Quick implements Bootable<ServerContext> {
     }
 
     @Override
-    public ServerContext boot() {
+    public QuickContext boot() {
         initServer();
         prepareServer();
         startServer();
         return serverContext;
     }
 
-    public static ServerContext boot(Class<?> bootClass, String... args) {
+    public static QuickContext boot(Class<?> bootClass, String... args) {
         return new Quick(bootClass, args).boot();
     }
 
     /**
      * 使用main函数所在类作为bootClass
      */
-    public static ServerContext boot(String... args) {
+    public static QuickContext boot(String... args) {
         return new Quick(null, 3, args).boot();
     }
 
