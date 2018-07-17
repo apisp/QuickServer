@@ -32,5 +32,6 @@ public class ContentTypes {
     public static final String MP4 = "video/mpeg4";
     public static final String MP3 = "audio/mp3";
     public static final String APK = "application/vnd.android.package-archive";
+    public static final String STREAM = "application/stream+json";
     
 }

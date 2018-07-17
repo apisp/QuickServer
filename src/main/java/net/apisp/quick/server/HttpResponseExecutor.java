@@ -27,37 +27,28 @@ import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestProcessor.ResponseInfo;
 import net.apisp.quick.server.RequestResolver.HttpRequestInfo;
-import net.apisp.quick.server.flow.FlowException;
-import net.apisp.quick.server.flow.FlowResponseExecutor;
 import net.apisp.quick.server.var.ServerContext;
 
+/**
+ * 正常的阻塞响应
+ * 
+ * @author ujued
+ */
 public class HttpResponseExecutor implements ResponseExecutor {
 	private static final Log LOG = LogFactory.getLog(HttpResponseExecutor.class);
 	private HttpRequestInfo httpRequestInfo;
 	private ResponseInfo httpResponseInfo;
 	private OutputStream out;
 
-	private HttpResponseExecutor(HttpRequestInfo httpRequestInfo, ResponseInfo httpResponseInfo, OutputStream out) {
+	public HttpResponseExecutor(HttpRequestInfo httpRequestInfo, ResponseInfo httpResponseInfo, OutputStream out) {
 		this.httpRequestInfo = httpRequestInfo;
 		this.httpResponseInfo = httpResponseInfo;
 		this.out = out;
 	}
 
-	public static ResponseExecutor execute(HttpRequestInfo httpRequestInfo, OutputStream out) {
-		ResponseInfo respInfo = null;
-		try {
-			respInfo = RequestProcessor.create(httpRequestInfo).process();
-		} catch (FlowException e) {
-			return new FlowResponseExecutor();
-		}
-		return new HttpResponseExecutor(httpRequestInfo, respInfo, out);
-	}
-
 	public void response() throws IOException {
 		ResponseInfo respInfo = this.httpResponseInfo;
-		if (!respInfo.isStream()) {
-			responseHeaderData(respInfo, out);
-		} 
+		responseHeaderData(respInfo, out);
 		// 响应体
 		out.write(respInfo.getBody());
 		out.flush();

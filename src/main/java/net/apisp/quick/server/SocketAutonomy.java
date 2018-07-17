@@ -162,7 +162,7 @@ class ReqAndRespResover implements Task {
                         try {
                             OutputStream out = sock.getOutputStream();
                             SocketAndOutputStream.CURRENT_SO.set(new SocketAndOutputStream(sock, out));
-                            HttpResponseExecutor.execute(reqInfo, out).response();
+                            ResponseExecutor.execute(reqInfo, out).response();
                         } catch (IOException e) {
                             LOG.debug("Socket closed, failed get output stream.");
                         }

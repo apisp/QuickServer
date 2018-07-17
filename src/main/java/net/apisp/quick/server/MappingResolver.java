@@ -37,6 +37,7 @@ import net.apisp.quick.ioc.Container.Injections;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
+import net.apisp.quick.support.lang.FlowControl;
 import net.apisp.quick.util.Reflects;
 
 /**
@@ -177,6 +178,9 @@ public class MappingResolver {
                     // 设置指定的响应类型
                     if (responseType != null) {
                         info.addHeader("Content-Type", responseType.value() + "; charset=" + quickContext.charset());
+                        FlowControl.get().when(responseType.value().equals(ContentTypes.STREAM)).run(() -> {
+                            Reflects.invoke(info, "setType", RequestExecutorInfo.TYPE_STREAM);
+                        });
                     }
 
                     // 跨域设置

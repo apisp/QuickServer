@@ -7,6 +7,7 @@ public class SocketAndOutputStream {
 	public static final ThreadLocal<SocketAndOutputStream> CURRENT_SO = new ThreadLocal<>();
 	private Socket socket;
 	private OutputStream outputStream;
+	private boolean stream;
 	
 	public SocketAndOutputStream(Socket sock, OutputStream out) {
 		this.socket = sock;
@@ -27,4 +28,10 @@ public class SocketAndOutputStream {
 	public static SocketAndOutputStream current() {
 		return CURRENT_SO.get();
 	}
+    public boolean isStream() {
+        return stream;
+    }
+    public void setStream(boolean stream) {
+        this.stream = stream;
+    }
 }

@@ -16,6 +16,7 @@ public class FlowHttpResponse implements FlowResponse {
 	}
 	
 	private FlowHttpResponse(SocketAndOutputStream sAndO) {
+	    sAndO.setStream(true);
 		this.sAndO = sAndO;
 		ByteBuffer responseData = ByteBuffer.allocate(1024 * 100);
 		responseData.put(String.format("HTTP/1.1 %d %s", 200, "OK").getBytes());
