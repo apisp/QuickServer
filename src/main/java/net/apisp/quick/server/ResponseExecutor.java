@@ -42,5 +42,6 @@ public interface ResponseExecutor {
         }
         return new HttpResponseExecutor(httpRequestInfo, respInfo, out);
     }
+    
 	void response() throws IOException;
 }

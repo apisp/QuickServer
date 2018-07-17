@@ -68,12 +68,11 @@ QuickServer支持 `Content-Type: application/stream+json` 方式的响应。
 public class DemoProgram {
     public static final void main(String[] args) {
         Quick.boot(args).mapping("GET /flow/{count}", (req) -> {
-            FlowResponse flow = FlowResponse.ok();
-            for (int i = 0; i < req.variable("", Integer.class) - 1; i++) {
-                flow.append("Hello World ".getBytes());
-                TimeUnit.SECONDS.sleep(2); // 忽略异常
+            for (int i = 0; i < req.variable("count", Integer.class) - 1; i++) {
+                HttpFlow.response().append("Hello World ".getBytes());
+                TimeUnit.SECONDS.sleep(2);
             }
-            flow.append("last Hello World".getBytes()).over();
+            HttpFlow.response().append("last Hello World".getBytes()).over();
         });
     }
 }
