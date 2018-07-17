@@ -32,7 +32,6 @@ import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.DefaultQuickServer;
 import net.apisp.quick.server.MappingResolver;
 import net.apisp.quick.server.QuickServer;
-import net.apisp.quick.server.var.QuickContext;
 import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.thread.Task;
 import net.apisp.quick.util.Quicks;

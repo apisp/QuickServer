@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import net.apisp.quick.annotation.ReflectionCall;
 import net.apisp.quick.annotation.Unfulfilled;
 import net.apisp.quick.config.Configuration;
+import net.apisp.quick.core.QuickContext;
 import net.apisp.quick.core.annotation.ResponseType;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.ExceptionHandler;
@@ -242,26 +243,26 @@ public class ServerContext implements QuickContext {
         mappings.put(key, executeInfo);
         return this;
     }
-	
-	@Override
-	public QuickContext mapping(String key, Function<HttpRequest, Object> executor) {
-		return mapping0(key, executor);
-	}
-
-	@Override
-	public QuickContext mapping(String key, Supplier<Object> executor) {
-		return mapping0(key, executor);
-	}
-
-	@Override
-	public QuickContext mapping(String key, Runnable executor) {
-		return mapping0(key, executor);
-	}
-
-	@Override
-	public QuickContext mapping(String key, ArgRunnable<HttpRequest> executor) {
-		return mapping0(key, executor);
-	}
+    
+    @Override
+    public QuickContext mapping(String key, Function<HttpRequest, Object> executor) {
+        return mapping0(key, executor);
+    }
+    
+    @Override
+    public QuickContext mapping(String key, Supplier<Object> executor) {
+        return mapping0(key, executor);
+    }
+    
+    @Override
+    public QuickContext mapping(String key, Runnable executor) {
+        return mapping0(key, executor);
+    }
+    
+    @Override
+    public QuickContext mapping(String key, ArgRunnable<HttpRequest> executor) {
+        return mapping0(key, executor);
+    }
     
     @Override
     public QuickContext mapping(String key, Class<?> controller, String methodName, Class<?>... paramTypes) {
@@ -353,7 +354,7 @@ public class ServerContext implements QuickContext {
      * @return
      */
     private QuickContext mapping0(String key, Object executor) {
-		RequestExecutorInfo executeInfo = new RequestExecutorInfo();
+        RequestExecutorInfo executeInfo = new RequestExecutorInfo();
         try {
             executeInfo.setMethod(FastRouter.class.getDeclaredMethod("route", HttpRequest.class, Object.class));
             executeInfo.setObject(this.singleton(FastRouter.class));
@@ -364,5 +365,5 @@ public class ServerContext implements QuickContext {
         }
         this.mapping(key, executeInfo);
         return this;
-	}
+    }
 }
