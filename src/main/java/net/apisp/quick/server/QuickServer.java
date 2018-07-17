@@ -20,9 +20,10 @@ import java.net.BindException;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.apisp.quick.core.Quick;
+import net.apisp.quick.core.QuickContext;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
-import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.thread.Task;
 import net.apisp.quick.thread.TaskUnit;
 import net.apisp.quick.util.Reflects;
@@ -36,7 +37,7 @@ import net.apisp.quick.util.Reflects;
 public abstract class QuickServer {
     private static final Log LOG = LogFactory.getLog(QuickServer.class);
     protected List<TaskUnit> events = new ArrayList<>();
-    private ServerContext serverContext;
+    private QuickContext serverContext;
     private volatile boolean shouldRunning = true;
     
     /**
@@ -83,7 +84,7 @@ public abstract class QuickServer {
 	 * 
 	 * @param serverContext
 	 */
-	public final void setContext(ServerContext serverContext) {
+	public final void setContext(QuickContext serverContext) {
 		this.serverContext = serverContext;
 	}
 
@@ -103,7 +104,7 @@ public abstract class QuickServer {
 	 * @param serverContext
 	 * @throws Exception
 	 */
-	public abstract void run(ServerContext serverContext) throws Exception;
+	public abstract void run(QuickContext serverContext) throws Exception;
 
 	/**
 	 * Server运行逻辑执行完毕后，执行这里，子类的可选实现
@@ -111,7 +112,7 @@ public abstract class QuickServer {
 	 * @param serverContext
 	 * @throws Exception
 	 */
-	protected void onRunning(ServerContext serverContext) throws Exception {
+	protected void onRunning(QuickContext serverContext) throws Exception {
 	}
 
 	/**
@@ -120,7 +121,7 @@ public abstract class QuickServer {
 	 * @param serverContext
 	 * @throws Exception
 	 */
-	protected void onShutdown(ServerContext serverContext) throws Exception {
+	protected void onShutdown(QuickContext serverContext) throws Exception {
 	}
 }
 
@@ -131,16 +132,16 @@ public abstract class QuickServer {
  */
 class QuickServerThread extends Thread {
 	private static final Log LOG = LogFactory.getLog(QuickServer.class);
-	private ServerContext serverContext;
+	private QuickContext serverContext;
 	private QuickServerRunner runner;
 
-	private QuickServerThread(ServerContext serverContext, QuickServerRunner runner) {
+	private QuickServerThread(QuickContext serverContext, QuickServerRunner runner) {
 		this.serverContext = serverContext;
 		this.runner = runner;
 		this.setName("server");
 	}
 
-	public static void boot(ServerContext serverContext, QuickServer quickServer) {
+	public static void boot(QuickContext serverContext, QuickServer quickServer) {
 		new QuickServerThread(serverContext, (context) -> {
 			quickServer.run(context);
 		}).startAndDoAfterRunning((context) -> {
@@ -187,5 +188,5 @@ class QuickServerThread extends Thread {
  */
 @FunctionalInterface
 interface QuickServerRunner {
-	void run(ServerContext serverContext) throws Exception;
+	void run(QuickContext serverContext) throws Exception;
 }

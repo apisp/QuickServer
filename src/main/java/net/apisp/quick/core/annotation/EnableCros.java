@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-present, APISP.NET.
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,13 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+/**
+ * 允许跨域
+ * 
+ * @author Ujued
+ */
 @Documented
 @Retention(RUNTIME)
 @Target({ TYPE, METHOD })
-public @interface CrossDomain {
+public @interface EnableCros {
 }

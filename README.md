@@ -46,13 +46,15 @@ C:\Users\xxx>javaw -Dfile.encoding=UTF-8 -cp .;quick-server-1.4.jar Demo
 默认配置是 `@ujued` 的偏好设置，你可以在 `classpath` 提供一份优先配置 `quick.properties` ， 下面是默认配置的镜像：
 ```
 charset=UTF-8
-controller.exception.handler=net.apisp.quick.core.std.QuickExceptionHandler
+controller.exception.handler=net.apisp.quick.core.std.SampleExceptionHandler
 logging.class=net.apisp.quick.log.ConsoleLog
 logging.level=INFO
 server=net.apisp.quick.server.DefaultQuickServer
 server.port=8908
 server.threads=24
 server.tmp.dir=${user.dir}
+support.access.key=1234560
+support.access.open=true
 ```
 你可以任意覆盖这些默认配置。当然优先级最高的还是从 `command` 传进来的 `args` 。配置中的 `server` 项，可能会使你心生疑惑，它是个这样的一个类：
 

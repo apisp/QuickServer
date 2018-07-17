@@ -46,7 +46,7 @@ public class Quick implements Bootable<QuickContext> {
     private static final Log LOG = LogFactory.getLog(Quick.class);
     private Class<?> bootClass;
     private QuickServer server;
-    private ServerContext serverContext;
+    private QuickContext quickContext;
     private String[] bootArgs = new String[0];
     private URI userBin;
 
@@ -82,16 +82,16 @@ public class Quick implements Bootable<QuickContext> {
 
     private void initServer() {
         Configuration.applySystemArgs(bootArgs);
-        this.serverContext = ServerContext.init();
-        this.serverContext.accept("quickServer.bootClass", bootClass);
-        this.server = Quick.newServer(serverContext.serverClass());
+        this.quickContext = ServerContext.init();
+        this.quickContext.accept("quickServer.bootClass", bootClass);
+        this.server = Quick.newServer(quickContext.serverClass());
     }
 
     private void prepareServer() {
         // 扫描Factories并缓存制造的对象
         ClassScanner classScanner = SimpleClassScanner.create(userBin, Quicks.packageName(bootClass));
-        serverContext.accept("user.classpath.uri", userBin);
-        FactoryResolver.prepare(classScanner.getByAnnotation(Factory.class), serverContext).resolve();
+        quickContext.accept("user.classpath.uri", userBin);
+        FactoryResolver.prepare(classScanner.getByAnnotation(Factory.class), quickContext).resolve();
 
         // QuickServer support
         String url = this.getClass().getResource(this.getClass().getSimpleName() + ".class").toString();
@@ -99,8 +99,8 @@ public class Quick implements Bootable<QuickContext> {
         boolean shouldScanningSupport = !uri.toString().equals(userBin.toString());
         ClassScanner supportClassScanner = SimpleClassScanner.create(uri, "net.apisp.quick.support");
         if (shouldScanningSupport) {
-            FactoryResolver.prepare(supportClassScanner.getByAnnotation(Factory.class), serverContext).resolve();
-            SingletonRegister.prepare(supportClassScanner.getByAnnotation(Singleton.class), serverContext).register();
+            FactoryResolver.prepare(supportClassScanner.getByAnnotation(Factory.class), quickContext).resolve();
+            SingletonRegister.prepare(supportClassScanner.getByAnnotation(Singleton.class), quickContext).register();
         }
 
         // 增强Context
@@ -108,8 +108,8 @@ public class Quick implements Bootable<QuickContext> {
         for (int i = 0; i < preparations.length; i++) {
             try {
                 ContextEnhancer preparation = (ContextEnhancer) preparations[i].newInstance();
-                Injections.inject(preparation, serverContext);
-                preparation.enhance(serverContext);
+                Injections.inject(preparation, quickContext);
+                preparation.enhance(quickContext);
                 LOG.info("{} preapared.", preparations[i].getName());
             } catch (InstantiationException | IllegalAccessException e) {
                 LOG.warn("{} is not suitable.", preparations[i]);
@@ -117,11 +117,11 @@ public class Quick implements Bootable<QuickContext> {
         }
 
         // 扫描标注了Singleton注解的单例并缓存
-        SingletonRegister.prepare(classScanner.getByAnnotation(Singleton.class), serverContext).register();
+        SingletonRegister.prepare(classScanner.getByAnnotation(Singleton.class), quickContext).register();
 
         // 解决URI的映射关系
-        MappingResolver resolver = MappingResolver.prepare(bootClass, serverContext);
-        serverContext.accept(resolver);
+        MappingResolver resolver = MappingResolver.prepare(bootClass, quickContext);
+        quickContext.accept(resolver);
         Class<?>[] controllerClss = classScanner.getByAnnotation(Controller.class);
         resolver.addControllerClasses(controllerClss);
         if (shouldScanningSupport) {
@@ -135,7 +135,7 @@ public class Quick implements Bootable<QuickContext> {
      * Server设置上下文 -> 启动
      */
     private void startServer() {
-        server.setContext(serverContext);
+        server.setContext(quickContext);
         server.start();
     }
 
@@ -144,7 +144,7 @@ public class Quick implements Bootable<QuickContext> {
         initServer();
         prepareServer();
         startServer();
-        return serverContext;
+        return quickContext;
     }
 
     public static QuickContext boot(Class<?> bootClass, String... args) {
@@ -161,7 +161,7 @@ public class Quick implements Bootable<QuickContext> {
     /**
      * 选择合适的QuickServer
      * 
-     * @param serverContext
+     * @param quickContext
      * @return
      */
     private static synchronized QuickServer newServer(Class<QuickServer> serverClass) {

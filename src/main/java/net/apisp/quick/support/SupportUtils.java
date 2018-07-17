@@ -18,6 +18,7 @@ package net.apisp.quick.support;
 import java.util.Base64;
 
 import net.apisp.quick.annotation.DependOn;
+import net.apisp.quick.core.QuickContext;
 import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.server.var.ServerContext;
@@ -31,7 +32,7 @@ public abstract class SupportUtils {
 
     @DependOn("WebContext")
     public static boolean checkPermission(HttpRequest req) {
-        ServerContext ctx = ServerContext.tryGet();
+        QuickContext ctx = ServerContext.tryGet();
         Boolean on = (Boolean) ctx.setting("support.access.open");
         HttpCookie key = req.cookie("support_access");
         if (!on || ctx == null || key == null) {

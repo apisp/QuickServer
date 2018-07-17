@@ -18,15 +18,15 @@ package net.apisp.quick.core.std;
 import java.util.Set;
 
 import net.apisp.quick.annotation.Unfulfilled;
+import net.apisp.quick.core.QuickContext;
 import net.apisp.quick.core.http.WebContext;
-import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.thread.TaskExecutor;
 
 public class QuickWebContext implements WebContext {
 
-    private ServerContext serverContext;
+    private QuickContext serverContext;
 
-    public QuickWebContext(ServerContext serverContext) {
+    public QuickWebContext(QuickContext serverContext) {
         this.serverContext = serverContext;
     }
 

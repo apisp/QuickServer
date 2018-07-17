@@ -15,40 +15,40 @@
  */
 package net.apisp.quick.core.std;
 
+import java.util.Objects;
 import java.util.Optional;
 
+import net.apisp.quick.core.QuickContext;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.ExceptionHandler;
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.core.http.HttpResponse;
 import net.apisp.quick.core.http.HttpStatus;
 import net.apisp.quick.server.var.ServerContext;
+import net.apisp.quick.support.lang.FlowControl;
 import net.apisp.quick.util.Reflects;
 import net.apisp.quick.util.Strings;
 
 /**
- * 默认控制器异常处理类，他会响应一个500错误页面
+ * 默认控制器异常处理类，响应一个500错误页面
  * 
  * @author Ujued
  * @date 2018-06-26 17:41:43
  */
-public class QuickExceptionHandler implements ExceptionHandler {
+public class SampleExceptionHandler implements ExceptionHandler {
 
     @Override
     public void handle(HttpRequest req, HttpResponse resp, Throwable e) {
-        ServerContext serverContext = ServerContext.tryGet();
-        if (serverContext == null) {
-            throw new IllegalStateException("Unseasonable!");
-        }
+        QuickContext serverContext = ServerContext.tryGet();
+        FlowControl.get().when(Objects.isNull(serverContext)).raise(new IllegalStateException("Unseasonable!"));
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         String userAgent = req.header("User-Agent");
-        if (userAgent != null && userAgent.contains("Mozilla")) {
+        FlowControl.get().when(Objects.nonNull(userAgent)).and(userAgent.contains("Mozilla")).run(() -> {
             Optional<String> body = Optional.ofNullable((String) serverContext.singleton("500.html"));
             resp.body(Strings.bytes(body.orElse(String.valueOf(status.getCode())), serverContext.charset()));
-        } else {
+        }).orRun(() -> {
             resp.body((status.getCode() + " " + status.getDesc()).getBytes());
-        }
-
+        });
         // ReflectCall
         Reflects.invoke(resp, "setHttpStatus", status);
         resp.header("Content-Type", ContentTypes.HTML + ";charset=" + serverContext.charset());

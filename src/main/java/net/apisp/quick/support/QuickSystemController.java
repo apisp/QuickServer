@@ -26,7 +26,7 @@ import java.util.Set;
 import org.json.JSONObject;
 
 import net.apisp.quick.core.ContextEnhancer;
-import net.apisp.quick.core.annotation.CrossDomain;
+import net.apisp.quick.core.annotation.EnableCros;
 import net.apisp.quick.core.annotation.Delete;
 import net.apisp.quick.core.annotation.Get;
 import net.apisp.quick.core.annotation.Post;
@@ -55,7 +55,7 @@ import net.apisp.quick.util.Strings;
  * @date 2018-06-12 10:35:45
  */
 @Controller
-@CrossDomain
+@EnableCros
 public class QuickSystemController {
 	private static final Log LOG = LogFactory.getLog(QuickSystemController.class);
 

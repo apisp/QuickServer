@@ -1,0 +1,68 @@
+/**
+ * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package net.apisp.quick.support.lang;
+
+/**
+ * 流程控制器
+ * 
+ * @author Ujued
+ * @date 2018-07-17 22:02:01
+ */
+public class FlowControl {
+
+    private FlowControl() {
+    }
+
+    public static final FlowControl get() {
+        return new FlowControl();
+    }
+
+    private boolean cond;
+
+    public FlowControl when(boolean cond) {
+        this.cond = cond;
+        return this;
+    }
+
+    public FlowControl or(boolean cond) {
+        this.cond = this.cond || cond;
+        return this;
+    }
+
+    public FlowControl and(boolean cond) {
+        this.cond = this.cond && cond;
+        return this;
+    }
+
+    public void raise(RuntimeException e) {
+        if (this.cond) {
+            throw e;
+        }
+    }
+
+    public FlowControl run(Runnable run) {
+        if (this.cond) {
+            run.run();
+        }
+        return this;
+    }
+
+    public void orRun(Runnable run) {
+        if (!this.cond) {
+            run.run();
+        }
+    }
+}

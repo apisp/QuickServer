@@ -2,7 +2,7 @@
 ## 一、概述
 #### 1.注解驱动开发的便利
 1. `@Get` `@Post` `@Put` `@Delete` `@Variable` 为RESTful API开发助力。
-2. `@CrossDomain`允许某个API跨域使用，可以作用在方法、控制器类、启动类。
+2. `@EnableCros`允许API跨域使用，可以作用在方法、控制器类、启动类。
 3. `@Scanning`指定所有的控制器类。只能作用在启动类。
 4. `@ResponseType`指定响应数据类型。只能作用在方法。
 5. `@View` 视图方式响应。只能作用于方法。

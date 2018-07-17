@@ -20,6 +20,7 @@ import java.net.Socket;
 import java.util.Iterator;
 import java.util.List;
 
+import net.apisp.quick.core.QuickContext;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.var.ServerContext;
@@ -40,7 +41,7 @@ public class DefaultQuickServer extends QuickServer {
     public static final TaskExecutor RESPONSE_EXECUTOR = TaskExecutor.create("response", MAX_RESPONSE_CONCURRET_COUNT);
 
     @Override
-    public void run(ServerContext serverContext) throws Exception {
+    public void run(QuickContext serverContext) throws Exception {
         QuickServerMonitor.start(SocketAutonomy.SOCKET_KEEP_LIST);
         ServerSocket serverSocket = new ServerSocket(serverContext.port());
         while (super.shouldRunning()) {
@@ -52,7 +53,7 @@ public class DefaultQuickServer extends QuickServer {
     }
 
     @Override
-    protected void onShutdown(ServerContext serverContext) throws Exception {
+    protected void onShutdown(QuickContext serverContext) throws Exception {
         ServerContext.tryGet().executor().shutdown();
         DefaultQuickServer.SOCKET_AUTONOMY_EXECUTOR.shutdown();
         DefaultQuickServer.RESPONSE_EXECUTOR.shutdown();

@@ -89,17 +89,14 @@ public class ServerContext implements QuickContext {
     }
 
     /**
-     * 初始化一个ServerContext
+     * 初始化一个QuickContext
      * 
      * @return
      */
-    public static synchronized ServerContext init() {
+    public static synchronized QuickContext init() {
         if (instance == null) {
-            try {
-                instance = new ServerContext();
-                instance.accept(instance);
-            } catch (Throwable e) {
-            }
+            instance = new ServerContext();
+            instance.accept(instance);
         }
         return instance;
     }
@@ -109,11 +106,12 @@ public class ServerContext implements QuickContext {
      * 
      * @return
      */
-    public static ServerContext tryGet() {
+    public static QuickContext tryGet() {
         return instance;
     }
 
-    public boolean isCrossDomain() {
+    @Override
+    public boolean isCors() {
         return crossDomain;
     }
 

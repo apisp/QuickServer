@@ -36,6 +36,7 @@ import org.json.JSONObject;
 
 import net.apisp.quick.annotation.ReflectionCall;
 import net.apisp.quick.core.BodyBinary;
+import net.apisp.quick.core.QuickContext;
 import net.apisp.quick.core.annotation.RequestBody;
 import net.apisp.quick.core.annotation.Variable;
 import net.apisp.quick.core.http.ContentTypes;
@@ -67,10 +68,10 @@ public class RequestProcessor {
 	private RequestExecutorInfo executeInfo;
 	private HttpRequestInfo httpRequest;
 
-	private ServerContext serverContext = ServerContext.tryGet();
+	private QuickContext serverContext = ServerContext.tryGet();
 	{
 		if (serverContext == null) {
-			throw new IllegalStateException("ServerContext get error.");
+			throw new IllegalStateException("QuickContext get error.");
 		}
 	}
 

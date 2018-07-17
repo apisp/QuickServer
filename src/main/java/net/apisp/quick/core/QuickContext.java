@@ -46,6 +46,12 @@ public interface QuickContext extends WebContext {
      * @return
      */
     boolean isNormative();
+    
+    /**
+     * 全局支持跨域
+     * @return
+     */
+    boolean isCors();
 
     /**
      * 建立映射关系。URI与执行信息
