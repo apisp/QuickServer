@@ -16,7 +16,7 @@
 示例控制器
 ```java
 @Controller
-@CrossDomain // 此类所提供的API均支持跨域
+@EnableCors // 此类所提供的API均支持跨域
 public class DemoAPI {
 
     @Autowired("charset") // 从上下文读取配置并注入
@@ -34,8 +34,8 @@ public class DemoAPI {
     }
 
     @Get("/application/{name}")
-    public JSONObject application(@Variable("name") String name, WebContext ctx, HttpRequest req, HttpResponse resp,
-            BodyBinary body) {
+    public JSONObject application(@Variable("name") String name, WebContext ctx, HttpRequest req,
+            HttpResponse resp, BodyBinary body) {
         JSONObject obj = new JSONObject();
         obj.put("cookie", req.header("Cookie"));
         HttpCookie session = req.cookie("sessionid");
@@ -56,7 +56,7 @@ public class DemoAPI {
 ```java
 public class DemoProgram {
     public static final void main(String[] args) {
-        ServerContext ctx = Quick.boot(args);
+        QuickContext ctx = Quick.boot(args);
         // 也可以使用这种方式快速映射一个执行体
         ctx.mapping("/fast-{server}", req -> new JSONObject().put("fast", req.variable("server")));
     }
