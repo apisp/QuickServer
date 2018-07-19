@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,86 +15,62 @@
  */
 package net.apisp.quick.server;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
-
-import net.apisp.quick.core.QuickContext;
-import net.apisp.quick.core.annotation.EnableCros;
-import net.apisp.quick.core.annotation.Delete;
-import net.apisp.quick.core.annotation.Get;
-import net.apisp.quick.core.annotation.Post;
-import net.apisp.quick.core.annotation.Put;
-import net.apisp.quick.core.annotation.ResponseType;
-import net.apisp.quick.core.annotation.Scanning;
-import net.apisp.quick.core.annotation.View;
+import net.apisp.quick.core.http.annotation.*;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpMethods;
 import net.apisp.quick.ioc.Container.Injections;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
-import net.apisp.quick.server.RequestProcessor.RequestExecutorInfo;
+import net.apisp.quick.server.std.QuickContext;
 import net.apisp.quick.support.lang.FlowControl;
 import net.apisp.quick.util.Reflects;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
+
 /**
  * 映射决策
- * 
- * @author UJUED
+ *
+ * @author ujued
  * @date 2018-06-08 11:46:34
  */
 public class MappingResolver {
     private static Log LOG = LogFactory.getLog(MappingResolver.class);
     private static MappingResolver instance;
-    private Class<?> bootClass;
-    private Set<Class<?>> controllerClasses = new HashSet<>();
-    private QuickContext quickContext;
+    private Set<Class<?>> controllerClassSet = new HashSet<>();
 
-    public MappingResolver() {
+    private MappingResolver(Class<?>[] controllerClasses) {
+        Collections.addAll(controllerClassSet, controllerClasses);
     }
 
-    private void prepare() {
-        Scanning scanning = bootClass.getAnnotation(Scanning.class);
-        EnableCros crossDomain = bootClass.getAnnotation(EnableCros.class);
-        if (Objects.nonNull(scanning)) {
-            for (Class<?> cls : scanning.value()) {
-                controllerClasses.add(cls);
-            }
-        }
-        if (Objects.nonNull(crossDomain)) {
-            quickContext.responseHeaders().put("Access-Control-Allow-Origin", "*");
-            quickContext.responseHeaders().put("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD");
-            quickContext.responseHeaders().put("Access-Control-Allow-Headers", "x-requested-with");
-            Reflects.invoke(quickContext, "setCrossDomain", true);
-        }
-        controllerClasses.add(bootClass);
-    }
-
-    public MappingResolver addControllerClasses(Class<?>[] classes) {
+    /**
+     * 添加控制器类
+     *
+     * @param classes
+     * @return
+     */
+    public MappingResolver addControllerClasses(Class<?>... classes) {
         if (Objects.isNull(classes)) {
             return this;
         }
-        for (int i = 0; i < classes.length; i++) {
-            this.controllerClasses.add(classes[i]);
-        }
+        Collections.addAll(controllerClassSet, classes);
         return this;
     }
 
     /**
      * 开始映射到ServerContext
      */
-    public void resolve() {
+    public void resolveTo(QuickContext quickContext) {
         Object controller = null;
-        Iterator<Class<?>> controllerIter = controllerClasses.iterator();
+        Iterator<Class<?>> controllerIter = controllerClassSet.iterator();
         while (controllerIter.hasNext()) {
-            Class<?> clazz = (Class<?>) controllerIter.next();
-            // 未缓存的控制器对象，创建并缓存
+            Class<?> clazz = controllerIter.next();
+            // 已缓存跳过
             if (quickContext.contains(clazz)) {
                 continue;
             }
+            // 未缓存的控制器对象，创建并缓存
             try {
                 // 单例对象自动注入到Controller
                 controller = Injections.inject(clazz.newInstance(), quickContext);
@@ -115,7 +91,7 @@ public class MappingResolver {
                     continue; // 抛弃非共有方法
                 }
                 Get getMapping = method.getAnnotation(Get.class);
-                Post postMaping = method.getAnnotation(Post.class);
+                Post postMapping = method.getAnnotation(Post.class);
                 Put putMapping = method.getAnnotation(Put.class);
                 Delete deleteMapping = method.getAnnotation(Delete.class);
 
@@ -128,31 +104,31 @@ public class MappingResolver {
                     crossDomain = method.getAnnotation(EnableCros.class);
                 }
                 byte hmf = 0;
-                if (Objects.nonNull(getMapping) || Objects.nonNull(postMaping) && ((hmf = 1) == 1)
+                if (Objects.nonNull(getMapping) || Objects.nonNull(postMapping) && ((hmf = 1) == 1)
                         || Objects.nonNull(putMapping) && ((hmf = 2) == 2)
                         || Objects.nonNull(deleteMapping) && ((hmf = 3) == 3)) {
-                    String httpMethod = HttpMethods.GET;
-                    String uri = null;
+                    String httpMethod;
+                    String uri;
                     switch (hmf) {
-                    case 1:
-                        httpMethod = HttpMethods.POST;
-                        uri = postMaping.value();
-                        break;
-                    case 2:
-                        httpMethod = HttpMethods.PUT;
-                        uri = putMapping.value();
-                        break;
-                    case 3:
-                        httpMethod = HttpMethods.DELETE;
-                        uri = deleteMapping.value();
-                        break;
-                    default:
-                        httpMethod = HttpMethods.GET;
-                        uri = getMapping.value();
-                        break;
+                        case 1:
+                            httpMethod = HttpMethods.POST;
+                            uri = postMapping.value();
+                            break;
+                        case 2:
+                            httpMethod = HttpMethods.PUT;
+                            uri = putMapping.value();
+                            break;
+                        case 3:
+                            httpMethod = HttpMethods.DELETE;
+                            uri = deleteMapping.value();
+                            break;
+                        default:
+                            httpMethod = HttpMethods.GET;
+                            uri = getMapping.value();
+                            break;
                     }
-                    String mappingKey = httpMethod + " " + uri.trim();
 
+                    String mappingKey = httpMethod + " " + uri.trim();
                     RequestExecutorInfo info = new RequestExecutorInfo(method, controller);
 
                     // 默认响应类型
@@ -197,20 +173,18 @@ public class MappingResolver {
             quickContext.accept(controller);
         }
         // 指定的Controller类Mapping完毕，清空
-        controllerClasses.clear();
+        controllerClassSet.clear();
     }
 
     /**
      * 准备URI与业务逻辑函数的映射
      *
-     * @param classes
+     * @param controllerClasses
+     * @return
      */
-    public static synchronized MappingResolver prepare(Class<?> bootClass, QuickContext context) {
+    public static synchronized MappingResolver prepare(Class<?>[] controllerClasses) {
         if (instance == null) {
-            instance = new MappingResolver();
-            instance.bootClass = bootClass;
-            instance.quickContext = context;
-            instance.prepare();
+            instance = new MappingResolver(controllerClasses);
         }
         return instance;
     }

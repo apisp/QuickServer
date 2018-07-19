@@ -54,7 +54,9 @@ public class FlowControl {
     }
     
     public <T extends Exception> void raise(T e) throws T {
-        throw e;
+        if (this.cond) {
+            throw e;
+        }
     }
 
     public FlowControl run(Runnable run) {

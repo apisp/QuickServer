@@ -18,10 +18,10 @@ package net.apisp.quick.support;
 import java.util.Base64;
 
 import net.apisp.quick.annotation.DependOn;
-import net.apisp.quick.core.QuickContext;
+import net.apisp.quick.server.std.QuickContext;
 import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.core.http.HttpRequest;
-import net.apisp.quick.server.var.ServerContext;
+import net.apisp.quick.server.ServerContext;
 import net.apisp.quick.util.Strings;
 
 /**

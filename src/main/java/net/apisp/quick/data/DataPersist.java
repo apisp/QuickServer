@@ -17,7 +17,7 @@ package net.apisp.quick.data;
 
 import java.nio.ByteBuffer;
 
-import net.apisp.quick.core.SoftCloseable;
+import net.apisp.quick.core.std.SoftCloseable;
 
 /**
  * @author UJUED

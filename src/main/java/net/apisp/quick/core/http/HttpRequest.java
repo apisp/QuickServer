@@ -15,7 +15,7 @@
  */
 package net.apisp.quick.core.http;
 
-import net.apisp.quick.core.BodyBinary;
+import net.apisp.quick.server.std.BodyBinary;
 
 /**
  * HTTP请求

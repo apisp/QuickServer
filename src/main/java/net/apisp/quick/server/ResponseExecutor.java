@@ -21,26 +21,27 @@ import java.io.OutputStream;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestProcessor.ResponseInfo;
-import net.apisp.quick.server.RequestResolver.HttpRequestInfo;
-import net.apisp.quick.server.flow.FlowException;
-import net.apisp.quick.server.flow.FlowResponseExecutor;
+import net.apisp.quick.server.http.HttpResponseExecutor;
+import net.apisp.quick.server.http.flow.FlowException;
+import net.apisp.quick.server.http.flow.FlowResponseExecutor;
+import net.apisp.quick.server.std.QuickHttpRequest;
 
 /**
  * 响应处理器
  * 
- * @author Ujued
+ * @author ujued
  */
 public interface ResponseExecutor {
-    static final Log LOG = LogFactory.getLog(ResponseExecutor.class);
-    static ResponseExecutor execute(HttpRequestInfo httpRequestInfo, OutputStream out) {
-        ResponseInfo respInfo = null;
+    Log LOG = LogFactory.getLog(ResponseExecutor.class);
+    static ResponseExecutor execute(QuickHttpRequest httpRequest, OutputStream out) {
+        ResponseInfo respInfo;
         try {
-            respInfo = RequestProcessor.create(httpRequestInfo).process();
+            respInfo = RequestProcessor.create(httpRequest).process();
         } catch (FlowException e) {
             LOG.debug("Flow response over.");
             return new FlowResponseExecutor();
         }
-        return new HttpResponseExecutor(httpRequestInfo, respInfo, out);
+        return new HttpResponseExecutor(httpRequest, respInfo, out);
     }
     
 	void response() throws IOException;

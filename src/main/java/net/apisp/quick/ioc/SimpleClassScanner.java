@@ -15,6 +15,9 @@
  */
 package net.apisp.quick.ioc;
 
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
+
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.URI;
@@ -40,6 +43,7 @@ import java.util.stream.Stream;
  * @date 2018-06-15 11:08:11
  */
 public class SimpleClassScanner extends ClassLoader implements ClassScanner {
+    private static final Log LOG = LogFactory.getLog(SimpleClassScanner.class);
     private Set<Class<?>> classes = new HashSet<>();
     private Path rootPath;
 
@@ -130,14 +134,15 @@ public class SimpleClassScanner extends ClassLoader implements ClassScanner {
         Stream<Path> list = null;
         try {
             list = Files.list(root);
-            list.forEach(new Consumer<Path>() {
-                @Override
-                public void accept(Path t) {
-                    if (!t.toString().endsWith(".class")) {
-                        collect(t);
-                        return;
-                    }
-                    classes.add(loadClass(t));
+            list.forEach(path -> {
+                if (!path.toString().endsWith(".class")) {
+                    collect(path);
+                    return;
+                }
+                try {
+                    classes.add(loadClass(path));
+                }catch (LinkageError error){
+                    LOG.warn(error.getMessage());
                 }
             });
 

@@ -26,7 +26,7 @@ import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 
 /**
- * @author UJUED
+ * @author ujued
  * @date 2018-06-15 00:29:50
  */
 public class SimpleContainer implements Container {
@@ -49,15 +49,17 @@ public class SimpleContainer implements Container {
     }
 
     @Override
-    public void accept(Object obj) {
+    public <T> T accept(T obj) {
         this.cache.put(obj.getClass().getName(), obj);
         LOG.info("Cached object {}", obj.getClass().getName());
+        return obj;
     }
 
     @Override
-    public void accept(String name, Object obj) {
+    public <T> T accept(String name, T obj) {
         this.cache.put(name, obj);
         LOG.info("Cached object {}({})", name, obj.getClass().getName());
+        return obj;
     }
 
     @Override

@@ -15,49 +15,32 @@
  */
 package net.apisp.quick.server;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URLDecoder;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.json.JSONObject;
-
 import net.apisp.quick.annotation.ReflectionCall;
-import net.apisp.quick.core.BodyBinary;
-import net.apisp.quick.core.QuickContext;
-import net.apisp.quick.core.annotation.RequestBody;
-import net.apisp.quick.core.annotation.Variable;
-import net.apisp.quick.core.http.ContentTypes;
-import net.apisp.quick.core.http.ExceptionHandler;
-import net.apisp.quick.core.http.HttpCookie;
-import net.apisp.quick.core.http.HttpRequest;
-import net.apisp.quick.core.http.HttpResponse;
-import net.apisp.quick.core.http.HttpStatus;
-import net.apisp.quick.core.http.WebContext;
-import net.apisp.quick.core.std.QuickWebContext;
+import net.apisp.quick.core.http.annotation.RequestBody;
+import net.apisp.quick.core.http.annotation.Variable;
+import net.apisp.quick.core.http.*;
+import net.apisp.quick.server.http.QuickWebContext;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
-import net.apisp.quick.server.RequestResolver.HttpRequestInfo;
-import net.apisp.quick.server.flow.FlowException;
-import net.apisp.quick.server.flow.SocketAndOutputStream;
-import net.apisp.quick.server.var.ServerContext;
+import net.apisp.quick.server.http.flow.FlowException;
+import net.apisp.quick.server.http.flow.SocketAndOutputStream;
+import net.apisp.quick.server.std.BodyBinary;
+import net.apisp.quick.server.std.QuickContext;
+import net.apisp.quick.server.std.QuickHttpRequest;
 import net.apisp.quick.support.lang.FlowControl;
 import net.apisp.quick.template.T;
 import net.apisp.quick.util.Classpaths;
 import net.apisp.quick.util.JSONs;
 import net.apisp.quick.util.Strings;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 
 /**
  * 请求处理器。控制器逻辑处理
@@ -68,7 +51,7 @@ import net.apisp.quick.util.Strings;
 public class RequestProcessor {
     private static final Log LOG = LogFactory.getLog(RequestProcessor.class);
     private RequestExecutorInfo executeInfo;
-    private HttpRequestInfo httpRequest;
+    private QuickHttpRequest httpRequest;
 
     private QuickContext serverContext = ServerContext.tryGet();
     {
@@ -77,12 +60,12 @@ public class RequestProcessor {
         }
     }
 
-    private RequestProcessor(HttpRequestInfo httpRequest) {
+    private RequestProcessor(QuickHttpRequest httpRequest) {
         // 执行信息
         this.executeInfo = serverContext.hit(httpRequest.method(), httpRequest.uri());
         this.httpRequest = httpRequest;
         // 请求关联执行信息
-        this.httpRequest.setExecutorInfo(executeInfo);
+        this.httpRequest.setRequestExecutorInfo(executeInfo);
 
     }
 
@@ -104,10 +87,10 @@ public class RequestProcessor {
     /**
      * 创建请求处理器
      * 
-     * @param info 处理时需要的信息
+     * @param req 处理时需要的信息
      * @return
      */
-    public static RequestProcessor create(HttpRequestInfo req) {
+    public static RequestProcessor create(QuickHttpRequest req) {
         RequestProcessor processor = new RequestProcessor(req);
         return processor;
     }
@@ -117,7 +100,7 @@ public class RequestProcessor {
         // 上下文要求的响应头
         responseInfo.ensureHeaders(serverContext.responseHeaders());
 
-        HttpRequestInfo request = this.httpRequest;
+        QuickHttpRequest request = this.httpRequest;
         if (!request.normative()) {
             // 400 Bad Request //////////////////////////////////////////////
             responseInfoApplyStatus(responseInfo, HttpStatus.BAD_REQUEST);
@@ -190,12 +173,10 @@ public class RequestProcessor {
             // 如果是流式响应，抛出流式异常，交给流相应处理器处理
             FlowControl.get().when(executeInfo.type().equals(RequestExecutorInfo.TYPE_STREAM))
                     .or(SocketAndOutputStream.current().isStream()).raise(new FlowException());
-            // 逻辑方法执行完毕，关闭请求文件
-            if (request.getReqData() != null) {
-                request.getReqData().close();
-            }
+            // 逻辑方法执行完毕事件
+            request.onExecuteOver();
             // 注入逻辑方法里改动的Headers
-            responseInfo.ensureHeaders(executeInfo.getRespHeaders());
+            responseInfo.ensureHeaders(executeInfo.getResponseHeaders());
             if (result == null) {
                 // 已经设置好body
                 LOG.debug("{}.{}(..) return type is null.", controller.getClass().getName(), method.getName());
@@ -206,7 +187,7 @@ public class RequestProcessor {
             } else if (executeInfo.getViewDirectory() != null && result instanceof String) {
                 T tp = serverContext.singleton(T.class).setVariables(model);
                 Path file = Classpaths.get(executeInfo.getViewDirectory() + (String) result);
-                if (executeInfo.respHeaders.get("Content-Type").contains("text")) {
+                if (executeInfo.getResponseHeaders().get("Content-Type").contains("text")) {
                     responseInfo.body = tp.render2bin(file);
                 } else {
                     responseInfo.body = Files.readAllBytes(file);
@@ -245,17 +226,13 @@ public class RequestProcessor {
         private Map<String, String> headers = new HashMap<>();
         private List<HttpCookie> cookies = new ArrayList<>();
 
-        public ResponseInfo(byte[] body) {
-            this.body = body;
-        }
-
         @ReflectionCall("net.apisp.quick.core.std.QuickExceptionHandler.handle(..)")
         private void setHttpStatus(HttpStatus status) {
             this.status = status;
         }
 
         /**
-         * 使用之前必须调用本方法
+         * 设置Content-Length响应头
          * 
          * @return
          */
@@ -309,136 +286,6 @@ public class RequestProcessor {
 
         public List<HttpCookie> getCookies() {
             return cookies;
-        }
-    }
-
-    /**
-     * API触发的事件执行信息
-     * 
-     * @author UJUED
-     * @date 2018-06-08 11:20:09
-     */
-    public static class RequestExecutorInfo {
-        public static final Character TYPE_NORMAL = 'a';
-        public static final Character TYPE_STREAM = 'b';
-        private Method method;
-        private Object object;
-        private Map<String, String> respHeaders = new HashMap<>();
-        private Map<String, Object> pathVariables = new HashMap<>();
-        private List<String> pathVariableNames = new ArrayList<>();
-        private String viewDirectory;
-        private char type;
-
-        public RequestExecutorInfo() {
-        }
-
-        /**
-         * 执行类型。 a: normal b: stream
-         * 
-         * @return
-         */
-        public Character type() {
-            return type;
-        }
-
-        public RequestExecutorInfo(Method method, Object object) {
-            this.method = method;
-            this.object = object;
-        }
-
-        public Method getMethod() {
-            return method;
-        }
-
-        public void setMethod(Method method) {
-            this.method = method;
-        }
-
-        public Object getObject() {
-            return object;
-        }
-
-        public void setObject(Object object) {
-            this.object = object;
-        }
-
-        public String getViewDirectory() {
-            return viewDirectory;
-        }
-
-        public void setViewDirectory(String viewDirectory) {
-            this.viewDirectory = viewDirectory;
-        }
-
-        public RequestExecutorInfo addHeader(String key, String value) {
-            this.respHeaders.put(key, value);
-            return this;
-        }
-
-        public Map<String, String> getRespHeaders() {
-            return respHeaders;
-        }
-
-        public void addPathVariableName(String name) {
-            this.pathVariableNames.add(name);
-        }
-
-        public Object getPathVariable(String key, Class<?> type) {
-            Object obj = pathVariables.get(key);
-            String c = object.getClass().getName();
-            String m = method.getName();
-            if (obj == null) {
-                return null;
-            }
-            if (Integer.class.equals(type) || int.class.equals(type)) {
-                int intVal = -1;
-                try {
-                    intVal = Integer.valueOf(obj.toString());
-                } catch (NumberFormatException e) {
-                    LOG.warn("At {}.{}. PathVariable [{}] can't format to int.", c, m, key);
-                }
-                return intVal;
-            } else if (Double.class.equals(type) || double.class.equals(type)) {
-                double doubleVal = -1.0;
-                try {
-                    doubleVal = Double.valueOf(obj.toString());
-                } catch (NumberFormatException e) {
-                    LOG.warn("At {}.{}. PathVariable [{}] can't format to double.", c, m, key);
-                }
-                return doubleVal;
-            } else if (Long.class.equals(type) || long.class.equals(type)) {
-                long longVal = -1;
-                try {
-                    longVal = Long.valueOf(obj.toString());
-                } catch (NumberFormatException e) {
-                    LOG.warn("At {}.{}(). PathVariable [{}] can't format to long.", c, m, key);
-                }
-                return longVal;
-            } else if (Date.class.equals(type)) {
-                Date d = null;
-                try {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    d = sdf.parse(obj.toString());
-                } catch (ParseException e) {
-                    LOG.warn("At {}.{}. PathVariable [{}] can't format to date.", c, m, key);
-                }
-                return d;
-            } else {
-                try {
-                    return URLDecoder.decode(obj.toString(), ServerContext.tryGet().charset());
-                } catch (UnsupportedEncodingException e) {
-                    return obj;
-                }
-            }
-        }
-
-        public void addPathVariable(String value, int index) {
-            this.pathVariables.put(this.pathVariableNames.get(index), value);
-        }
-
-        @ReflectionCall("")
-        private void setType(Character type) {
-            this.type = type;
         }
     }
 }

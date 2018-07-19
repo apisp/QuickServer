@@ -23,16 +23,16 @@ import net.apisp.quick.annotation.Nullable;
 import net.apisp.quick.ioc.annotation.Autowired;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
-import net.apisp.quick.server.var.ServerContext;
+import net.apisp.quick.server.ServerContext;
 
 /**
  * @author UJUED
  * @date 2018-06-15 00:29:29
  */
 public interface Container {
-    void accept(Object obj);
+    <T> T accept(T obj);
 
-    void accept(String name, Object obj);
+    <T> T accept(String name, T obj);
 
     void accept(String name, ObjectCreaterUnit creater);
 

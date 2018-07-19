@@ -21,7 +21,7 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import net.apisp.quick.core.Bootable;
+import net.apisp.quick.core.std.Bootable;
 
 /**
  * @author UJUED

@@ -13,28 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.support.lang;
+package net.apisp.quick.core.http.annotation;
 
-import net.apisp.quick.server.http.flow.FlowHttpResponse;
-import net.apisp.quick.server.http.flow.FlowResponse;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+@Documented
+@Retention(RUNTIME)
+@Target(METHOD)
 /**
- * HTTP流式工具
- * 
- * @author ujued
+ * @author Ujued
+ * @date 2018-06-24 00:45:32
  */
-public abstract class HttpFlow {
-    private static final ThreadLocal<FlowResponse> respLocal = new ThreadLocal<>();
-
-    /**
-     * 获取当前的响应流
-     * 
-     * @return
-     */
-    public static final synchronized FlowResponse response() {
-        if (respLocal.get() == null) {
-            respLocal.set(new FlowHttpResponse());
-        }
-        return respLocal.get();
-    }
+public @interface View {
+    String value() default "templates";
 }

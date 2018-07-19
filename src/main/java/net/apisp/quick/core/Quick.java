@@ -19,6 +19,9 @@ import java.net.URI;
 import java.util.Objects;
 
 import net.apisp.quick.config.Configuration;
+import net.apisp.quick.core.http.annotation.EnableCros;
+import net.apisp.quick.core.http.annotation.Scanning;
+import net.apisp.quick.core.std.Bootable;
 import net.apisp.quick.ioc.ClassScanner;
 import net.apisp.quick.ioc.Container.Injections;
 import net.apisp.quick.ioc.FactoryResolver;
@@ -29,17 +32,20 @@ import net.apisp.quick.ioc.annotation.Factory;
 import net.apisp.quick.ioc.annotation.Singleton;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
-import net.apisp.quick.server.DefaultQuickServer;
+import net.apisp.quick.server.http.DefaultQuickServer;
 import net.apisp.quick.server.MappingResolver;
-import net.apisp.quick.server.QuickServer;
-import net.apisp.quick.server.var.ServerContext;
+import net.apisp.quick.server.std.QuickServer;
+import net.apisp.quick.server.std.ContextEnhancer;
+import net.apisp.quick.server.std.QuickContext;
+import net.apisp.quick.server.ServerContext;
 import net.apisp.quick.thread.Task;
 import net.apisp.quick.util.Quicks;
+import net.apisp.quick.util.Reflects;
 
 /**
  * 框架帮助类
  * 
- * @author UJUED
+ * @author ujued
  * @date 2018-06-08 10:34:37
  */
 public class Quick implements Bootable<QuickContext> {
@@ -110,7 +116,7 @@ public class Quick implements Bootable<QuickContext> {
                 ContextEnhancer preparation = (ContextEnhancer) preparations[i].newInstance();
                 Injections.inject(preparation, quickContext);
                 preparation.enhance(quickContext);
-                LOG.info("{} preapared.", preparations[i].getName());
+                LOG.info("{} prepared.", preparations[i].getName());
             } catch (InstantiationException | IllegalAccessException e) {
                 LOG.warn("{} is not suitable.", preparations[i]);
             }
@@ -120,15 +126,30 @@ public class Quick implements Bootable<QuickContext> {
         SingletonRegister.prepare(classScanner.getByAnnotation(Singleton.class), quickContext).register();
 
         // 解决URI的映射关系
-        MappingResolver resolver = MappingResolver.prepare(bootClass, quickContext);
-        quickContext.accept(resolver);
-        Class<?>[] controllerClss = classScanner.getByAnnotation(Controller.class);
-        resolver.addControllerClasses(controllerClss);
-        if (shouldScanningSupport) {
-            Class<?>[] supportControllerClss = supportClassScanner.getByAnnotation(Controller.class);
-            resolver.addControllerClasses(supportControllerClss);
+          // 启动类指定的类
+        Scanning scanning = bootClass.getAnnotation(Scanning.class);
+        Class<?>[] controllerClasses = new Class<?>[0];
+        if (Objects.nonNull(scanning)) {
+            controllerClasses = scanning.value();
         }
-        resolver.resolve();
+          // 扫描到的
+        Class<?>[] secondControllerClasses = classScanner.getByAnnotation(Controller.class);
+        MappingResolver resolver = quickContext.accept(MappingResolver.prepare(controllerClasses));
+        resolver.addControllerClasses(secondControllerClasses).addControllerClasses(bootClass);
+        if (shouldScanningSupport) {
+            Class<?>[] supportControllerClasses = supportClassScanner.getByAnnotation(Controller.class);
+            resolver.addControllerClasses(supportControllerClasses);
+        }
+        resolver.resolveTo(quickContext);
+
+        // 全局跨域设置
+        EnableCros crossDomain = bootClass.getAnnotation(EnableCros.class);
+        if (Objects.nonNull(crossDomain)) {
+            quickContext.responseHeaders().put("Access-Control-Allow-Origin", "*");
+            quickContext.responseHeaders().put("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT,HEAD");
+            quickContext.responseHeaders().put("Access-Control-Allow-Headers", "x-requested-with");
+            Reflects.invoke(quickContext, "setCrossDomain", true);
+        }
     }
 
     /**
@@ -161,7 +182,7 @@ public class Quick implements Bootable<QuickContext> {
     /**
      * 选择合适的QuickServer
      * 
-     * @param quickContext
+     * @param serverClass
      * @return
      */
     private static synchronized QuickServer newServer(Class<QuickServer> serverClass) {

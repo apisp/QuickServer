@@ -12,10 +12,10 @@ public class DefaultConfig extends Configuration {
 
     public DefaultConfig() {
         configs.put("charset", "UTF-8");
-        configs.put("controller.exception.handler", "net.apisp.quick.core.std.SampleExceptionHandler");
+        configs.put("exception.handler", "net.apisp.quick.support.BuiltinExceptionHandler");
         configs.put("logging.class", "net.apisp.quick.log.ConsoleLog");
         configs.put("logging.level", Levels.INFO);
-        configs.put("server", "net.apisp.quick.server.DefaultQuickServer");
+        configs.put("server", "net.apisp.quick.server.http.DefaultQuickServer");
         configs.put("server.port", 8908);
         configs.put("server.threads", 4 * 6);
         configs.put("server.tmp.dir", System.getProperty("user.dir"));

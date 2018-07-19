@@ -23,16 +23,17 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.apisp.quick.server.std.QuickContext;
 import org.json.JSONObject;
 
-import net.apisp.quick.core.ContextEnhancer;
-import net.apisp.quick.core.annotation.EnableCros;
-import net.apisp.quick.core.annotation.Delete;
-import net.apisp.quick.core.annotation.Get;
-import net.apisp.quick.core.annotation.Post;
-import net.apisp.quick.core.annotation.ResponseType;
-import net.apisp.quick.core.annotation.Variable;
-import net.apisp.quick.core.annotation.View;
+import net.apisp.quick.server.std.ContextEnhancer;
+import net.apisp.quick.core.http.annotation.EnableCros;
+import net.apisp.quick.core.http.annotation.Delete;
+import net.apisp.quick.core.http.annotation.Get;
+import net.apisp.quick.core.http.annotation.Post;
+import net.apisp.quick.core.http.annotation.ResponseType;
+import net.apisp.quick.core.http.annotation.Variable;
+import net.apisp.quick.core.http.annotation.View;
 import net.apisp.quick.core.http.ContentTypes;
 import net.apisp.quick.core.http.HttpRequest;
 import net.apisp.quick.core.http.HttpResponse;
@@ -45,7 +46,6 @@ import net.apisp.quick.ioc.annotation.Controller;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.MappingResolver;
-import net.apisp.quick.server.var.ServerContext;
 import net.apisp.quick.util.Quicks;
 import net.apisp.quick.util.Reflects;
 import net.apisp.quick.util.Strings;
@@ -60,7 +60,7 @@ public class QuickSystemController {
 	private static final Log LOG = LogFactory.getLog(QuickSystemController.class);
 
 	@Autowired
-	private ServerContext serverContext;
+	private QuickContext context;
 
 	@Autowired("quickServer.bootClass")
 	private Class<?> bootClass;
@@ -129,8 +129,8 @@ public class QuickSystemController {
 		for (int i = 0; i < preparations.length; i++) {
 			try {
 				ContextEnhancer preparation = (ContextEnhancer) preparations[i].newInstance();
-				Injections.inject(preparation, serverContext);
-				preparation.enhance(serverContext);
+				Injections.inject(preparation, context);
+				preparation.enhance(context);
 				pset.add(preparations[i].getName());
 			} catch (InstantiationException | IllegalAccessException e) {
 				LOG.warn("{} is not suitable.", preparations[i]);
@@ -146,13 +146,13 @@ public class QuickSystemController {
 		}
 		ClassScanner classScanner = SimpleClassScanner.create(classpathURI, Quicks.packageName(bootClass));
 		Class<?>[] controllers = classScanner.getByAnnotation(Controller.class);
-		serverContext.singleton(MappingResolver.class).addControllerClasses(controllers).resolve();
+		context.singleton(MappingResolver.class).addControllerClasses(controllers).resolveTo(context);
 		return new JSONObject().put("new_controllers", Arrays.toString(controllers));
 	}
 
 	@Delete("/_quick/singleton/{name}")
 	public JSONObject unloadSingleton(@Variable("name") String name) {
-		if (Reflects.invoke(serverContext, "unloadSingleton", name)) {
+		if (Reflects.invoke(context, "unloadSingleton", name)) {
 			return Quicks.message(200, "ok", null, null);
 		}
 		return Quicks.message(500, "error", null, null);
