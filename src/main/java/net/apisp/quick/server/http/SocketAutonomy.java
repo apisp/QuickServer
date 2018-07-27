@@ -21,9 +21,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import net.apisp.quick.core.std.SoftCloseable;
 import net.apisp.quick.data.file.FileData;
@@ -39,19 +37,16 @@ import net.apisp.quick.util.Strings;
 /**
  * 请求与响应自治系统
  * 
- * @author Ujued
  * @date 2018-06-12 16:05:50
  */
 public class SocketAutonomy implements SoftCloseable {
-    public static final List<SocketAutonomy> SOCKET_KEEP_LIST = new ArrayList<>(
-            DefaultQuickServer.MAX_SOCKET_KEEP_COUNT);
     private static final Log LOG = LogFactory.getLog(SocketAutonomy.class);
-    private Socket sock;
+    private Socket socket;
     private Long recentTime;
     private volatile boolean isInterrupted;
 
-    public SocketAutonomy(Socket sock) {
-        this.sock = sock;
+    public SocketAutonomy(Socket socket) {
+        this.socket = socket;
         this.recentTime = System.currentTimeMillis();
     }
 
@@ -62,8 +57,8 @@ public class SocketAutonomy implements SoftCloseable {
      */
     public static void activeAsync(Socket sock) {
         SocketAutonomy socketAutonomy = new SocketAutonomy(sock);
-        // 加入受检列表
-        SOCKET_KEEP_LIST.add(socketAutonomy);
+        // 加入连接超时受检列表
+        DefaultQuickServer.QuickServerConnectionMonitor.put(socketAutonomy);
         // 异步，解析请求，响应请求
         DefaultQuickServer.SOCKET_AUTONOMY_EXECUTOR.submit(new ReqAndRespResover(sock), socketAutonomy);
     }
@@ -102,13 +97,13 @@ public class SocketAutonomy implements SoftCloseable {
 
     @Override
     public String toString() {
-        return sock.toString();
+        return socket.toString();
     }
 
     @Override
     public void close() {
         try {
-            this.sock.close();
+            this.socket.close();
         } catch (IOException e) {
             LOG.debug(e);
         }
@@ -134,7 +129,7 @@ class ReqAndRespResover implements Task {
         try {
             InputStream is = sock.getInputStream();
             byte[] first = null;
-            int i = 0, n = 0;
+            int i, n = 0;
             byte[] buf = new byte[1024 * 10];
             String reqDataFile = null;
             while (!socketAutonomy.interrupted()) {
