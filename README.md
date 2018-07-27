@@ -1,8 +1,7 @@
 # QuickServer快速构建API
 
 * 需要用Java快速提供API，快来试试QuickServer框架吧
-* 熟练使用QuickServer，对于到Spring相关产品的使用迁移有不可描述的便利
-* 无任何第三方依赖，只有一个不到200KB的Jar包(内含org.json三方包)，满足你快速提供API
+* 无第三方依赖，只有一个不到200KB的Jar包(内含org.json三方包)，满足API的快速构建
 
 `IOC` `MVC` `RESTful` `零配置`
 
@@ -15,7 +14,7 @@
 
 ## 下面几个简单步骤开始你的奇妙之旅：
 
-#### 1.新建Java源码文件Demo.java (基于默认配置正常运行，需要用UTF-8编码该文件)
+#### 1.新建Java源码文件Demo.java
 ```java
 import net.apisp.quick.core.Quick;
 
@@ -56,14 +55,14 @@ server.tmp.dir=${user.dir}
 support.access.key=1234560
 support.access.open=true
 ```
-你可以任意覆盖这些默认配置。当然优先级最高的还是从 `command` 传进来的 `args` 。配置中的 `server` 项，可能会使你心生疑惑，它是个这样的一个类：
+你可以任意覆盖这些默认配置。当然优先级最高的还是从 `command` 传进来的 `args` 。值得一提的是配置中的 `server` 项，它是个这样的一个类：
 
 1. 它继承自 `net.apisp.quick.server.std.QuickServer` ，你可以用一些成熟的Server产品，如`Jetty`、`Tomcat`等来代替默认的QuickServer。你只需自己实现一个 `net.apisp.quick.server.std.QuickServer` ，并配置到配置文件 `server` 节点即可。
 2. 能获取到应用运行的上下文 `net.apisp.quick.server.ServerContext` 。
 
 `ServerContext` 提供这些信息： `URI与逻辑函数的映射关系` ， `一个线程池` ，  `配置信息` 。
 
-最后，还是打开你的Java IDE，尽情发挥吧！
+赶紧打开你的Java IDE，尽情发挥吧！
 
 ## 你还可以
 * [翻阅开发手册](MANUAL.md)  

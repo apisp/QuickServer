@@ -26,7 +26,7 @@ import net.apisp.quick.server.http.flow.FlowException;
 import net.apisp.quick.server.http.flow.SocketAndOutputStream;
 import net.apisp.quick.server.std.BodyBinary;
 import net.apisp.quick.server.std.QuickContext;
-import net.apisp.quick.server.std.QuickHttpRequest;
+import net.apisp.quick.server.std.StdHttpRequest;
 import net.apisp.quick.support.lang.FlowControl;
 import net.apisp.quick.template.T;
 import net.apisp.quick.util.Classpaths;
@@ -51,7 +51,7 @@ import java.util.*;
 public class RequestProcessor {
     private static final Log LOG = LogFactory.getLog(RequestProcessor.class);
     private RequestExecutorInfo executeInfo;
-    private QuickHttpRequest httpRequest;
+    private StdHttpRequest httpRequest;
 
     private QuickContext serverContext = ServerContext.tryGet();
     {
@@ -60,7 +60,7 @@ public class RequestProcessor {
         }
     }
 
-    private RequestProcessor(QuickHttpRequest httpRequest) {
+    private RequestProcessor(StdHttpRequest httpRequest) {
         // 执行信息
         this.executeInfo = serverContext.hit(httpRequest.method(), httpRequest.uri());
         this.httpRequest = httpRequest;
@@ -90,7 +90,7 @@ public class RequestProcessor {
      * @param req 处理时需要的信息
      * @return
      */
-    public static RequestProcessor create(QuickHttpRequest req) {
+    public static RequestProcessor create(StdHttpRequest req) {
         RequestProcessor processor = new RequestProcessor(req);
         return processor;
     }
@@ -100,7 +100,7 @@ public class RequestProcessor {
         // 上下文要求的响应头
         responseInfo.ensureHeaders(serverContext.responseHeaders());
 
-        QuickHttpRequest request = this.httpRequest;
+        StdHttpRequest request = this.httpRequest;
         if (!request.normative()) {
             // 400 Bad Request //////////////////////////////////////////////
             responseInfoApplyStatus(responseInfo, HttpStatus.BAD_REQUEST);

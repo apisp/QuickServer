@@ -28,7 +28,6 @@ import net.apisp.quick.data.file.FileData;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.http.HttpRequestResolver.HttpRequestInfo;
-import net.apisp.quick.server.ResponseExecutor;
 import net.apisp.quick.server.http.flow.SocketAndOutputStream;
 import net.apisp.quick.server.ServerContext;
 import net.apisp.quick.thread.Task;
@@ -58,7 +57,7 @@ public class SocketAutonomy implements SoftCloseable {
     public static void activeAsync(Socket sock) {
         SocketAutonomy socketAutonomy = new SocketAutonomy(sock);
         // 加入连接超时受检列表
-        DefaultQuickServer.QuickServerConnectionMonitor.put(socketAutonomy);
+        DefaultQuickServer.ConnectionMonitor.put(socketAutonomy);
         // 异步，解析请求，响应请求
         DefaultQuickServer.SOCKET_AUTONOMY_EXECUTOR.submit(new ReqAndRespResover(sock), socketAutonomy);
     }

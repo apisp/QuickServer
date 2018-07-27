@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.server;
+package net.apisp.quick.server.http;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
+import net.apisp.quick.server.RequestProcessor;
 import net.apisp.quick.server.RequestProcessor.ResponseInfo;
-import net.apisp.quick.server.http.HttpResponseExecutor;
 import net.apisp.quick.server.http.flow.FlowException;
 import net.apisp.quick.server.http.flow.FlowResponseExecutor;
-import net.apisp.quick.server.std.QuickHttpRequest;
+import net.apisp.quick.server.std.StdHttpRequest;
 
 /**
  * 响应处理器
@@ -33,7 +33,7 @@ import net.apisp.quick.server.std.QuickHttpRequest;
  */
 public interface ResponseExecutor {
     Log LOG = LogFactory.getLog(ResponseExecutor.class);
-    static ResponseExecutor execute(QuickHttpRequest httpRequest, OutputStream out) {
+    static ResponseExecutor execute(StdHttpRequest httpRequest, OutputStream out) {
         ResponseInfo respInfo;
         try {
             respInfo = RequestProcessor.create(httpRequest).process();

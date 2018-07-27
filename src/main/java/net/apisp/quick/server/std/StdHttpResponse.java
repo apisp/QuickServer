@@ -15,10 +15,12 @@
  */
 package net.apisp.quick.server.std;
 
-import net.apisp.quick.core.http.HttpRequest;
-import net.apisp.quick.server.RequestExecutorInfo;
+import net.apisp.quick.core.http.HttpResponse;
 
-public interface QuickHttpRequest extends HttpRequest {
-    void setRequestExecutorInfo(RequestExecutorInfo requestExecutorInfo);
-    void onExecuteOver();
+/**
+ * 响应对象抽象
+ *
+ * @author ujued
+ */
+public interface StdHttpResponse extends HttpResponse {
 }

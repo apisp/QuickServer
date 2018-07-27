@@ -22,7 +22,7 @@ import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestExecutorInfo;
 import net.apisp.quick.server.std.BodyBinary;
-import net.apisp.quick.server.std.QuickHttpRequest;
+import net.apisp.quick.server.std.StdHttpRequest;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -43,7 +43,7 @@ public class HttpRequestResolver {
         return info;
     }
 
-    public static class HttpRequestInfo implements QuickHttpRequest {
+    public static class HttpRequestInfo implements StdHttpRequest {
         private String method;
         private String uri;
         private String params;

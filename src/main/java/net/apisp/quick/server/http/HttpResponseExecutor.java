@@ -26,9 +26,8 @@ import net.apisp.quick.core.http.HttpCookie;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.server.RequestProcessor.ResponseInfo;
-import net.apisp.quick.server.ResponseExecutor;
 import net.apisp.quick.server.ServerContext;
-import net.apisp.quick.server.std.QuickHttpRequest;
+import net.apisp.quick.server.std.StdHttpRequest;
 
 /**
  * 正常的阻塞响应
@@ -37,11 +36,11 @@ import net.apisp.quick.server.std.QuickHttpRequest;
  */
 public class HttpResponseExecutor implements ResponseExecutor {
 	private static final Log LOG = LogFactory.getLog(HttpResponseExecutor.class);
-	private QuickHttpRequest httpRequestInfo;
+	private StdHttpRequest httpRequestInfo;
 	private ResponseInfo httpResponseInfo;
 	private OutputStream out;
 
-	public HttpResponseExecutor(QuickHttpRequest httpRequestInfo, ResponseInfo httpResponseInfo, OutputStream out) {
+	public HttpResponseExecutor(StdHttpRequest httpRequestInfo, ResponseInfo httpResponseInfo, OutputStream out) {
 		this.httpRequestInfo = httpRequestInfo;
 		this.httpResponseInfo = httpResponseInfo;
 		this.out = out;

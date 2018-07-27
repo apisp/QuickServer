@@ -1,14 +1,11 @@
 package net.apisp.quick.server.http.flow;
 
-import java.io.IOException;
-
-import net.apisp.quick.server.ResponseExecutor;
+import net.apisp.quick.server.http.ResponseExecutor;
 
 public class FlowResponseExecutor implements ResponseExecutor {
 
 	@Override
-	public void response() throws IOException {
-		
+	public void response() {
+		// 空实现
 	}
-
 }

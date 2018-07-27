@@ -17,8 +17,8 @@ package net.apisp.quick.server.http;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Iterator;
 import java.util.Objects;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -56,7 +56,7 @@ public class DefaultQuickServer extends QuickServer {
 
     @Override
     public void run(QuickContext serverContext) throws Exception {
-        QuickServerConnectionMonitor.daemonRun();
+        ConnectionMonitor.daemonRun();
         ServerSocket serverSocket = new ServerSocket(serverContext.port());
         while (super.shouldRunning()) {
             Socket sock = serverSocket.accept();
@@ -76,21 +76,20 @@ public class DefaultQuickServer extends QuickServer {
     /**
      * HTTP/1.1 请求长连接定时清理
      *
-     * @author UJUED
-     * @date 2018-06-12 18:18:49
+     * @author ujued
      */
-    static class QuickServerConnectionMonitor extends Thread {
+    static class ConnectionMonitor extends Thread {
         public static final int SOCKET_MAX_FREE_TIME = 1000 * 60;
-        private static QuickServerConnectionMonitor CONNECTION_MONITOR;
+        private static ConnectionMonitor CONNECTION_MONITOR;
         private BlockingQueue<SocketAutonomy> keepConnections;
 
 
-        private QuickServerConnectionMonitor() {
-            keepConnections = new LinkedBlockingQueue<>(MAX_SOCKET_KEEP_COUNT);
+        private ConnectionMonitor() {
+            keepConnections = new ArrayBlockingQueue<>(MAX_SOCKET_KEEP_COUNT);
         }
 
         public static void daemonRun() {
-            CONNECTION_MONITOR = new QuickServerConnectionMonitor();
+            CONNECTION_MONITOR = new ConnectionMonitor();
             CONNECTION_MONITOR.setPriority(Thread.MIN_PRIORITY);
             CONNECTION_MONITOR.setDaemon(true);
             CONNECTION_MONITOR.setName("monitor");
