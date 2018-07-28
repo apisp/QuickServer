@@ -55,9 +55,13 @@ public class DefaultQuickServer extends QuickServer {
     public static final TaskExecutor RESPONSE_EXECUTOR = TaskExecutor.create("response", MAX_RESPONSE_CONCURRENT_COUNT);
 
     @Override
-    public void run(QuickContext serverContext) throws Exception {
+    public void run(QuickContext context) throws Exception {
+        // 长连接检测队列启动
         ConnectionMonitor.daemonRun();
-        ServerSocket serverSocket = new ServerSocket(serverContext.port());
+        ServerSocket serverSocket = new ServerSocket(context.port());
+        // 通知QuickServer以启动
+        notifyQuickServerStarted();
+        // 循环监听
         while (super.shouldRunning()) {
             Socket sock = serverSocket.accept();
             LOG.debug("New connection come in.");
@@ -109,7 +113,7 @@ public class DefaultQuickServer extends QuickServer {
          *
          * @param socketAutonomy
          */
-        public void offer(SocketAutonomy socketAutonomy){
+        public void offer(SocketAutonomy socketAutonomy) {
             this.keepConnections.offer(socketAutonomy);
         }
 

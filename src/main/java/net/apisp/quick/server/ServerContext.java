@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -57,7 +57,6 @@ public class ServerContext implements QuickContext {
     private static QuickContext instance;
     private Map<String, RequestExecutorInfo> mappings = new HashMap<>();
     private Map<Pattern, RequestExecutorInfo> regMappings = new HashMap<>();
-    private int port;
     private TaskExecutor executor;
     private Class<QuickServer> serverClass;
     private boolean normative = true;
@@ -69,7 +68,6 @@ public class ServerContext implements QuickContext {
     private Container container = new SimpleContainer();
 
     private ServerContext() {
-        port = (int) Configuration.get("server.port");
         serverClass = Classpaths.safeLoadClass(Configuration.get("server").toString(), QuickServer.class);
         executor = TaskExecutor.create((int) Configuration.get("server.threads"));
         defaultRespHeaders.put("Connection", "keep-alive");
@@ -82,27 +80,27 @@ public class ServerContext implements QuickContext {
         } catch (InstantiationException | IllegalAccessException e) {
             LOG.warn("Not suitable ExceptionHandler class {} .", h.getName());
         }
-        
+
         // 缓存快速Mapping支持
         this.accept(new FastRouter());
     }
 
     /**
      * 初始化一个QuickContext
-     * 
+     *
      * @return
      */
     public static synchronized QuickContext init() {
         if (instance == null) {
             instance = new ServerContext();
-            instance.accept(instance);
+            instance.accept(QuickContext.class.getName(), instance);
         }
         return instance;
     }
 
     /**
      * 尝试获取ServerContext， 在脱离QuickServer环境调用时，返回null值
-     * 
+     *
      * @return
      */
     public static QuickContext tryGet() {
@@ -123,8 +121,8 @@ public class ServerContext implements QuickContext {
     private void setCrossDomain(Boolean crossDomain) {
         this.crossDomain = crossDomain;
     }
-    
-    @ReflectionCall("net.apisp.quick.support.QuickSystemController.unloadSingleton()")
+
+    @ReflectionCall("net.apisp.quick.support.SupportController.unloadSingleton()")
     private void unloadSingleton(String name) {
         this.container.unload(name);
     }
@@ -161,7 +159,7 @@ public class ServerContext implements QuickContext {
 
     @Override
     public int port() {
-        return port;
+        return (int) Configuration.get("server.port");
     }
 
     @Override
@@ -240,27 +238,27 @@ public class ServerContext implements QuickContext {
         mappings.put(key, executeInfo);
         return this;
     }
-    
+
     @Override
     public QuickContext mapping(String key, Function<HttpRequest, Object> executor) {
         return mapping0(key, executor);
     }
-    
+
     @Override
     public QuickContext mapping(String key, Supplier<Object> executor) {
         return mapping0(key, executor);
     }
-    
+
     @Override
     public QuickContext mapping(String key, Runnable executor) {
         return mapping0(key, executor);
     }
-    
+
     @Override
     public QuickContext mapping(String key, ArgRunnable<HttpRequest> executor) {
         return mapping0(key, executor);
     }
-    
+
     @Override
     public QuickContext mapping(String key, Class<?> controller, String methodName, Class<?>... paramTypes) {
         try {
@@ -344,10 +342,10 @@ public class ServerContext implements QuickContext {
     @Override
     public void unload(Class<?> type) {
     }
-    
+
     /**
      * 映射抽象的请求处理器
-     * 
+     *
      * @param key
      * @param executor
      * @return

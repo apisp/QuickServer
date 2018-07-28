@@ -72,7 +72,7 @@ public class Quick implements Bootable<QuickContext> {
         this(bootClass, 2, bootArgs);
     }
 
-    private Quick(Class<?> bootClass, int index, String[] bootArgs) {
+    private Quick(Class<?> bootClass, int index, String... bootArgs) {
         if (bootClass == null) {
             try {
                 String bootClassName = Thread.currentThread().getStackTrace()[index].getClassName();
@@ -156,8 +156,10 @@ public class Quick implements Bootable<QuickContext> {
      * Server设置上下文 -> 启动
      */
     private void startServer() {
-        server.setContext(quickContext);
-        server.start();
+        try {
+            server.start();
+        } catch (InterruptedException e) {
+        }
     }
 
     @Override
