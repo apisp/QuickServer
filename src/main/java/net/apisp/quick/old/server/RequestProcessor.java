@@ -30,9 +30,9 @@ import net.apisp.quick.old.server.http.flow.SocketAndOutputStream;
 import net.apisp.quick.old.server.std.BodyBinary;
 import net.apisp.quick.old.server.std.QuickContext;
 import net.apisp.quick.old.server.std.StdHttpRequest;
-import net.apisp.quick.std.http.StandardHttpCookie;
+import net.apisp.quick.core.standard.http.StandardHttpCookie;
 import net.apisp.quick.support.lang.FlowControl;
-import net.apisp.quick.template.T;
+import net.apisp.quick.ext.template.T;
 import net.apisp.quick.util.Classpaths;
 import net.apisp.quick.util.JSONs;
 import net.apisp.quick.util.Strings;
@@ -228,7 +228,7 @@ public class RequestProcessor {
         private byte[] body = new byte[0];
         private HttpStatus status = HttpStatus.OK;
         private Map<String, String> headers = new HashMap<>();
-        private List<StandardHttpCookie> cookies = new ArrayList<>();
+        private List<HttpCookie> cookies = new ArrayList<>();
 
         @ReflectionCall("net.apisp.quick.old.std.QuickExceptionHandler.handle(..)")
         private void setHttpStatus(HttpStatus status) {
@@ -284,11 +284,11 @@ public class RequestProcessor {
         }
 
         @Override
-        public void cookie(StandardHttpCookie cookie) {
+        public void cookie(HttpCookie cookie) {
             cookies.add(cookie);
         }
 
-        public List<StandardHttpCookie> getCookies() {
+        public List<HttpCookie> getCookies() {
             return cookies;
         }
     }

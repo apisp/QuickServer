@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import net.apisp.quick.std.http.StandardHttpCookie;
+import net.apisp.quick.core.criterion.http.HttpCookie;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.old.server.RequestProcessor.ResponseInfo;
@@ -73,7 +73,7 @@ public class HttpResponseExecutor implements ResponseExecutor {
 		headerData.put(("Server: QuickServer/1.0").getBytes());
 		headerData.put("\r\n".getBytes());
 		// Cookies
-		List<StandardHttpCookie> cookies = respInfo.getCookies();
+		List<HttpCookie> cookies = respInfo.getCookies();
 		for (int i = 0; i < cookies.size(); i++) {
 			headerData.put(("Set-Cookie: " + cookies.get(i).toString()).getBytes(ServerContext.tryGet().charset()));
 			headerData.put("\r\n".getBytes());

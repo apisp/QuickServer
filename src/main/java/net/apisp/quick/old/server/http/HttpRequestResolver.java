@@ -16,7 +16,7 @@
 package net.apisp.quick.old.server.http;
 
 import net.apisp.quick.annotation.Nullable;
-import net.apisp.quick.std.http.StandardHttpCookie;
+import net.apisp.quick.core.standard.http.StandardHttpCookie;
 import net.apisp.quick.data.DataPersist;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;

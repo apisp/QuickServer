@@ -16,7 +16,7 @@
 package net.apisp.quick.core.criterion.http;
 
 import net.apisp.quick.old.server.std.BodyBinary;
-import net.apisp.quick.std.http.StandardHttpCookie;
+import net.apisp.quick.core.standard.http.StandardHttpCookie;
 
 /**
  * HTTP请求

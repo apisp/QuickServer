@@ -20,9 +20,9 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.apisp.quick.ioc.annotation.Accept;
-import net.apisp.quick.ioc.annotation.Factory;
-import net.apisp.quick.template.T;
+import net.apisp.quick.core.criterion.ioc.annotation.Accept;
+import net.apisp.quick.core.criterion.ioc.annotation.Factory;
+import net.apisp.quick.ext.template.T;
 import net.apisp.quick.util.Quicks;
 
 /**

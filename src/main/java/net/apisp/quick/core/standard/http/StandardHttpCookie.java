@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.std.http;
+package net.apisp.quick.core.standard.http;
+
+import net.apisp.quick.core.criterion.http.HttpCookie;
 
 import java.util.Date;
 
-public class StandardHttpCookie {
+public class StandardHttpCookie implements HttpCookie {
     private String key;
     private String value;
     private String path = "/";
@@ -30,26 +32,32 @@ public class StandardHttpCookie {
         this.value = value;
     }
 
+    @Override
     public String key() {
         return key;
     }
 
+    @Override
     public String value() {
         return value;
     }
 
+    @Override
     public String path() {
         return path;
     }
 
+    @Override
     public long expires() {
         return expires;
     }
 
+    @Override
     public void path(String path) {
         this.path = path;
     }
 
+    @Override
     public void expires(long expires) {
         this.expires = expires;
     }

@@ -18,7 +18,7 @@ package net.apisp.quick.old.server.http;
 import java.util.Set;
 
 import net.apisp.quick.annotation.Unfulfilled;
-import net.apisp.quick.ioc.ObjectInventorUnit;
+import net.apisp.quick.core.standard.ioc.ObjectInventorUnit;
 import net.apisp.quick.old.server.std.QuickContext;
 import net.apisp.quick.thread.TaskExecutor;
 

@@ -13,30 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.old.server.http;
+package net.apisp.quick.core.criterion.ioc;
 
-import net.apisp.quick.core.criterion.ioc.Container;
-import net.apisp.quick.thread.TaskExecutor;
+import java.lang.annotation.Annotation;
 
 /**
- * WEB上下文
- * 
  * @author UJUED
- * @date 2018-06-10 11:10:22
+ * @date 2018-06-15 11:07:05
  */
-public interface WebContext extends Container {
-    
-    /**
-     * 线程池。“现场能访问到的参数”可以随着任务一起提交
-     * 
-     * @return 线程池
-     */
-    TaskExecutor executor();
+public interface ClassScanner {
 
-    /**
-     * 编码集
-     * 
-     * @return 编码集
-     */
-    String charset();
+    Class<?>[] get(Class<?> cls);
+
+    Class<?>[] getByAnnotation(Class<? extends Annotation> anno);
+
+    <T> Class<T>[] getByInterface(Class<T> ifce);
 }

@@ -15,8 +15,6 @@
  */
 package net.apisp.quick.core.criterion.http;
 
-import net.apisp.quick.std.http.StandardHttpCookie;
-
 /**
  * HTTP响应接口
  * 
@@ -38,7 +36,7 @@ public interface HttpResponse {
      * 
      * @param cookie
      */
-    void cookie(StandardHttpCookie cookie);
+    void cookie(HttpCookie cookie);
 
     /**
      * 发给客户端一个cookie。path=/ expires=关闭浏览器

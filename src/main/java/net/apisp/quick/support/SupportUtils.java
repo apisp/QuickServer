@@ -19,7 +19,7 @@ import java.util.Base64;
 
 import net.apisp.quick.annotation.DependOn;
 import net.apisp.quick.old.server.std.QuickContext;
-import net.apisp.quick.std.http.StandardHttpCookie;
+import net.apisp.quick.core.standard.http.StandardHttpCookie;
 import net.apisp.quick.core.criterion.http.HttpRequest;
 import net.apisp.quick.old.server.ServerContext;
 import net.apisp.quick.util.Strings;

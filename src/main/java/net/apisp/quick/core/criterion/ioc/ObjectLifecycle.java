@@ -13,30 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.old.server.http;
-
-import net.apisp.quick.core.criterion.ioc.Container;
-import net.apisp.quick.thread.TaskExecutor;
+package net.apisp.quick.core.criterion.ioc;
 
 /**
- * WEB上下文
+ * 单例对象生命周期接口
  * 
- * @author UJUED
- * @date 2018-06-10 11:10:22
+ * @author Ujued
+ * @date 2018-06-26 18:35:52
  */
-public interface WebContext extends Container {
-    
-    /**
-     * 线程池。“现场能访问到的参数”可以随着任务一起提交
-     * 
-     * @return 线程池
-     */
-    TaskExecutor executor();
+public interface ObjectLifecycle {
+    void created();
 
-    /**
-     * 编码集
-     * 
-     * @return 编码集
-     */
-    String charset();
+    void destroy();
 }

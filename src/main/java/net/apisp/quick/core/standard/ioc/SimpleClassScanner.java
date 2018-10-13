@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.ioc;
+package net.apisp.quick.core.standard.ioc;
 
+import net.apisp.quick.core.criterion.ioc.ClassScanner;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 
@@ -33,7 +34,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**

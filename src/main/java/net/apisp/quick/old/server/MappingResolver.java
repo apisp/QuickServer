@@ -18,7 +18,7 @@ package net.apisp.quick.old.server;
 import net.apisp.quick.core.criterion.http.annotation.*;
 import net.apisp.quick.core.criterion.MimeTypes;
 import net.apisp.quick.core.criterion.http.constant.HttpMethods;
-import net.apisp.quick.ioc.Injections;
+import net.apisp.quick.core.standard.ioc.Injections;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 import net.apisp.quick.old.server.std.QuickContext;

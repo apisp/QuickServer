@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Ujued and APISP.NET. All Rights Reserved.
+ * Copyright 2018-present, APISP.NET.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.old.server.http;
+package net.apisp.quick.core.criterion.ioc.annotation;
 
-import net.apisp.quick.core.criterion.ioc.Container;
-import net.apisp.quick.thread.TaskExecutor;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
- * WEB上下文
- * 
  * @author UJUED
- * @date 2018-06-10 11:10:22
+ * @date 2018-06-15 01:12:58
  */
-public interface WebContext extends Container {
-    
-    /**
-     * 线程池。“现场能访问到的参数”可以随着任务一起提交
-     * 
-     * @return 线程池
-     */
-    TaskExecutor executor();
+@Documented
+@Retention(RUNTIME)
+@Target({ FIELD, METHOD })
+public @interface Autowired {
+    String value() default "";
 
-    /**
-     * 编码集
-     * 
-     * @return 编码集
-     */
-    String charset();
+    Class<?> safeType() default Void.class;
 }
