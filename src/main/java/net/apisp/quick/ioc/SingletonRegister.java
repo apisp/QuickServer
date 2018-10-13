@@ -18,7 +18,6 @@ package net.apisp.quick.ioc;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.apisp.quick.ioc.Container.Injections;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
 

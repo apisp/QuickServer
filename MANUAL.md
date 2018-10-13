@@ -45,8 +45,8 @@ public class DemoAPI {
             obj.put("sessionid", session.value());
         }
         obj.put("assertTrue", req.body() == body);
-        obj.put("server.port", ctx.setting("server.port"));
-        obj.put("server.charset", charset);
+        obj.put(std, ctx.setting(std));
+        obj.put(std, charset);
         obj.put("name", name);
         return obj;
     }

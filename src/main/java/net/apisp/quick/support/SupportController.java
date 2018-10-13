@@ -15,6 +15,26 @@
  */
 package net.apisp.quick.support;
 
+import net.apisp.quick.core.criterion.MimeTypes;
+import net.apisp.quick.core.criterion.http.HttpRequest;
+import net.apisp.quick.core.criterion.http.HttpResponse;
+import net.apisp.quick.core.criterion.http.annotation.*;
+import net.apisp.quick.ioc.ClassScanner;
+import net.apisp.quick.ioc.Injections;
+import net.apisp.quick.ioc.SimpleClassScanner;
+import net.apisp.quick.ioc.annotation.Autowired;
+import net.apisp.quick.ioc.annotation.Controller;
+import net.apisp.quick.log.Log;
+import net.apisp.quick.log.LogFactory;
+import net.apisp.quick.old.server.MappingResolver;
+import net.apisp.quick.old.server.http.WebContext;
+import net.apisp.quick.old.server.std.ContextEnhancer;
+import net.apisp.quick.old.server.std.QuickContext;
+import net.apisp.quick.util.Quicks;
+import net.apisp.quick.util.Reflects;
+import net.apisp.quick.util.Strings;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -22,33 +42,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
-
-import net.apisp.quick.server.std.QuickContext;
-import org.json.JSONObject;
-
-import net.apisp.quick.server.std.ContextEnhancer;
-import net.apisp.quick.core.http.annotation.EnableCros;
-import net.apisp.quick.core.http.annotation.Delete;
-import net.apisp.quick.core.http.annotation.Get;
-import net.apisp.quick.core.http.annotation.Post;
-import net.apisp.quick.core.http.annotation.ResponseType;
-import net.apisp.quick.core.http.annotation.Variable;
-import net.apisp.quick.core.http.annotation.View;
-import net.apisp.quick.core.http.ContentTypes;
-import net.apisp.quick.core.http.HttpRequest;
-import net.apisp.quick.core.http.HttpResponse;
-import net.apisp.quick.core.http.WebContext;
-import net.apisp.quick.ioc.ClassScanner;
-import net.apisp.quick.ioc.Container.Injections;
-import net.apisp.quick.ioc.SimpleClassScanner;
-import net.apisp.quick.ioc.annotation.Autowired;
-import net.apisp.quick.ioc.annotation.Controller;
-import net.apisp.quick.log.Log;
-import net.apisp.quick.log.LogFactory;
-import net.apisp.quick.server.MappingResolver;
-import net.apisp.quick.util.Quicks;
-import net.apisp.quick.util.Reflects;
-import net.apisp.quick.util.Strings;
 
 /**
  * @author UJUED
@@ -70,7 +63,7 @@ public class SupportController {
 
 	@Get("/favicon.ico")
 	@View("/net/apisp/quick/support/html")
-	@ResponseType(ContentTypes.ICO)
+	@ResponseType(MimeTypes.ICO)
 	public String favicon() {
 		return "favicon.ico";
 	}

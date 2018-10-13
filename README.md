@@ -16,7 +16,7 @@
 
 #### 1.新建Java源码文件Demo.java
 ```java
-import net.apisp.quick.core.Quick;
+import net.apisp.quick.old.Quick;
 
 public class Demo {
     public static void main(String[] args) {
@@ -45,10 +45,10 @@ C:\Users\xxx>javaw -Dfile.encoding=UTF-8 -cp .;quick-server-1.4.jar Demo
 默认配置是 `@ujued` 的偏好设置，你可以在 `classpath` 提供一份优先配置 `quick.properties` ， 下面是默认配置的镜像：
 ```
 charset=UTF-8
-exception.handler=net.apisp.quick.support.BuiltinExceptionHandler
+exception.handler=net.apisp.quick.support.BuiltinHttpServerExceptionHandler
 logging.class=net.apisp.quick.log.ConsoleLog
 logging.level=INFO
-server=net.apisp.quick.server.http.DefaultQuickServer
+server=net.apisp.quick.old.server.http.DefaultQuickServer
 server.port=8908
 server.threads=24
 server.tmp.dir=${user.dir}
@@ -57,8 +57,8 @@ support.access.open=true
 ```
 你可以任意覆盖这些默认配置。当然优先级最高的还是从 `command` 传进来的 `args` 。值得一提的是配置中的 `server` 项，它是个这样的一个类：
 
-1. 它继承自 `net.apisp.quick.server.std.QuickServer` ，你可以用一些成熟的Server产品，如`Jetty`、`Tomcat`等来代替默认的QuickServer。你只需自己实现一个 `net.apisp.quick.server.std.QuickServer` ，并配置到配置文件 `server` 节点即可。
-2. 能获取到应用运行的上下文 `net.apisp.quick.server.ServerContext` 。
+1. 它继承自 `net.apisp.quick.old.server.std.QuickServer` ，你可以用一些成熟的Server产品，如`Jetty`、`Tomcat`等来代替默认的QuickServer。你只需自己实现一个 `net.apisp.quick.old.server.std.QuickServer` ，并配置到配置文件 `server` 节点即可。
+2. 能获取到应用运行的上下文 `net.apisp.quick.old.server.ServerContext` 。
 
 `ServerContext` 提供这些信息： `URI与逻辑函数的映射关系` ， `一个线程池` ，  `配置信息` 。
 

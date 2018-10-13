@@ -19,7 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.apisp.quick.server.ServerContext;
+import net.apisp.quick.old.server.ServerContext;
 
 /**
  * @author Ujued

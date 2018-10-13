@@ -16,9 +16,9 @@
 package net.apisp.quick.log;
 
 import net.apisp.quick.config.Configuration;
-import net.apisp.quick.server.std.QuickContext;
+import net.apisp.quick.old.server.std.QuickContext;
 import net.apisp.quick.log.Log.Levels;
-import net.apisp.quick.server.ServerContext;
+import net.apisp.quick.old.server.ServerContext;
 
 /**
  * @author UJUED

@@ -13,28 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.apisp.quick.support.lang;
-
-import net.apisp.quick.old.server.http.flow.FlowHttpResponse;
-import net.apisp.quick.old.server.http.flow.FlowResponse;
+package net.apisp.quick.old.server.std;
 
 /**
- * HTTP流式工具
- * 
- * @author ujued
+ * @author Ujued
+ * @date 2018-06-24 17:49:52
  */
-public abstract class HttpFlow {
-    private static final ThreadLocal<FlowResponse> respLocal = new ThreadLocal<>();
-
-    /**
-     * 获取当前的响应流
-     * 
-     * @return
-     */
-    public static final synchronized FlowResponse response() {
-        if (respLocal.get() == null) {
-            respLocal.set(new FlowHttpResponse());
-        }
-        return respLocal.get();
-    }
+public interface ContextEnhancer {
+    void enhance(QuickContext context);
 }

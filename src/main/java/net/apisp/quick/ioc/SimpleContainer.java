@@ -32,7 +32,7 @@ import net.apisp.quick.log.LogFactory;
 public class SimpleContainer implements Container {
     private static Log LOG = LogFactory.getLog(SimpleContainer.class);
     private Map<String, Object> cache = new ConcurrentHashMap<>();
-    private Map<String, ObjectCreaterUnit> safeObjectCreaters = new ConcurrentHashMap<>();
+    private Map<String, ObjectInventorUnit> safeObjectCreaters = new ConcurrentHashMap<>();
     private Map<String, ThreadLocal<Object>> safeCache = new ConcurrentHashMap<>();
 
     public SimpleContainer() {
@@ -88,8 +88,8 @@ public class SimpleContainer implements Container {
             if (obj.get() != null) {
                 return obj.get();
             } else {
-                ObjectCreaterUnit unit = this.safeObjectCreaters.get(name);
-                obj.set(unit.getObjectCreater().create(unit.getArgs()));
+                ObjectInventorUnit unit = this.safeObjectCreaters.get(name);
+                obj.set(unit.getObjectInventor().create(unit.getArgs()));
                 return obj.get();
             }
         } else {
@@ -98,7 +98,7 @@ public class SimpleContainer implements Container {
     }
 
     @Override
-    public void accept(String name, ObjectCreaterUnit unit) {
+    public void accept(String name, ObjectInventorUnit unit) {
         this.safeObjectCreaters.put(name, unit);
         this.safeCache.put(name, new ThreadLocal<>());
         LOG.info("Safe cached object {}", name);

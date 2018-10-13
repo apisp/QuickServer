@@ -20,8 +20,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.apisp.quick.ioc.Container.Injections;
-import net.apisp.quick.ioc.Container.ObjectCreaterUnit;
 import net.apisp.quick.ioc.annotation.Accept;
 import net.apisp.quick.log.Log;
 import net.apisp.quick.log.LogFactory;
@@ -87,7 +85,7 @@ public class FactoryResolver {
                         if (acceptInfo.value().length() > 0) {
                             name = acceptInfo.value();
                         }
-                        container.accept(name, ObjectCreaterUnit.create((args) -> {
+                        container.accept(name, ObjectInventorUnit.create((args) -> {
                             Method m = (Method) args[0];
                             Object exe = args[1];
                             Object[] pars = (Object[]) args[2];
@@ -140,7 +138,7 @@ public class FactoryResolver {
                 if (acceptInfo.value().length() > 0) {
                     name = acceptInfo.value();
                 }
-                container.accept(name, ObjectCreaterUnit.create((args) -> {
+                container.accept(name, ObjectInventorUnit.create((args) -> {
                     Method m = (Method) args[0];
                     Object exe = args[1];
                     Object[] pars = (Object[]) args[2];

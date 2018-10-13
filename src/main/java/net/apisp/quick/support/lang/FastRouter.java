@@ -18,8 +18,8 @@ package net.apisp.quick.support.lang;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import net.apisp.quick.core.http.HttpRequest;
-import net.apisp.quick.server.ServerContext;
+import net.apisp.quick.core.criterion.http.HttpRequest;
+import net.apisp.quick.old.server.ServerContext;
 
 /**
  * 快速映射。 在任何可以获取到QuickContext的地方，都可以用quickContext.mapping(key,
